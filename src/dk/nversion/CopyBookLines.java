@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface CopyBookFields {
-    CopyBookField[] value();
+public @interface CopyBookLines {
+    CopyBookLine[] value();
 }

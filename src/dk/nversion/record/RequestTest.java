@@ -1,24 +1,24 @@
 package dk.nversion.record;
 
-import dk.nversion.CopyBookField;
+import dk.nversion.CopyBookLine;
 
 public class RequestTest {
 
     // Fields
-    @CopyBookField("01 ID PIC 9(8).")
+    @CopyBookLine("01 ID PIC 9(8). * n:id")
     public int id;
-    @CopyBookField("01 CMD PIC X(10).")
+    @CopyBookLine("01 CMD PIC X(10).* n:command")
     public String command;
-    @CopyBookField("01 HELLO.")
+    @CopyBookLine("01 HELLO.")
     public RequestMessage hello;
-    @CopyBookField("01 ARGCNT PIC 9(2).")
+    @CopyBookLine("01 ARGCNT PIC 9(2).")
     public int args_count;
-    @CopyBookField("01 MSGCNT PIC 9(2).")
+    @CopyBookLine("01 MSGCNT PIC 9(2).")
     public int messages_count;
-    @CopyBookField("01 ARGS OCCURS 10 TIMES.")
-    @CopyBookField("02 ARG PIC X(8).")
+    @CopyBookLine("01 ARGS OCCURS 10 TIMES.")
+    @CopyBookLine("02 ARG PIC X(8).")
     public String[] args;
-    @CopyBookField("01 MSGS OCCURS 2 TIMES.")
+    @CopyBookLine("01 MSGS OCCURS 2 TIMES.")
     public RequestMessage[] messages;
 
     // Constructors

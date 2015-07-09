@@ -1,157 +1,181 @@
 package dk.nversion;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.util.ArrayDeque;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Deque;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 // http://www-01.ibm.com/support/knowledgecenter/SSXJAV_13.1.0/com.ibm.filemanager.doc_13.1/db2/fmnu2113.htm
+
 public class CopyBookSerializer {
-    Pattern re_occurs = Pattern.compile("OCCURS\\s+(\\d+)\\s+TIMES");
-    Pattern re_pictype = Pattern.compile("(X|9|S9)\\((\\d+)\\)(?:V9\\((\\d+)\\))?");
+    private Pattern re_occurs = Pattern.compile("OCCURS\\s+(\\d+)\\s+TIMES");
+    private List<CopyBookField> cbfields = new ArrayList<CopyBookField>();
+    private int recordsize = 0;
 
     public CopyBookSerializer() {
 
     }
 
-    public <T> CopyBookSerializer(Class<T> type) {
-        //TODO: Walk and find all copybook annotations and calc size of each secion
+    public <T> CopyBookSerializer(Class<T> type) throws Exception {
+        cbfields = walkClass(type, new Field[0], new int[0]);
+        for(CopyBookField cbfield : cbfields) {
+            recordsize += cbfield.size;
+
+            System.out.print("[");
+            for(Field field : cbfield.fields) {
+                System.out.print(field.getName() + ",");
+            }
+            System.out.print("]");
+            System.out.print(", ");
+            System.out.print(cbfield.size);
+            System.out.print(", [");
+            for(int index : cbfield.indexs) {
+                System.out.print(index + ",");
+            }
+            System.out.print("]");
+            System.out.println();
+        }
     }
 
-    public <T> void serialize(T obj, byte[] buf, int offset) throws Exception {
-        // Itegrate over the class fields with CopyBookField annotation
-        for (Field field : obj.getClass().getDeclaredFields()) {
-            CopyBookField[] cbfs = (CopyBookField[])field.getAnnotationsByType(CopyBookField.class);
-            if(cbfs.length == 0) {
-                // No CopyBookField on this field
-            
-            } else if(cbfs.length == 1) {
-                System.out.println("::" + cbfs[0].value());
-                int occurs = getOccurs(cbfs[0].value());
+    // Walk and find all copybook annotations and flatten to a list of CopyBookfields
+    private <T> List<CopyBookField> walkClass(Class<T> type, Field[] fields, int[] indexes) throws Exception {
+        List<CopyBookField> results = new ArrayList<>();
+        //TODO: Validate that copybook matches the fields
+
+        // Itegrate over the class fields with CopyBookLine annotation
+        for (Field field : type.getDeclaredFields()) {
+            Class fieldclass = field.getType();
+            CopyBookLine[] cbls = (CopyBookLine[])field.getAnnotationsByType(CopyBookLine.class);
+
+            // Append new field and index to arrays
+            Field[] currentfields = Arrays.copyOf(fields, fields.length + 1);
+            currentfields[currentfields.length -1] = field;
+
+            if(cbls.length == 0) {
+                // No CopyBookLine on this field
+
+            } else if(cbls.length == 1) {
+                System.out.println(new String(new char[currentfields.length * 2]).replace("\0", " ") + cbls[0].value());
+                int occurs = getOccurs(cbls[0].value());
+
                 if(occurs > 1) {
-                    int length = Array.getLength(field.get(obj));
-                    for (int i = 0; i < length; i ++) {
-                        serialize(Array.get(field.get(obj), i), buf, offset);
+                    if(fieldclass.isArray() && fieldclass.getComponentType().getPackage() == type.getPackage()) {
+                        // Array type in package
+                        for (int i=0; i < occurs; i++) {
+                            int[] currentindexes = Arrays.copyOf(indexes, indexes.length + 1);
+                            currentindexes[currentindexes.length -1] = i;
+                            results.addAll(walkClass(fieldclass.getComponentType(), currentfields, currentindexes));
+                        }
                     }
 
-                } else if(obj.getClass().getPackage() == field.get(obj).getClass().getPackage()) {
-                    serialize(field.get(obj), buf, offset);
+                } else if(fieldclass.getPackage() == type.getPackage()) {
+                    // Complex type in package
+                    int[] currentindexes = Arrays.copyOf(indexes, indexes.length + 1);
+                    currentindexes[currentindexes.length -1] = -1;
+                    results.addAll(walkClass(fieldclass, currentfields, currentindexes));
 
                 } else {
-                    byte[] bytes = getCobolBytes(field.get(obj), cbfs[0].value());
-                    System.out.println(new String(bytes));
-                    //TODO: Move offset by: bytes.length
+                    int[] currentindexes = Arrays.copyOf(indexes, indexes.length + 1);
+                    currentindexes[currentindexes.length -1] = -1;
+
+                    // Simple types, such as int and String
+                    CopyBookField cbf = new CopyBookField(cbls[0].value());
+                    cbf.fields = currentfields;
+                    cbf.indexs = currentindexes;
+                    results.add(cbf);
                 }
 
-            } else if(cbfs.length == 2) {
-                System.out.println("::" + cbfs[0].value());
-                int occurs = getOccurs(cbfs[0].value());
+            } else if(cbls.length == 2) {
+                System.out.println(new String(new char[currentfields.length * 2]).replace("\0", " ") +  cbls[0].value());
+                int occurs = getOccurs(cbls[0].value());
                 if(occurs > 1) {
-                    int length = Array.getLength(field.get(obj));
-                    for (int i = 0; i < length; i++) {
-                        System.out.println("::" + cbfs[1].value());
-                        byte[] bytes = getCobolBytes(Array.get(field.get(obj), i), cbfs[1].value());
-                        System.out.println(new String(bytes));
+                    // Simple array types, such as int[] and String[]
+                    for (int i = 0; i < occurs; i++) {
+                        System.out.println(new String(new char[currentfields.length * 2 + 2]).replace("\0", " ") + cbls[1].value());
+                        CopyBookField cbf = new CopyBookField(cbls[1].value());
+                        cbf.fields = currentfields;
+                        int[] currentindexes = Arrays.copyOf(indexes, indexes.length + 1);
+                        currentindexes[currentindexes.length -1] = i;
+                        cbf.indexs = currentindexes;
+                        results.add(cbf);
                     }
-                    //TODO: Move offset by: bytes.length * occurs , also handle if length is 0
+
                 } else {
-                    throw new Exception("Field is missing CopyBookField with OCCURS");
+                    throw new Exception("Field is missing CopyBookLine with OCCURS");
                 }
             }
         }
 
+        return results;
+    }
 
-        /*List<Field> fields = new ArrayList<Field>();
-        Deque<Class> classes = new ArrayDeque<Class>();
-        classes.add(obj.getClass());
+    /*
 
-        Class current;
-        int recordsize = 0;
-        while(!classes.isEmpty()) {
-            current = classes.pop();
-            System.out.println("class:" + current.getCanonicalName());
-            for (Field field : current.getDeclaredFields()) {
-                Class c = field.getType();
-                CopyBookField cbf = field.getAnnotation(CopyBookField.class);
-                if(cbf != null) {
-                    // Is this an static inner class of the object then we need to recurse to see if we have more annotations
-                    if(c.isArray() && c.getComponentType().getPackage() == current.getPackage()) {
-                        classes.add(c.getComponentType());
-                    } else if(c.getPackage() == current.getPackage()) {
-                        classes.add(c);
+[0] : [id], 8, [-1]
+[1] : [args], 8, [-1]
+[1] : [args], 8, [-1]
+[2] : [message, title], 20, [-1]
+[3] : [message, body], 200, [-1]
+[4] : [message, comments], 200, [-1, 0]
+[5] : [message, comments], 200, [-1, 1]
+[6] : [messages, title], 20, [0, -1]
+[7] : [messages, body], 200, [0, -1]
+[8] : [messages, comments], 200, [0, 0]
+[9] : [messages, comments], 200, [0, 1]
+[10] : [messages, title], 20, [1, -1]
+[11] : [messages, body], 200, [1, -1]
+[12] : [messages, comments], 200, [1, 0]
+[13] : [messages, comments], 200, [1, 1]
+     */
+
+
+    public <T> byte[] serialize(T obj) throws Exception {
+        ByteBuffer buf = ByteBuffer.wrap(new byte[this.recordsize]);
+        for(CopyBookField cbfield : cbfields) {
+
+            // Resolve obj for each fields
+            Object current = obj;
+            for (int i = 0; i < cbfield.fields.length; i++) {
+                current = cbfield.fields[i].get(current);
+                // Handle array types
+                if (current != null && cbfield.indexs[i] > -1) {
+                    if (cbfield.indexs[i] < Array.getLength(current)) {
+                        // Index smaller than actual array size
+                        current = Array.get(current, cbfield.indexs[i]);
                     } else {
-                        recordsize += cbf.size() * cbf.occurs();
-                        fields.add(field);
+                        current = null;
                     }
-                    System.out.println("field:" + field);
+                }
+
+                if (current == null) {
+                    break;
                 }
             }
-        }
-        System.out.println("size:" + recordsize); */
 
-    }
+            if (current != null) {
+                // Write cobol bytes to stream
+                writeCobolBytes(buf, current, cbfield.size, cbfield.type);
+                System.out.println(cbfield.type + "(" + cbfield.size + "): " + current.toString());
 
-    private byte[] getCobolBytes(Object obj, String picstr) throws Exception {
-        Matcher matcher = re_pictype.matcher(picstr);
-        if(matcher.find()) {
-            // String type
-            if(matcher.group(1).equals("X")) {
-                byte[] buffer = new byte[Integer.parseInt(matcher.group(2))];
-                byte[] result = obj.toString().getBytes(); // TODO: Fix charset
-                System.arraycopy(result, 0, buffer, 0,result.length);
-                // TODO: Do padding, fx. write zero in empty part
-                return result;
 
-            } else if (matcher.group(1).equals("S9")) {
-                if(matcher.group(3) != null) {
-                    // Signed decimal number
-                    byte[] buffer = new byte[Integer.parseInt(matcher.group(2))];
-                    byte[] result = obj.toString().getBytes(); // TODO: Fix charset
-                    System.arraycopy(result, 0, buffer, 0,result.length);
-                    // TODO: Do padding, fx. write zero in empty part
-                    return result;
-
-                } else {
-                    // Signed integer
-                    byte[] buffer = new byte[Integer.parseInt(matcher.group(2))];
-                    byte[] result = obj.toString().getBytes(); // TODO: Fix charset
-                    System.arraycopy(result, 0, buffer, 0,result.length);
-                    // TODO: Do padding, fx. write zero in empty part
-                    return result;
-                }
-
-            } else if (matcher.group(1).equals("9")) {
-                // Check if it's a decimal number
-                if(matcher.group(3) != null) {
-                    // Unsigned decimal
-                    byte[] buffer = new byte[Integer.parseInt(matcher.group(2))];
-                    byte[] result = obj.toString().getBytes(); // TODO: Fix charset
-                    System.arraycopy(result, 0, buffer, 0,result.length);
-                    // TODO: Do padding, fx. write zero in empty part
-                    return result;
-                } else {
-                    // Unsigned integer
-                    byte[] buffer = new byte[Integer.parseInt(matcher.group(2))];
-                    byte[] result = obj.toString().getBytes(); // TODO: Fix charset
-                    System.arraycopy(result, 0, buffer, 0,result.length);
-                    // TODO: Do padding, fx. write zero in empty part
-                    return result;
-                }
             } else {
-                throw new Exception("Unknown PIC type");
+                // Write empty space for missing obj
+                buf.put(new byte[cbfield.size]);
+                System.out.println(cbfield.type.name() + "(" + cbfield.size + "): " + "______");
             }
-
-        } else {
-            throw new Exception("Could not find any PIC type");
         }
+
+        return buf.array();
     }
 
+    private void writeCobolBytes(ByteBuffer buf, Object obj, int size, CopyBookType type) throws Exception {
+
+    }
 
     private int getOccurs(String str) {
         Matcher matcher = re_occurs.matcher(str);
