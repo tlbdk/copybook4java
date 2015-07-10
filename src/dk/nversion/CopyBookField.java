@@ -14,6 +14,7 @@ public class CopyBookField {
     public Field[] fields;
     public int[] indexs;
     public String line;
+    public Field counter;
 
     public CopyBookField() {
 

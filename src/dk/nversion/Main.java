@@ -10,9 +10,10 @@ public class Main {
     public static void main(String[] args) throws Exception {
 	    CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
 
-        RequestTest test1 = new RequestTest();
-        test1.id = 1;
-        test1.command = "cmd1234()";
+        RequestTest test1 = new RequestTest().builder()
+                .setId(1)
+                .setCommand("cmd1234()")
+                .build();
         test1.hello = new RequestMessage("Hello", "Body1234");
         test1.messages = new RequestMessage[] { new RequestMessage("msg1", "stuff123"), new RequestMessage("msg2", "stuff12345") };
         test1.messages_count = test1.messages.length;

@@ -3,9 +3,7 @@ package dk.nversion;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,12 +43,19 @@ public class CopyBookSerializer {
     // Walk and find all copybook annotations and flatten to a list of CopyBookfields
     private <T> List<CopyBookField> walkClass(Class<T> type, Field[] fields, int[] indexes) throws Exception {
         List<CopyBookField> results = new ArrayList<>();
+        Map<String, Field> fieldnames = new HashMap<>();
+
         //TODO: Validate that copybook matches the fields
 
         // Itegrate over the class fields with CopyBookLine annotation
         for (Field field : type.getDeclaredFields()) {
             Class fieldclass = field.getType();
             CopyBookLine[] cbls = (CopyBookLine[])field.getAnnotationsByType(CopyBookLine.class);
+
+            // Handle private fields
+            if(!field.isAccessible()) {
+                field.setAccessible(true);
+            }
 
             // Append new field and index to arrays
             Field[] currentfields = Arrays.copyOf(fields, fields.length + 1);
@@ -60,6 +65,7 @@ public class CopyBookSerializer {
                 // No CopyBookLine on this field
 
             } else if(cbls.length == 1) {
+                fieldnames.put(field.getName(), field);
                 System.out.println(new String(new char[currentfields.length * 2]).replace("\0", " ") + cbls[0].value());
                 int occurs = getOccurs(cbls[0].value());
 
@@ -88,9 +94,13 @@ public class CopyBookSerializer {
                     cbf.fields = currentfields;
                     cbf.indexs = currentindexes;
                     results.add(cbf);
+
+                    // TODO: Look up field in fieldnames to see if there is _cnt or _count field for this to add the _counter filed
+
                 }
 
             } else if(cbls.length == 2) {
+                fieldnames.put(field.getName(), field);
                 System.out.println(new String(new char[currentfields.length * 2]).replace("\0", " ") +  cbls[0].value());
                 int occurs = getOccurs(cbls[0].value());
                 if(occurs > 1) {

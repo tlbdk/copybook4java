@@ -6,7 +6,7 @@ public class RequestTest {
 
     // Fields
     @CopyBookLine("01 ID PIC 9(8). * n:id")
-    public int id;
+    private int id;
     @CopyBookLine("01 CMD PIC X(10).* n:command")
     public String command;
     @CopyBookLine("01 HELLO.")
@@ -55,5 +55,29 @@ public class RequestTest {
 
     public void setArgs(String[] args) {
         this.args = args;
+    }
+
+    // Builder
+    public static RequestTestBuilder builder() {
+        return new RequestTestBuilder();
+    }
+
+    public static final class RequestTestBuilder {
+
+        private final RequestTest requestTest = new RequestTest();
+
+        public RequestTestBuilder setId(int id) {
+            requestTest.id = id;
+            return this;
+        }
+
+        public RequestTestBuilder setCommand(String command) {
+            requestTest.command = command;
+            return this;
+        }
+
+        public RequestTest build() {
+            return requestTest;
+        }
     }
 }
