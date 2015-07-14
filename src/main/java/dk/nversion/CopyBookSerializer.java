@@ -3,6 +3,7 @@ package dk.nversion;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -144,10 +145,9 @@ public class CopyBookSerializer {
      */
 
 
-    public <T> byte[] serialize(T obj) throws Exception {
+    public <T> byte[] serialize(T obj, CopyBookOutputFormat format, Charset charset) throws Exception {
         ByteBuffer buf = ByteBuffer.wrap(new byte[this.recordsize]);
         for(CopyBookField cbfield : cbfields) {
-
             // Resolve obj for each fields
             Object current = obj;
             for (int i = 0; i < cbfield.fields.length; i++) {
@@ -169,9 +169,8 @@ public class CopyBookSerializer {
 
             if (current != null) {
                 // Write cobol bytes to stream
-                writeCobolBytes(buf, current, cbfield.size, cbfield.type);
+                buf.put(cbfield.getBytes(current, format, charset, (byte)32, true)); // Add space as padding
                 System.out.println(cbfield.type + "(" + cbfield.size + "): " + current.toString());
-
 
             } else {
                 // Write empty space for missing obj
@@ -183,8 +182,11 @@ public class CopyBookSerializer {
         return buf.array();
     }
 
-    private void writeCobolBytes(ByteBuffer buf, Object obj, int size, CopyBookType type) throws Exception {
-
+    // TODO: Use this instead of doing by hand
+    private <T> T[] arrayAppend(T[] array, T obj) {
+        T[] newarray = Arrays.copyOf(array, array.length + 1);
+        newarray[newarray.length -1] = obj;
+        return newarray;
     }
 
     private int getOccurs(String str) {

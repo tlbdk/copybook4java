@@ -1,6 +1,6 @@
 package dk.nversion;
 
-public enum CopyBookType {
+public enum CopyBookFieldType {
     STRING,
     INT,
     SIGNED_INT,

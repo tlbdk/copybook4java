@@ -4,6 +4,8 @@ import dk.nversion.record.RequestMessage;
 import dk.nversion.record.RequestTest;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class Main {
 
@@ -20,7 +22,7 @@ public class Main {
         test1.args = new String[] { "do", "stuff" };
         test1.args_count = test1.args.length;
 
-        byte [] test1data = requestTestSerializer.serialize(test1);
+        byte [] test1data = requestTestSerializer.serialize(test1, CopyBookOutputFormat.FULL, StandardCharsets.UTF_8);
 
         RequestTest test1result =  requestTestSerializer.deserialize(test1data, RequestTest.class);
     }
