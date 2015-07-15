@@ -5,56 +5,39 @@ import dk.nversion.CopyBookLine;
 public class RequestTest {
 
     // Fields
-    @CopyBookLine("01 ID PIC 9(8). * n:id")
+    @CopyBookLine("01 ID PIC 9(8). * id(leftpadding:32)")
     private int id;
-    @CopyBookLine("01 CMD PIC X(10).* n:command")
-    public String command;
+    @CopyBookLine("01 CMD PIC X(10). * command(leftpadding:32)")
+    private String command;
     @CopyBookLine("01 HELLO.")
-    public RequestMessage hello;
+    private RequestMessage hello;
     @CopyBookLine("01 ARGCNT PIC 9(2).")
-    public int args_count;
+    private int args_count;
     @CopyBookLine("01 MSGCNT PIC 9(2).")
-    public int messages_count;
+    private int messages_count;
     @CopyBookLine("01 ARGS OCCURS 10 TIMES.")
     @CopyBookLine("02 ARG PIC X(8).")
-    public String[] args;
+    private String[] args;
     @CopyBookLine("01 MSGS OCCURS 2 TIMES.")
-    public RequestMessage[] messages;
+    private RequestMessage[] messages;
 
     // Constructors
     public RequestTest() {
 
     }
 
-    public RequestTest(int id, String command, String[] args) {
-        this.id = id;
-        this.command = command;
-        this.args = args;
-    }
-
     // Setters/Getters
     public int getId() {
         return this.id;
     }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getCommand() {
         return this.command;
     }
-
-    public void setCommand(String command) {
-        this.command = command;
+    public RequestMessage getHello() {
+        return this.hello;
     }
-
     public String[] getArgs() {
         return this.args;
-    }
-
-    public void setArgs(String[] args) {
-        this.args = args;
     }
 
     // Builder
@@ -73,6 +56,23 @@ public class RequestTest {
 
         public RequestTestBuilder setCommand(String command) {
             requestTest.command = command;
+            return this;
+        }
+
+        public RequestTestBuilder setHello(RequestMessage message) {
+            requestTest.hello = message;
+            return this;
+        }
+
+        public RequestTestBuilder setArgs(String[] args) {
+            requestTest.args = args;
+            requestTest.args_count = args.length;
+            return this;
+        }
+
+        public RequestTestBuilder setMessages(RequestMessage[] messages) {
+            requestTest.messages = messages;
+            requestTest.messages_count = messages.length;
             return this;
         }
 
