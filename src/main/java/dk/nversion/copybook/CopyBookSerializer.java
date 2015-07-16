@@ -1,12 +1,19 @@
-package dk.nversion;
+package dk.nversion.copybook;
 
-import java.lang.reflect.Array;
+import dk.nversion.ByteUtils;
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.util.stream.Collectors.joining;
 
 
 // http://www-01.ibm.com/support/knowledgecenter/SSXJAV_13.1.0/com.ibm.filemanager.doc_13.1/db2/fmnu2113.htm
@@ -14,45 +21,53 @@ import java.util.regex.Pattern;
 public class CopyBookSerializer {
     private Pattern re_occurs = Pattern.compile("OCCURS\\s+(\\d+)\\s+TIMES");
     private List<CopyBookField> cbfields = new ArrayList<CopyBookField>();
-    private int recordsize = 0;
-    private CopyBookFormat format;
-    private Charset charset;
+    private int recordSize = 0;
+    private CopyBookFormat format = CopyBookFormat.FULL;
+    private Charset charset = StandardCharsets.UTF_8;
+    private Map<CopyBookFieldType,CopyBookPadding> paddingDefaults = new HashMap<>();
 
-    public CopyBookSerializer() {
+    public <T> CopyBookSerializer(Class<T> type) throws Exception {
+        // Read all annotations recursively
+        Stack<Class> classes = new Stack<>();
+        classes.push(CopyBookDefaults.class); // Load defaults from interface
+        classes.push(type);
+        while (!classes.isEmpty()) {
+            for (Annotation annotation : classes.pop().getAnnotations()) {
+                if(CopyBook.class.isInstance(annotation)) {
+                    this.format = ((CopyBook)annotation).format();
+                    this.charset = Charset.forName(((CopyBook)annotation).charset());
 
-    }
-
-    public <T> CopyBookSerializer(Class<T> type, CopyBookFormat format, Charset charset) throws Exception {
-        this.format = format;
-        this.charset = charset;
-
-        this.cbfields = walkClass(type, new Field[0], new int[0], new int[0]);
-        for(CopyBookField cbfield : cbfields) {
-            recordsize += cbfield.size;
-
-            System.out.print("[");
-            for(Field field : cbfield.fields) {
-                System.out.print(field.getName() + ",");
+                } else if (CopyBookPaddings.class.isInstance(annotation)){
+                    for(CopyBookPadding padding : ((CopyBookPaddings) annotation).value()) {
+                        this.paddingDefaults.put(padding.fieldType(), padding);
+                    }
+                }
+                if(!annotation.annotationType().getName().startsWith("java")) {
+                    classes.push(annotation.annotationType());
+                }
             }
-            System.out.print("]");
+        }
+
+        // Walk class hierarchy
+        this.cbfields = walkClass(type, new Field[0], new int[0], new int[0], new CopyBookField[0]);
+        for(CopyBookField cbfield : cbfields) {
+            cbfield.offset = recordSize;
+            recordSize += cbfield.size;
+
+            // Print copybook layout
+            System.out.print("[" + Arrays.stream(cbfield.fields).map(Field::getName).collect(joining(", ")) + "]");
             System.out.print(", ");
             System.out.print(cbfield.size);
-            System.out.print(", [");
-            for(int index : cbfield.indexs) {
-                System.out.print(index + ",");
-            }
-            System.out.print("], ");
-            System.out.print(", [");
-            for(int index : cbfield.occurs) {
-                System.out.print(index + ",");
-            }
-            System.out.print("], ");
+            System.out.print(", ");
+            System.out.print("[" + Arrays.stream(cbfield.indexs).mapToObj(String::valueOf).collect(joining(", ")) + "]");
+            System.out.print(", ");
+            System.out.print("[" + Arrays.stream(cbfield.occurs).mapToObj(String::valueOf).collect(joining(", ")) + "]");
             System.out.println();
         }
     }
 
     // Walk and find all copybook annotations and flatten to a list of CopyBookfields
-    private <T> List<CopyBookField> walkClass(Class<T> type, Field[] fields, int[] indexes, int[] occurs) throws Exception {
+    private <T> List<CopyBookField> walkClass(Class<T> type, Field[] fields, int[] indexes, int[] occurs, CopyBookField[] counters) throws Exception {
         List<CopyBookField> results = new ArrayList<>();
         Map<String, CopyBookField> fieldnames = new HashMap<>();
 
@@ -63,13 +78,23 @@ public class CopyBookSerializer {
             Class fieldclass = field.getType();
             CopyBookLine[] cbls = (CopyBookLine[])field.getAnnotationsByType(CopyBookLine.class);
 
+            // Read annotations for padding of this field
+            Map<CopyBookFieldType,CopyBookPadding> fieldPaddings = new HashMap<>(paddingDefaults);
+            for(CopyBookPadding padding : (CopyBookPadding[])field.getAnnotationsByType(CopyBookPadding.class)) {
+                fieldPaddings.put(padding.fieldType(), padding);
+            }
+
             // Handle private fields
             if(!field.isAccessible()) {
                 field.setAccessible(true);
             }
 
             // Append new field and index to arrays
-            Field[] currentfields =arrayAppend(fields, field);
+            Field[] currentfields = arrayAppend(fields, field);
+
+            // Append counter filed
+            CopyBookField countercbf = fieldnames.get(field.getName() + "_count");
+            CopyBookField[] currentcounters = arrayAppend(counters, countercbf);;
 
             if(cbls.length == 0) {
                 // No CopyBookLine on this field
@@ -79,39 +104,36 @@ public class CopyBookSerializer {
                 int occurscount = getOccurs(cbls[0].value());
 
                 if(occurscount > 1) {
-                    if(fieldclass.isArray() && fieldclass.getComponentType().getPackage() == type.getPackage()) {
+                    if(fieldclass.isArray() && fieldclass.getComponentType().getPackage() == type.getPackage()) { //TODO: Check if it has the copybook flag
                         // Array type in package
                         for (int i=0; i < occurscount; i++) {
-                            results.addAll(walkClass(fieldclass.getComponentType(), currentfields, arrayAppend(indexes, i), arrayAppend(occurs, occurscount)));
+                            results.addAll(walkClass(fieldclass.getComponentType(), currentfields, arrayAppend(indexes, i), arrayAppend(occurs, occurscount), currentcounters));
                         }
                     }
 
                 } else if(fieldclass.getPackage() == type.getPackage()) {
                     // Complex type in package
-                    results.addAll(walkClass(fieldclass, currentfields, arrayAppend(indexes, -1), arrayAppend(occurs, occurscount)));
+                    results.addAll(walkClass(fieldclass, currentfields, arrayAppend(indexes, -1), arrayAppend(occurs, occurscount), currentcounters));
 
                 } else {
                     // Simple types, such as int and String
-                    CopyBookField cbf = new CopyBookField(cbls[0].value());
+                    CopyBookField cbf = new CopyBookField(cbls[0].value(), fieldPaddings);
                     cbf.fields = currentfields;
+                    cbf.counters = currentcounters;
                     cbf.indexs = arrayAppend(indexes, -1);
                     cbf.occurs = arrayAppend(occurs, occurscount);
                     results.add(cbf);
                     fieldnames.put(field.getName(), cbf);
 
-                    // Reference counter field if exists
+                    // Find field this field is a counter for and reference it
                     String name = field.getName();
                     if(name.endsWith("_count")) {
                         CopyBookField refcbf = fieldnames.get(name.substring(name.length() - 6));
                         if(refcbf != null) {
-                            refcbf.counter = cbf;
-                        }
-                    } else {
-                        CopyBookField refcbf = fieldnames.get(name + "_count");
-                        if(refcbf != null) {
-                            cbf.counter = refcbf;
+                            refcbf.counters[refcbf.counters.length -1] = cbf;
                         }
                     }
+
                 }
 
             } else if(cbls.length == 2) {
@@ -121,24 +143,20 @@ public class CopyBookSerializer {
                     // Simple array types, such as int[] and String[]
                     for (int i = 0; i < occurscount; i++) {
                         System.out.println(new String(new char[currentfields.length * 2 + 2]).replace("\0", " ") + cbls[1].value());
-                        CopyBookField cbf = new CopyBookField(cbls[1].value());
+                        CopyBookField cbf = new CopyBookField(cbls[1].value(), fieldPaddings);
                         cbf.fields = currentfields;
+                        cbf.counters = currentcounters;
                         cbf.indexs = arrayAppend(indexes, i);
                         cbf.occurs = arrayAppend(occurs, occurscount);
                         results.add(cbf);
                         fieldnames.put(field.getName(), cbf);
 
-                        // Reference counter field if exists
+                        // Find field this field is a counter for and reference it
                         String name = field.getName();
                         if(name.endsWith("_count")) {
                             CopyBookField refcbf = fieldnames.get(name.substring(name.length() - 6));
                             if(refcbf != null) {
-                                refcbf.counter = cbf;
-                            }
-                        } else {
-                            CopyBookField refcbf = fieldnames.get(name + "_count");
-                            if(refcbf != null) {
-                                cbf.counter = refcbf;
+                                refcbf.counters[refcbf.counters.length -1] = cbf;
                             }
                         }
                     }
@@ -151,28 +169,20 @@ public class CopyBookSerializer {
         return results;
     }
 
-    /*
+    public <T> byte[] serialize(T obj) throws CopyBookException, InstantiationException, IllegalAccessException {
+        if(this.format == CopyBookFormat.FULL) {
+            return serializeFull(obj);
 
-[0] : [id], 8, [-1]
-[1] : [args], 8, [-1]
-[1] : [args], 8, [-1]
-[2] : [message, title], 20, [-1]
-[3] : [message, body], 200, [-1]
-[4] : [message, comments], 200, [-1, 0]
-[5] : [message, comments], 200, [-1, 1]
-[6] : [messages, title], 20, [0, -1]
-[7] : [messages, body], 200, [0, -1]
-[8] : [messages, comments], 200, [0, 0]
-[9] : [messages, comments], 200, [0, 1]
-[10] : [messages, title], 20, [1, -1]
-[11] : [messages, body], 200, [1, -1]
-[12] : [messages, comments], 200, [1, 0]
-[13] : [messages, comments], 200, [1, 1]
-     */
+        } else if (this.format == CopyBookFormat.PACKED) {
+            return serializePacked(obj);
 
+        } else {
+            throw new CopyBookException("Unsupported format");
+        }
+    }
 
-    public <T> byte[] serialize(T obj) throws Exception {
-        ByteBuffer buf = ByteBuffer.wrap(new byte[this.recordsize]);
+    private <T> byte[] serializeFull(T obj) throws CopyBookException, IllegalAccessException {
+        ByteBuffer buf = ByteBuffer.wrap(new byte[this.recordSize]);
         for(CopyBookField cbfield : cbfields) {
             Object current = cbfield.get(obj);
             if (current != null) {
@@ -200,7 +210,7 @@ public class CopyBookSerializer {
 
                 if(bytes.length <= cbfield.size) {
                     result = new byte[cbfield.size];
-                    Arrays.fill(result, cbfield.padding); // TODO: Get from field
+                    Arrays.fill(result, cbfield.padding);
                     if(cbfield.rightpadding) {
                         System.arraycopy(bytes, 0, result, 0, bytes.length);
                     } else {
@@ -211,19 +221,23 @@ public class CopyBookSerializer {
                     throw new CopyBookException("Field '"+ cbfield.getFieldName() +"' to long : " + bytes.length + " > " + cbfield.size);
                 }
 
-                buf.put(result); // Add space as padding
+                buf.put(result);
                 System.out.println(cbfield.type + "(" + cbfield.size + ","+ result.length +"): " + current.toString());
 
             } else {
                 // Write empty space for missing obj
                 byte[] filler = new byte[cbfield.size];
-                Arrays.fill(filler, (byte)32);
+                Arrays.fill(filler, cbfield.padding);
                 buf.put(filler);
                 System.out.println(cbfield.type.name() + "(" + cbfield.size + "): " + "______");
             }
         }
 
         return buf.array();
+    }
+
+    private <T> byte[] serializePacked(T obj) {
+        return null;
     }
 
     private <T> T[] arrayAppend(T[] array, T obj) {
@@ -267,8 +281,7 @@ public class CopyBookSerializer {
                 // Convert field bytes to string and trim value
                 byte[] bytevalue =  new byte[cbfield.size];
                 buf.get(bytevalue);
-                String strvalue = new String(bytevalue, charset);
-                strvalue = strvalue.trim(); //TODO: remove padding chars as this might not be space
+                String strvalue = new String(ByteUtils.trim(bytevalue, cbfield.padding, cbfield.rightpadding), charset);
 
                 // Convert to native types
                 try {
@@ -285,6 +298,8 @@ public class CopyBookSerializer {
                                 result = Integer.parseInt(strvalue);
                             } else if (fieldtype.equals(Long.TYPE)) {
                                 result = Long.parseLong(strvalue);
+                            } else if (fieldtype.equals(BigInteger.class)) {
+                                result = Long.parseLong(strvalue);
                             } else {
                                 throw new CopyBookException("Field did not match type : " + cbfield.getFieldName());
                             }
@@ -296,6 +311,8 @@ public class CopyBookSerializer {
                                 result = Float.parseFloat(strvalue);
                             } else if (fieldtype.equals(Double.TYPE)) {
                                 result = Double.parseDouble(strvalue);
+                            } else if (fieldtype.equals(BigDecimal.class)) {
+                                result = Double.parseDouble(strvalue);
                             } else {
                                 throw new CopyBookException("Field did not match type : " + cbfield.getFieldName());
                             }
@@ -306,8 +323,16 @@ public class CopyBookSerializer {
                         }
                     }
 
-                    // TODO: Skip set if we have read the counter field and found it to be outside the limits
-                    cbfield.set(obj, result, true);
+                    int[] sizes = new int[cbfield.counters.length];
+                    for (int i = 0; i < cbfield.counters.length; i++) {
+                        CopyBookField counter = cbfield.counters[i];
+                        if (counter != null) {
+                            strvalue = new String(ByteUtils.trim(Arrays.copyOfRange(data, counter.offset, counter.offset + counter.size), counter.padding, counter.rightpadding), charset);
+                            sizes[i] = Integer.parseInt(strvalue);
+                        }
+                    }
+
+                    cbfield.set(obj, result, true, sizes); // TODO: Validate that sizes are not bigger than allowed
 
                 } catch (NumberFormatException ex) {
                     // TODO: Error with field that failed validation

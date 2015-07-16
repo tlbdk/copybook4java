@@ -1,0 +1,37 @@
+package dk.nversion;
+
+import java.util.Arrays;
+
+public class ByteUtils {
+
+    public static byte[] trim(byte[] src, byte padding, boolean right) {
+        if(right) {
+            int offset;
+            for (offset = src.length - 1; offset > 0; offset--) {
+                if(padding != src[offset]) {
+                    break;
+                }
+            }
+            if(offset == src.length) {
+                return new byte[0];
+            } else if (offset < src.length - 1){
+                return Arrays.copyOfRange(src, 0, offset + 1);
+            }
+
+        } else {
+            int offset;
+            for (offset = 0; offset < src.length; offset++) {
+                if(padding != src[offset]) {
+                    break;
+                }
+            }
+            if(offset == src.length) {
+                return new byte[0];
+            } else if(offset > 0) {
+                return Arrays.copyOfRange(src, offset, src.length);
+            }
+        }
+
+        return src;
+    }
+}

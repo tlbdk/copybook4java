@@ -1,8 +1,9 @@
-package dk.nversion;
+package dk.nversion.copybook;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,22 +11,23 @@ public class CopyBookField {
     private Pattern re_pictype = Pattern.compile("(X|9|S9)\\((\\d+)\\)(?:V9\\((\\d+)\\))?");
 
     public CopyBookFieldType type;
+    public int offset;
     public int size;
     public int decimal;
     public Field[] fields;
     public int[] indexs;
     public int[] occurs;
+    public CopyBookField[] counters;
     public String line;
-    public CopyBookField counter;
-    // TODO: Get this from the copybook comments
-    public boolean rightpadding = true;
-    public byte padding = (byte)32;
+
+    public boolean rightpadding;
+    public byte padding;
 
     public CopyBookField() {
 
     }
 
-    public CopyBookField(String copybookline) throws Exception {
+    public CopyBookField(String copybookline, Map<CopyBookFieldType,CopyBookPadding> paddingDefaults) throws Exception {
         this.line = copybookline;
         Matcher matcher = re_pictype.matcher(copybookline);
         if(matcher.find()) {
@@ -70,6 +72,9 @@ public class CopyBookField {
         } else {
             throw new Exception("Could not find any PIC type");
         }
+
+        this.padding = (byte)paddingDefaults.get(this.type).character();
+        this.rightpadding = paddingDefaults.get(this.type).right();
     }
 
     public void setOccurs() {
@@ -108,10 +113,22 @@ public class CopyBookField {
                 break;
             }
         }
+
         return current;
     }
 
     public void set(Object obj, Object value, boolean recursive) throws IllegalAccessException, CopyBookException, InstantiationException {
+        int[] sizes = new int[this.counters.length];
+        set(obj, value, recursive, sizes);
+    }
+
+
+    public void set(Object obj, Object value, boolean recursive, int[] sizes) throws IllegalAccessException, CopyBookException, InstantiationException {
+        // Skip field if the index is larger than array size
+        if (getIndex() > sizes[sizes.length -1] -1) {
+            return;
+        }
+
         Object current = obj;
         for (int i = 0; i < fields.length - 1; i++) {
             // Get existing object
@@ -120,7 +137,7 @@ public class CopyBookField {
             // Create new object to hold value
             if(nextcurrent == null) {
                 if(indexs[i] > -1) {
-                    nextcurrent = Array.newInstance(fields[i].getType().getComponentType(), this.occurs[i]);
+                    nextcurrent = Array.newInstance(fields[i].getType().getComponentType(), sizes[i] > 0 ? sizes[i] :  this.occurs[i]);
                 } else {
                     nextcurrent = fields[i].getType().newInstance();
                 }
@@ -144,7 +161,7 @@ public class CopyBookField {
         if(index > -1) {
             Object nextcurrent = field.get(current);
             if(nextcurrent == null) {
-                nextcurrent = Array.newInstance(fields[index].getType().getComponentType(), this.occurs[index]);
+                nextcurrent = Array.newInstance(fields[index].getType().getComponentType(), sizes[index] > 0 ? sizes[index] : this.occurs[index]);
                 field.set(current, nextcurrent);
             }
             Array.set(nextcurrent, index, value);
@@ -154,9 +171,12 @@ public class CopyBookField {
         }
     }
 
+    public Class getFieldType() {
+        return fields[fields.length - 1].getType();
+    }
 
     public String getFieldName() {
-        return getFieldName(fields.length -1);
+        return getFieldName(fields.length - 1);
     }
 
     public String getFieldName(int index) {
@@ -171,12 +191,20 @@ public class CopyBookField {
         return fields[fields.length - 1];
     }
 
-    public int getLastIndex() {
+    public int getIndex() {
         return indexs[indexs.length -1];
     }
 
-    public boolean isLastFieldArray() {
+    public int getIndex(int index) {
+        return indexs[index];
+    }
+
+    public boolean isArray() {
         return indexs[indexs.length -1] > -1;
+    }
+
+    public boolean isArray(int index) {
+        return indexs[index] > -1;
     }
 
     public Object newInstanceLastField() throws IllegalAccessException, InstantiationException {
@@ -184,7 +212,7 @@ public class CopyBookField {
     }
 
     public Object newInstance(int index) throws IllegalAccessException, InstantiationException {
-        if(isLastFieldArray()) {
+        if(isArray()) {
             Object obj = Array.newInstance(this.fields[index].getType().getComponentType(), this.occurs[index]);
             for(int i=0; i < this.occurs[index]; i++) {
                 Array.set(obj, i, this.fields[index].getType().getComponentType().newInstance());

@@ -1,13 +1,13 @@
-package dk.nversion.record;
+package dk.nversion.copybook.record.test;
 
-import dk.nversion.CopyBookLine;
+import dk.nversion.copybook.*;
 
+@CopyBook(charset = "UTF-8", format = CopyBookFormat.FULL)
 public class RequestTest {
-
     // Fields
-    @CopyBookLine("01 ID PIC 9(8). * id(leftpadding:32)")
+    @CopyBookLine("01 ID PIC 9(8).")
     private int id;
-    @CopyBookLine("01 CMD PIC X(10). * command(leftpadding:32)")
+    @CopyBookLine("01 CMD PIC X(10).")
     private String command;
     @CopyBookLine("01 HELLO.")
     private RequestMessage hello;
@@ -38,6 +38,9 @@ public class RequestTest {
     }
     public String[] getArgs() {
         return this.args;
+    }
+    public RequestMessage[] getMessages() {
+        return this.messages;
     }
 
     // Builder
