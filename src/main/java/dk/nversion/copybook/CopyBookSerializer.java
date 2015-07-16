@@ -104,14 +104,14 @@ public class CopyBookSerializer {
                 int occurscount = getOccurs(cbls[0].value());
 
                 if(occurscount > 1) {
-                    if(fieldclass.isArray() && fieldclass.getComponentType().getPackage() == type.getPackage()) { //TODO: Check if it has the copybook flag
+                    if(fieldclass.isArray() && fieldclass.getComponentType().getPackage() == type.getPackage()) { //TODO: Check if it has the copybook annotation instead of using package
                         // Array type in package
                         for (int i=0; i < occurscount; i++) {
                             results.addAll(walkClass(fieldclass.getComponentType(), currentfields, arrayAppend(indexes, i), arrayAppend(occurs, occurscount), currentcounters));
                         }
                     }
 
-                } else if(fieldclass.getPackage() == type.getPackage()) {
+                } else if(fieldclass.getPackage() == type.getPackage()) { //TODO: Check if it has the copybook annotation instead of using package
                     // Complex type in package
                     results.addAll(walkClass(fieldclass, currentfields, arrayAppend(indexes, -1), arrayAppend(occurs, occurscount), currentcounters));
 
