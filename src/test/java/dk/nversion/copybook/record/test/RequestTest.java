@@ -2,6 +2,8 @@ package dk.nversion.copybook.record.test;
 
 import dk.nversion.copybook.*;
 
+import java.util.Arrays;
+
 @CopyBook(charset = "UTF-8", format = CopyBookFormat.FULL)
 public class RequestTest {
     // Fields
@@ -20,6 +22,37 @@ public class RequestTest {
     private String[] args;
     @CopyBookLine("01 MSGS OCCURS 2 TIMES.")
     private RequestMessage[] messages;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RequestTest that = (RequestTest) o;
+
+        if (id != that.id) return false;
+        if (args_count != that.args_count) return false;
+        if (messages_count != that.messages_count) return false;
+        if (command != null ? !command.equals(that.command) : that.command != null) return false;
+        if (hello != null ? !hello.equals(that.hello) : that.hello != null) return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(args, that.args)) return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        return Arrays.equals(messages, that.messages);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + (command != null ? command.hashCode() : 0);
+        result = 31 * result + (hello != null ? hello.hashCode() : 0);
+        result = 31 * result + args_count;
+        result = 31 * result + messages_count;
+        result = 31 * result + (args != null ? Arrays.hashCode(args) : 0);
+        result = 31 * result + (messages != null ? Arrays.hashCode(messages) : 0);
+        return result;
+    }
 
     // Constructors
     public RequestTest() {

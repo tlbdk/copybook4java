@@ -21,10 +21,6 @@ public class CopyBookSerializerTest {
         byte[] test1data = requestTestSerializer.serialize(test1);
         RequestTest test2 = requestTestSerializer.deserialize(test1data, RequestTest.class);
 
-        assertEquals(test1.getId(), test2.getId());
-        assertArrayEquals(test1.getArgs(), test2.getArgs());
-        assertEquals(test1.getCommand(), test2.getCommand());
-        assertEquals(test1.getHello().title, test2.getHello().title);
-        assertEquals(test1.getHello().body, test2.getHello().body);
+        assertEquals(test1, test2);
     }
 }
