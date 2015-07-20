@@ -1,6 +1,9 @@
-package dk.nversion.copybook.record.full;
+package dk.nversion.copybook.packed;
 
-import dk.nversion.copybook.*;
+import dk.nversion.copybook.CopyBook;
+import dk.nversion.copybook.CopyBookFieldFormat;
+import dk.nversion.copybook.CopyBookFieldType;
+import dk.nversion.copybook.CopyBookLine;
 
 @CopyBook()
 @CopyBookFieldFormat(fieldType = CopyBookFieldType.INT, rightPadding = true, paddingChar = '0')
