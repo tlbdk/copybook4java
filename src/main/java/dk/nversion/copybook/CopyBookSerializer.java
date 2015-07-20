@@ -15,9 +15,6 @@ import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.joining;
 
-
-// http://www-01.ibm.com/support/knowledgecenter/SSXJAV_13.1.0/com.ibm.filemanager.doc_13.1/db2/fmnu2113.htm
-
 public class CopyBookSerializer {
     private Pattern re_occurs = Pattern.compile("OCCURS\\s+(\\d+)\\s+TIMES");
     private List<CopyBookField> cbfields = new ArrayList<CopyBookField>();
@@ -104,14 +101,14 @@ public class CopyBookSerializer {
                 int occurscount = getOccurs(cbls[0].value());
 
                 if(occurscount > 1) {
-                    if(fieldclass.isArray() && fieldclass.getComponentType().getPackage() == type.getPackage()) { //TODO: Check if it has the copybook annotation instead of using package
+                    if(fieldclass.isArray() && fieldclass.getComponentType().getAnnotation(CopyBook.class) != null) {
                         // Array type in package
                         for (int i=0; i < occurscount; i++) {
                             results.addAll(walkClass(fieldclass.getComponentType(), currentfields, arrayAppend(indexes, i), arrayAppend(occurs, occurscount), currentcounters));
                         }
                     }
 
-                } else if(fieldclass.getPackage() == type.getPackage()) { //TODO: Check if it has the copybook annotation instead of using package
+                } else if(fieldclass.getAnnotation(CopyBook.class) != null) {
                     // Complex type in package
                     results.addAll(walkClass(fieldclass, currentfields, arrayAppend(indexes, -1), arrayAppend(occurs, occurscount), currentcounters));
 

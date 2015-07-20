@@ -1,4 +1,4 @@
-package dk.nversion.copybook.record.test;
+package dk.nversion.copybook.record.full;
 
 import dk.nversion.copybook.*;
 
