@@ -2,12 +2,12 @@ package dk.nversion.copybook.record.header;
 
 import dk.nversion.copybook.CopyBook;
 import dk.nversion.copybook.CopyBookFieldType;
-import dk.nversion.copybook.CopyBookFormat;
-import dk.nversion.copybook.CopyBookPadding;
+import dk.nversion.copybook.CopyBookSerializationFormat;
+import dk.nversion.copybook.CopyBookFieldFormat;
 
-@CopyBook(format = CopyBookFormat.FULL, charset = "UTF-8")
-@CopyBookPadding(fieldType = CopyBookFieldType.INT, right = true, character  = '0')
-@CopyBookPadding(fieldType = CopyBookFieldType.STRING, right = true, character  = ' ')
+@CopyBook(format = CopyBookSerializationFormat.FULL, charset = "UTF-8")
+@CopyBookFieldFormat(fieldType = CopyBookFieldType.INT, rightPadding = true, paddingChar = '0')
+@CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = true, paddingChar = ' ')
 public class RequestHeader {
     private String username;
     private String requestId;

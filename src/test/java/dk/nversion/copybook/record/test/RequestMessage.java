@@ -3,12 +3,12 @@ package dk.nversion.copybook.record.test;
 import dk.nversion.copybook.*;
 
 @CopyBook()
-@CopyBookPadding(fieldType = CopyBookFieldType.INT, right = true, character  = '0')
-@CopyBookPadding(fieldType = CopyBookFieldType.STRING, right = true, character  = ' ')
+@CopyBookFieldFormat(fieldType = CopyBookFieldType.INT, rightPadding = true, paddingChar = '0')
+@CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = true, paddingChar = ' ')
 public class RequestMessage {
     @CopyBookLine("02 TITLE PIC X(5).")
     public String title;
-    @CopyBookPadding(fieldType = CopyBookFieldType.STRING, right = false, character  = '_')
+    @CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = false, paddingChar = '_')
     @CopyBookLine("02 BODY PIC X(10).")
     public String body;
 

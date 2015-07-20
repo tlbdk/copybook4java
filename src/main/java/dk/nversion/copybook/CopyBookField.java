@@ -2,7 +2,6 @@ package dk.nversion.copybook;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,7 +26,7 @@ public class CopyBookField {
 
     }
 
-    public CopyBookField(String copybookline, Map<CopyBookFieldType,CopyBookPadding> paddingDefaults) throws Exception {
+    public CopyBookField(String copybookline, Map<CopyBookFieldType,CopyBookFieldFormat> paddingDefaults) throws Exception {
         this.line = copybookline;
         Matcher matcher = re_pictype.matcher(copybookline);
         if(matcher.find()) {
@@ -73,8 +72,8 @@ public class CopyBookField {
             throw new Exception("Could not find any PIC type");
         }
 
-        this.padding = (byte)paddingDefaults.get(this.type).character();
-        this.rightpadding = paddingDefaults.get(this.type).right();
+        this.padding = (byte)paddingDefaults.get(this.type).paddingChar();
+        this.rightpadding = paddingDefaults.get(this.type).rightPadding();
     }
 
     public void setOccurs() {

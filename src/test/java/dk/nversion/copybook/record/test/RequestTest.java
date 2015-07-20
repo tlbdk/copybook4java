@@ -4,7 +4,7 @@ import dk.nversion.copybook.*;
 
 import java.util.Arrays;
 
-@CopyBook(charset = "UTF-8", format = CopyBookFormat.FULL)
+@CopyBook(charset = "UTF-8", format = CopyBookSerializationFormat.FULL)
 public class RequestTest {
     // Fields
     @CopyBookLine("01 ID PIC 9(8).")

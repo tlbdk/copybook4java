@@ -22,9 +22,9 @@ public class CopyBookSerializer {
     private Pattern re_occurs = Pattern.compile("OCCURS\\s+(\\d+)\\s+TIMES");
     private List<CopyBookField> cbfields = new ArrayList<CopyBookField>();
     private int recordSize = 0;
-    private CopyBookFormat format = CopyBookFormat.FULL;
+    private CopyBookSerializationFormat format = CopyBookSerializationFormat.FULL;
     private Charset charset = StandardCharsets.UTF_8;
-    private Map<CopyBookFieldType,CopyBookPadding> paddingDefaults = new HashMap<>();
+    private Map<CopyBookFieldType,CopyBookFieldFormat> paddingDefaults = new HashMap<>();
 
     public <T> CopyBookSerializer(Class<T> type) throws Exception {
         // Read all annotations recursively
@@ -37,8 +37,8 @@ public class CopyBookSerializer {
                     this.format = ((CopyBook)annotation).format();
                     this.charset = Charset.forName(((CopyBook)annotation).charset());
 
-                } else if (CopyBookPaddings.class.isInstance(annotation)){
-                    for(CopyBookPadding padding : ((CopyBookPaddings) annotation).value()) {
+                } else if (CopyBookFieldFormats.class.isInstance(annotation)){
+                    for(CopyBookFieldFormat padding : ((CopyBookFieldFormats) annotation).value()) {
                         this.paddingDefaults.put(padding.fieldType(), padding);
                     }
                 }
@@ -79,8 +79,8 @@ public class CopyBookSerializer {
             CopyBookLine[] cbls = (CopyBookLine[])field.getAnnotationsByType(CopyBookLine.class);
 
             // Read annotations for padding of this field
-            Map<CopyBookFieldType,CopyBookPadding> fieldPaddings = new HashMap<>(paddingDefaults);
-            for(CopyBookPadding padding : (CopyBookPadding[])field.getAnnotationsByType(CopyBookPadding.class)) {
+            Map<CopyBookFieldType,CopyBookFieldFormat> fieldPaddings = new HashMap<>(paddingDefaults);
+            for(CopyBookFieldFormat padding : (CopyBookFieldFormat[])field.getAnnotationsByType(CopyBookFieldFormat.class)) {
                 fieldPaddings.put(padding.fieldType(), padding);
             }
 
@@ -170,10 +170,10 @@ public class CopyBookSerializer {
     }
 
     public <T> byte[] serialize(T obj) throws CopyBookException, InstantiationException, IllegalAccessException {
-        if(this.format == CopyBookFormat.FULL) {
+        if(this.format == CopyBookSerializationFormat.FULL) {
             return serializeFull(obj);
 
-        } else if (this.format == CopyBookFormat.PACKED) {
+        } else if (this.format == CopyBookSerializationFormat.PACKED) {
             return serializePacked(obj);
 
         } else {
@@ -262,10 +262,10 @@ public class CopyBookSerializer {
     }
 
     public <T> T deserialize(byte[] data, Class<T> type) throws CopyBookException, InstantiationException {
-        if(this.format == CopyBookFormat.FULL) {
+        if(this.format == CopyBookSerializationFormat.FULL) {
             return deserializeFull(data, type);
 
-        } else if (this.format == CopyBookFormat.PACKED) {
+        } else if (this.format == CopyBookSerializationFormat.PACKED) {
             return deserializePacked(data, type);
 
         } else {

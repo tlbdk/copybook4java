@@ -4,9 +4,9 @@ import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.FIELD })
-@Repeatable(CopyBookPaddings.class)
-public @interface CopyBookPadding {
+@Repeatable(CopyBookFieldFormats.class)
+public @interface CopyBookFieldFormat {
     public CopyBookFieldType fieldType();
-    public boolean right();
-    public char character();
+    public boolean rightPadding();
+    public char paddingChar();
 }

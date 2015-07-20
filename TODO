@@ -1,0 +1,2 @@
+# TODO
+* Implement CopyBookFieldFormat to hold Data and time formatting for strings, maybe move CopyBookPadding to this as well, use java.time from Java 8
