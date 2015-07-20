@@ -19,29 +19,30 @@ public class CopyBookSerializer {
     private Pattern re_occurs = Pattern.compile("OCCURS\\s+(\\d+)\\s+TIMES");
     private List<CopyBookField> cbfields = new ArrayList<CopyBookField>();
     private int recordSize = 0;
-    private CopyBookSerializationFormat format = CopyBookSerializationFormat.FULL;
-    private Charset charset = StandardCharsets.UTF_8;
+    private CopyBookSerializationFormat format;
+    private Charset charset;
     private Map<CopyBookFieldType,CopyBookFieldFormat> paddingDefaults = new HashMap<>();
 
     public <T> CopyBookSerializer(Class<T> type) throws Exception {
-        // Read all annotations recursively
-        Stack<Class> classes = new Stack<>();
-        classes.push(CopyBookDefaults.class); // Load defaults from interface
-        classes.push(type);
-        while (!classes.isEmpty()) {
-            for (Annotation annotation : classes.pop().getAnnotations()) {
-                if(CopyBook.class.isInstance(annotation)) {
-                    this.format = ((CopyBook)annotation).format();
-                    this.charset = Charset.forName(((CopyBook)annotation).charset());
+        // Read copybook annotations and defaults
+        List<CopyBook> copybookAnnotations = getAnnotationsRecursively(CopyBookDefaults.class, CopyBook.class);
+        copybookAnnotations.addAll(getAnnotationsRecursively(type, CopyBook.class));
+        for(CopyBook annotation : copybookAnnotations) {
+            if (annotation.format() != CopyBookSerializationFormat.NONE) {
+                format = annotation.format();
+            }
+            if (!annotation.charset().isEmpty()) {
+                charset = Charset.forName(annotation.charset());
+            }
+        }
 
-                } else if (CopyBookFieldFormats.class.isInstance(annotation)){
-                    for(CopyBookFieldFormat padding : ((CopyBookFieldFormats) annotation).value()) {
-                        this.paddingDefaults.put(padding.fieldType(), padding);
-                    }
-                }
-                if(!annotation.annotationType().getName().startsWith("java")) {
-                    classes.push(annotation.annotationType());
-                }
+        // Read copybook field annotations
+        List<CopyBookFieldFormats> copybookFieldAnnotations = getAnnotationsRecursively(CopyBookDefaults.class, CopyBookFieldFormats.class);
+        copybookFieldAnnotations.addAll(getAnnotationsRecursively(type, CopyBookFieldFormats.class));
+        for(CopyBookFieldFormats annotations : copybookFieldAnnotations) {
+            // TODO: Add logic for merging a annotation type when some of the fields are not set.
+            for(CopyBookFieldFormat annotation : annotations.value()) {
+                paddingDefaults.put(annotation.fieldType(), annotation);
             }
         }
 
@@ -61,6 +62,19 @@ public class CopyBookSerializer {
             System.out.print("[" + Arrays.stream(cbfield.occurs).mapToObj(String::valueOf).collect(joining(", ")) + "]");
             System.out.println();
         }
+    }
+
+    private <T extends Annotation> List<T> getAnnotationsRecursively(Class type, Class<T> annotationType) {
+        List<Annotation> results = new ArrayList<>();
+        for (Annotation annotation : type.getAnnotations()) {
+            if(annotationType.isInstance(annotation)) {
+                results.add(annotation);
+
+            } else if (!annotation.annotationType().getName().startsWith("java")) {
+                results.addAll(getAnnotationsRecursively(annotation.annotationType(), annotationType));
+            }
+        }
+        return (List<T>)results;
     }
 
     // Walk and find all copybook annotations and flatten to a list of CopyBookfields
