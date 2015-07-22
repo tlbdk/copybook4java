@@ -1,11 +1,11 @@
 package dk.nversion.copybook;
 
-import dk.nversion.copybook.packed.RequestMessage;
-import dk.nversion.copybook.packed.RequestTest;
+import dk.nversion.copybook.full.RequestMessage;
+import dk.nversion.copybook.full.RequestTest;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
-public class CopyBookSerializerPackedTest {
+public class SerializerFullTest {
 
     @org.junit.Test
     public void testSerializeDeserialize() throws Exception {

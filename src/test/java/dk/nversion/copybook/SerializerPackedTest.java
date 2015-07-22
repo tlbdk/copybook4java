@@ -1,11 +1,11 @@
 package dk.nversion.copybook;
 
-import dk.nversion.copybook.full.RequestMessage;
-import dk.nversion.copybook.full.RequestTest;
+import dk.nversion.copybook.packed.RequestMessage;
+import dk.nversion.copybook.packed.RequestTest;
 
 import static org.junit.Assert.assertEquals;
 
-public class CopyBookSerializerFullTestEmptyList {
+public class SerializerPackedTest {
 
     @org.junit.Test
     public void testSerializeDeserialize() throws Exception {
@@ -15,7 +15,7 @@ public class CopyBookSerializerFullTestEmptyList {
                 .setCommand("cmd1234()")
                 .setHello(new RequestMessage("Hello", "Body1234"))
                 .setMessages(new RequestMessage[]{new RequestMessage("msg1", "stuff123"), new RequestMessage("msg2", "stuff12345")})
-                .setArgs(new String[]{})
+                .setArgs(new String[]{"do", "stuff"})
                 .build();
 
         byte[] test1data = requestTestSerializer.serialize(test1);
