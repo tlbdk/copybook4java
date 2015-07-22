@@ -15,10 +15,10 @@ public class ByteUtils {
         return result;
     }
 
-    public static byte[] trim(byte[] src, byte padding, boolean right) {
+    public static byte[] trim(byte[] src, byte padding, boolean right, int minLength) {
         if(right) {
             int offset;
-            for (offset = src.length - 1; offset > 0; offset--) {
+            for (offset = src.length - 1; offset > minLength; offset--) {
                 if(padding != src[offset]) {
                     break;
                 }
@@ -31,7 +31,7 @@ public class ByteUtils {
 
         } else {
             int offset;
-            for (offset = 0; offset < src.length; offset++) {
+            for (offset = 0; offset < src.length - minLength; offset++) {
                 if(padding != src[offset]) {
                     break;
                 }

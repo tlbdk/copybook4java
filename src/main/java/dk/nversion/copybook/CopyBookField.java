@@ -180,10 +180,10 @@ public class CopyBookField {
         set(obj, value, recursive, sizes);
     }
 
-    public void set(Object obj, byte[] value, boolean recursive, int[] sizes) throws IllegalAccessException, CopyBookException, InstantiationException {
+    public void set(Object obj, byte[] value, boolean recursive, int[] sizes) throws CopyBookException {
         // TODO: Check if padding is enabled for this field
         // Convert field bytes to string and trim value
-        String strvalue = new String(ByteUtils.trim(value, padding, rightpadding), charset);
+        String strvalue = new String(ByteUtils.trim(value, padding, rightpadding, 1), charset);
 
         // Convert to native types
         try {
@@ -227,58 +227,75 @@ public class CopyBookField {
 
             set(obj, result, recursive, sizes);
 
-        } catch(IllegalAccessException ex) {
-            throw new CopyBookException("Failed to deserialize bytes"); // TODO: Add more information on why we failed
+        } catch(NumberFormatException ex) {
+            throw new CopyBookException("Failed to deserialize field '" + getFieldName() + "': ("+ ex.getClass().getName() + ") " + ex.getLocalizedMessage());
         }
     }
 
-    public void set(Object obj, Object value, boolean recursive) throws IllegalAccessException, CopyBookException, InstantiationException {
+    public void set(Object obj, Object value, boolean recursive) throws CopyBookException {
         int[] sizes = new int[this.counters.length];
         set(obj, value, recursive, sizes);
     }
 
-    public void set(Object obj, Object value, boolean recursive, int[] sizeHints) throws IllegalAccessException, CopyBookException, InstantiationException {
+    public void set(Object obj, Object value, boolean recursive, int[] sizeHints) throws CopyBookException{
         Object current = obj;
+
         for (int i = 0; i < fields.length - 1; i++) {
-            // Get existing object
-            Object nextcurrent = fields[i].get(current);
+            try {
+                // Get existing object
+                Object nextCurrent = fields[i].get(current);
 
-            // Create new object to hold value
-            if(nextcurrent == null) {
-                if(indexs[i] > -1) {
-                    nextcurrent = Array.newInstance(fields[i].getType().getComponentType(), sizeHints[i] > -1 ? sizeHints[i] :  this.occurs[i]);
-                } else {
-                    nextcurrent = fields[i].getType().newInstance();
+                // Create new object to hold value
+                if (nextCurrent == null) {
+                    if (indexs[i] > -1) {
+                        nextCurrent = Array.newInstance(fields[i].getType().getComponentType(), sizeHints[i] > -1 ? sizeHints[i] : this.occurs[i]);
+                    } else {
+                        try {
+                            nextCurrent = fields[i].getType().newInstance();
+                        } catch (InstantiationException e) {
+                            throw new CopyBookException("Failed to create new object for field '" + getFieldName(i) + "': " + e.getLocalizedMessage());
+                        }
+                    }
+                    fields[i].set(current, nextCurrent);
                 }
-                // TODO: Handle empty array
-                fields[i].set(current, nextcurrent);
-            }
 
-            if (indexs[i] > -1) {
-                Object arrayitem = Array.get(nextcurrent, indexs[i]);
-                if(arrayitem == null) {
-                    arrayitem = fields[i].getType().getComponentType().newInstance();
-                    Array.set(nextcurrent, indexs[i], arrayitem);
+                if (indexs[i] > -1) {
+                    Object arrayItem = Array.get(nextCurrent, indexs[i]);
+                    if (arrayItem == null) {
+                        arrayItem = fields[i].getType().getComponentType().newInstance();
+                        if(Array.getLength(nextCurrent) > 0) {
+                            Array.set(nextCurrent, indexs[i], arrayItem);
+                        }
+                    }
+                    nextCurrent = arrayItem;
                 }
-                nextcurrent = arrayitem;
-            }
 
-            current = nextcurrent;
+                current = nextCurrent;
+            } catch (IllegalAccessException e) {
+                throw new CopyBookException("Failed to access object for field '" + getFieldName(i) + "': " + e.getLocalizedMessage());
+            } catch (InstantiationException e) {
+                throw new CopyBookException("Failed to create new array item for field '" + getFieldName(i) + "': " + e.getLocalizedMessage());
+            }
         }
 
-        Field field = fields[fields.length -1];
-        int index = indexs[indexs.length -1];
-        if(index > -1) {
-            Object nextcurrent = field.get(current);
-            if(nextcurrent == null) {
-                nextcurrent = Array.newInstance(fields[index].getType().getComponentType(), sizeHints[index] > -1 ? sizeHints[index] : this.occurs[index]);
-                field.set(current, nextcurrent);
-            }
-            // TODO: Handle empty array
-            Array.set(nextcurrent, index, value);
+        try {
+            Field field = fields[fields.length - 1];
+            if (indexs[indexs.length - 1] > -1) {
+                Object nextCurrent = field.get(current);
+                if (nextCurrent == null) {
+                    nextCurrent = Array.newInstance(field.getType().getComponentType(), sizeHints[sizeHints.length -1] > -1 ? sizeHints[sizeHints.length -1] : occurs[occurs.length -1]);
+                    field.set(current, nextCurrent);
+                }
+                if(Array.getLength(nextCurrent) > 0) {
+                    Array.set(nextCurrent, indexs[indexs.length - 1], value);
+                }
 
-        } else {
-            field.set(current, value);
+            } else {
+                field.set(current, value);
+            }
+
+        } catch (IllegalAccessException e) {
+            throw new CopyBookException("Failed to access object for field '" + getFieldName(fields.length - 1) + "': " + e.getLocalizedMessage());
         }
     }
 

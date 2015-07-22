@@ -388,47 +388,6 @@ public class CopyBookSerializer {
                 // Convert field bytes to string and trim value
                 byte[] bytevalue = new byte[cbfield.size];
                 buf.get(bytevalue);
-                String strvalue = new String(ByteUtils.trim(bytevalue, cbfield.padding, cbfield.rightpadding), charset);
-
-                // Convert to native types
-
-                Object result;
-                Class fieldtype = cbfield.getLastField().getType();
-                switch (cbfield.type) {
-                    case STRING: {
-                        result = strvalue;
-                        break;
-                    }
-                    case SIGNED_INT:
-                    case INT: {
-                        if (fieldtype.equals(Integer.TYPE)) {
-                            result = Integer.parseInt(strvalue);
-                        } else if (fieldtype.equals(Long.TYPE)) {
-                            result = Long.parseLong(strvalue);
-                        } else if (fieldtype.equals(BigInteger.class)) {
-                            result = Long.parseLong(strvalue);
-                        } else {
-                            throw new CopyBookException("Field did not match type : " + cbfield.getFieldName());
-                        }
-                        break;
-                    }
-                    case SIGNED_DECIMAL:
-                    case DECIMAL: {
-                        if (fieldtype.equals(Float.TYPE)) {
-                            result = Float.parseFloat(strvalue);
-                        } else if (fieldtype.equals(Double.TYPE)) {
-                            result = Double.parseDouble(strvalue);
-                        } else if (fieldtype.equals(BigDecimal.class)) {
-                            result = Double.parseDouble(strvalue);
-                        } else {
-                            throw new CopyBookException("Field did not match type : " + cbfield.getFieldName());
-                        }
-                        break;
-                    }
-                    default: {
-                        throw new CopyBookException("Unknown copybook field type");
-                    }
-                }
 
                 int[] sizeHints = new int[cbfield.counters.length];
                 Arrays.fill(sizeHints, -1);
@@ -437,18 +396,14 @@ public class CopyBookSerializer {
                     if (counter != null) {
                         sizeHints[i] = (int) counter.get(obj);
 
-                        // Validate that this cbfield is within the counter for this index
+                        // Validate that this cbfield's index is within the size hint of the array
                         if (cbfield.indexs[i] > 0 && cbfield.indexs[i] >= sizeHints[i]) {
                             continue CBFIELDS; // Skip this cbfield
                         }
                     }
                 }
 
-                try {
-                    cbfield.set(obj, result, true, sizeHints); // TODO: Validate that sizes are not bigger than allowed
-                } catch (Exception ex) {
-                    System.out.print("");
-                }
+                cbfield.set(obj, bytevalue, true, sizeHints);
             }
 
             return obj;
