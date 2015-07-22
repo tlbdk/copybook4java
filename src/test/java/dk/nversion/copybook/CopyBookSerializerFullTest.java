@@ -22,5 +22,8 @@ public class CopyBookSerializerFullTest {
         RequestTest test2 = requestTestSerializer.deserialize(test1data, RequestTest.class);
 
         assertEquals(test1, test2);
+
+
+        //TODO: Test empty list
     }
 }

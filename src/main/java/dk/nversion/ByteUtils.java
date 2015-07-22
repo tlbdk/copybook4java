@@ -4,6 +4,17 @@ import java.util.Arrays;
 
 public class ByteUtils {
 
+    public static int indexOf(byte[] array, byte needle, int offset, int length) {
+        int result = -1;
+        length += offset;
+        for(int i = offset; i < length; i++) {
+            if(array[i] == needle) {
+                result = i;
+            }
+        }
+        return result;
+    }
+
     public static byte[] trim(byte[] src, byte padding, boolean right) {
         if(right) {
             int offset;

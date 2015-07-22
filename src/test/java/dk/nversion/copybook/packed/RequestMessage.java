@@ -9,10 +9,10 @@ import dk.nversion.copybook.CopyBookLine;
 @CopyBookFieldFormat(fieldType = CopyBookFieldType.INT, rightPadding = true, paddingChar = '0')
 @CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = true, paddingChar = ' ')
 public class RequestMessage {
-    @CopyBookLine("02 TITLE PIC X(5).")
+    @CopyBookLine("02 TITLE PIC X(10).")
     public String title;
     @CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = false, paddingChar = '_')
-    @CopyBookLine("02 BODY PIC X(10).")
+    @CopyBookLine("02 BODY PIC X(20).")
     public String body;
 
     public RequestMessage() {
