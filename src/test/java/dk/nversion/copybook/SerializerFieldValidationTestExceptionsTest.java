@@ -7,7 +7,7 @@ import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertEquals;
 
-public class SerializerFieldValidationExceptions {
+public class SerializerFieldValidationTestExceptionsTest {
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();

@@ -13,7 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CopyBookField {
-    private Pattern re_pictype = Pattern.compile("(X|9|S9)\\((\\d+)\\)(?:V9\\((\\d+)\\))?\\.");
+    private Pattern re_pictype = Pattern.compile("PIC\\s+(X+|9+|S9+)(?:\\((\\d+)\\))?(?:V9\\((\\d+)\\))?\\.");
 
     public CopyBookFieldType type;
     public int offset;
@@ -57,46 +57,46 @@ public class CopyBookField {
         }
 
         if(matcher.find()) {
-            if(matcher.group(1).equals("X")) { // String type
+            String type = matcher.group(1);
+            this.size = matcher.group(2) != null ? Integer.parseInt(matcher.group(2)) : matcher.group(1).length();
+            this.decimal = matcher.group(3) != null ? Integer.parseInt(matcher.group(3)) : -1;
+
+            // Add decimals to size if they are set
+            this.size += this.decimal > -1 ? this.decimal : 0;
+
+            // Find type for this copybook line
+            if(type.startsWith("X")) { // String type
                 if (fieldType.equals(String.class)) {
                     // String
                     this.type = CopyBookFieldType.STRING;
-                    this.size = Integer.parseInt(matcher.group(2));
-                    this.decimal = -1;
                 } else {
                     throw new CopyBookException("Field " + getFieldName() + " is not one of the supported types(String) for this copybook line");
                 }
 
-            } else if (matcher.group(1).equals("S9")) { // Signed number
-                    if (matcher.group(3) != null) {
+            } else if (type.startsWith("S9")) { // Signed number
+                    if (this.decimal > -1) {
                         // With decimals
                         if (fieldType.equals(Float.TYPE) || fieldType.equals(Double.TYPE) || fieldType.equals(BigDecimal.class)) {
                             this.type = CopyBookFieldType.SIGNED_DECIMAL;
-                            this.size = Integer.parseInt(matcher.group(2));
-                            this.decimal = Integer.parseInt(matcher.group(3));
                         } else {
                             throw new CopyBookException("Field " + getFieldName() + " is not one of the supported types(float, double, BigDecimal) for this copybook line");
                         }
 
                     } else {
+                        // Without decimals
                         if (fieldType.equals(Integer.TYPE) || fieldType.equals(Long.TYPE) || fieldType.equals(BigInteger.class)) {
-                            // Without decimals
                             this.type = CopyBookFieldType.SIGNED_INT;
-                            this.size = Integer.parseInt(matcher.group(2));
-                            this.decimal = Integer.parseInt(matcher.group(3));
                         } else {
                             throw new CopyBookException("Field " + getFieldName() + " is not one of the supported types(int, long, BigInteger) for this copybook line");
                         }
                     }
 
-            } else if (matcher.group(1).equals("9")) { // unsigned number
+            } else if (type.startsWith("9")) { // unsigned number
                 // Check if it's a decimal number
-                if (matcher.group(3) != null) {
+                if (this.decimal > -1) {
                     // With decimals
                     if (fieldType.equals(Float.TYPE) || fieldType.equals(Double.TYPE) || fieldType.equals(BigDecimal.class)) {
                         this.type = CopyBookFieldType.DECIMAL;
-                        this.size = Integer.parseInt(matcher.group(2));
-                        this.decimal = -1;
                     } else {
                         throw new CopyBookException("Field " + getFieldName() + " is not one of the supported types(float, double, BigDecimal) for this copybook line");
                     }
@@ -105,8 +105,6 @@ public class CopyBookField {
                     // Without decimals
                     if (fieldType.equals(Integer.TYPE) || fieldType.equals(Long.TYPE) || fieldType.equals(BigInteger.class)) {
                         this.type = CopyBookFieldType.INT;
-                        this.size = Integer.parseInt(matcher.group(2));
-                        this.decimal = -1;
 
                     } else {
                         throw new CopyBookException("Field " + getFieldName() + " is not one of the supported types(int, long, BigInteger) for this copybook line");
@@ -166,12 +164,30 @@ public class CopyBookField {
                 }
                 case SIGNED_INT:
                 case INT: {
+                    // TODO: Handling signing
                     strBytes = current.toString().getBytes(charset);
                     break;
                 }
                 case SIGNED_DECIMAL:
                 case DECIMAL: {
-                    strBytes = current.toString().getBytes(charset);
+                    String valueString = "";
+                    if(BigDecimal.class.isInstance(current)) {
+                        BigDecimal value = ((BigDecimal)current);
+                        if(type == CopyBookFieldType.SIGNED_DECIMAL) {
+                            valueString = value.signum() < 0 ? "-" : "+";
+                        }
+                        valueString += value.movePointRight(2).toBigInteger().abs().toString();
+
+                    } else if(Float.class.isInstance(current)) {
+                        throw new CopyBookException("Not implement yet"); // TODO: Implement Float support
+
+                    } else if(Double.class.isInstance(current)) {
+                        throw new CopyBookException("Not implement yet"); // TODO: Implement Double support
+                    } else {
+                        throw new CopyBookException("Unsupported field type");
+                    }
+
+                    strBytes = valueString.getBytes(charset);
                     break;
                 }
                 default: {
@@ -221,6 +237,7 @@ public class CopyBookField {
                 }
                 case SIGNED_INT:
                 case INT: {
+                    // FIXME: Handling signed values
                     String strValue = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 1) : value, charset);
                     if(fieldType.equals(Integer.TYPE)) {
                         result = Integer.parseInt(strValue);
@@ -235,13 +252,14 @@ public class CopyBookField {
                 }
                 case SIGNED_DECIMAL:
                 case DECIMAL: {
+                    // FIXME: Handling signed values
                     String strValue = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 1) : value, charset);
                     if(fieldType.equals(Float.TYPE)) {
-                        result = Float.parseFloat(strValue);
+                        throw new CopyBookException("Not implement yet"); // TODO: Implement Float support
                     } else if (fieldType.equals(Double.TYPE)) {
-                        result = Double.parseDouble(strValue);
+                        throw new CopyBookException("Not implement yet"); // TODO: Implement Double support
                     } else if (fieldType.equals(BigDecimal.class)) {
-                        result = Double.parseDouble(strValue);
+                        result = new BigDecimal(new BigInteger(strValue), decimal);
                     } else {
                         throw new CopyBookException("Field "+  getFieldName() + " type is not a supported for this copybook field type" );
                     }

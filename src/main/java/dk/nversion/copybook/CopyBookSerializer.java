@@ -4,6 +4,7 @@ import dk.nversion.ByteUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -236,26 +237,7 @@ public class CopyBookSerializer {
         for(CopyBookField cbfield : cbfields) {
             Object current = cbfield.get(obj);
             if (current != null) {
-                byte[] strbytes;
-                switch (cbfield.type) {
-                    case STRING: {
-                        strbytes = ((String)current).getBytes(charset);
-                        break;
-                    }
-                    case SIGNED_INT:
-                    case INT: {
-                        strbytes = current.toString().getBytes(charset);
-                        break;
-                    }
-                    case SIGNED_DECIMAL:
-                    case DECIMAL: {
-                        strbytes = current.toString().getBytes(charset);
-                        break;
-                    }
-                    default: {
-                        throw new CopyBookException("Unknown copybook field type");
-                    }
-                }
+                byte[] strbytes = cbfield.getBytes(obj, true);
 
                 // Add padding to bytes
                 byte[] result;

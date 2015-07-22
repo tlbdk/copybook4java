@@ -5,7 +5,7 @@ import dk.nversion.copybook.full.RequestTest;
 
 import static org.junit.Assert.assertEquals;
 
-public class SerializerFullTestEmptyList {
+public class SerializerFullEmptyListTest {
 
     @org.junit.Test
     public void testSerializeDeserialize() throws Exception {

@@ -1,6 +1,6 @@
 package dk.nversion.copybook;
 
-public class SerializerFieldValidation {
+public class SerializerFieldValidationTest {
 
     @CopyBook()
     public class RightFieldTypeInteger {
