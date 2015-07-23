@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import static java.util.stream.Collectors.joining;
 
 public class CopyBookSerializer {
+    private Class type;
     private Pattern re_occurs = Pattern.compile("OCCURS\\s+(\\d+)\\s+TIMES");
     private List<CopyBookField> cbfields = new ArrayList<CopyBookField>();
     private boolean debug = false;
@@ -33,13 +34,13 @@ public class CopyBookSerializer {
     private int bitmapSize;
     private int separatorsSize;
 
-
     public <T> CopyBookSerializer(Class<T> type) throws Exception {
         this(type, false);
     }
 
     public <T> CopyBookSerializer(Class<T> type, boolean debug) throws Exception {
         this.debug = debug;
+        this.type = type;
 
         // Read copybook annotations and defaults
         List<CopyBook> copybookAnnotations = getAnnotationsRecursively(CopyBookDefaults.class, CopyBook.class);
@@ -373,7 +374,10 @@ public class CopyBookSerializer {
     }
 
     public <T> T deserialize(byte[] data, Class<T> type) throws CopyBookException, InstantiationException, IllegalAccessException {
-        // TODO: Validate that the type is the same as when we created the serializer
+        if(!this.type.equals(type)) {
+            throw new CopyBookException("Type needs to match the type used when constructing the serializer");
+        }
+
         if(this.format == CopyBookSerializationFormat.FULL) {
             return deserializeFull(data, type);
 
@@ -385,42 +389,37 @@ public class CopyBookSerializer {
         }
     }
 
-    private <T> T deserializeFull(byte[] data, Class<T> type) throws CopyBookException, InstantiationException {
+    private <T> T deserializeFull(byte[] data, Class<T> type) throws CopyBookException, InstantiationException, IllegalAccessException {
         if(data.length != recordSize) {
             throw new CopyBookException("Data length does not match the size of the copybook");
         }
-        try {
-            T obj = type.newInstance();
-            ByteBuffer buf = ByteBuffer.wrap(data);
+        T obj = type.newInstance();
+        ByteBuffer buf = ByteBuffer.wrap(data);
 
-            CBFIELDS:
-            for (CopyBookField cbfield : cbfields) {
-                // Convert field bytes to string and trim value
-                byte[] bytevalue = new byte[cbfield.size];
-                buf.get(bytevalue);
+        CBFIELDS:
+        for (CopyBookField cbfield : cbfields) {
+            // Convert field bytes to string and trim value
+            byte[] byteValue = new byte[cbfield.size];
+            buf.get(byteValue);
 
-                int[] sizeHints = new int[cbfield.counters.length];
-                Arrays.fill(sizeHints, -1);
-                for (int i = 0; i < cbfield.counters.length; i++) {
-                    CopyBookField counter = cbfield.counters[i];
-                    if (counter != null) {
-                        sizeHints[i] = (int) counter.get(obj);
+            int[] sizeHints = new int[cbfield.counters.length];
+            Arrays.fill(sizeHints, -1);
+            for (int i = 0; i < cbfield.counters.length; i++) {
+                CopyBookField counter = cbfield.counters[i];
+                if (counter != null) {
+                    sizeHints[i] = (int) counter.get(obj);
 
-                        // Validate that this cbfield's index is within the size hint of the array
-                        if (cbfield.indexes[i] > 0 && cbfield.indexes[i] >= sizeHints[i]) {
-                            continue CBFIELDS; // Skip this cbfield
-                        }
+                    // Validate that this cbfield's index is within the size hint of the array
+                    if (cbfield.indexes[i] > 0 && cbfield.indexes[i] >= sizeHints[i]) {
+                        continue CBFIELDS; // Skip this cbfield
                     }
                 }
-
-                cbfield.set(obj, bytevalue, true, true, sizeHints);
             }
 
-            return obj;
-
-        } catch(IllegalAccessException ex) {
-            throw new CopyBookException("Failed to deserialize bytes"); // TODO: Add more information on why we failed
+            cbfield.set(obj, byteValue, true, true, sizeHints);
         }
+
+        return obj;
     }
 
     private <T> T deserializePacked(byte[] data, Class<T> type) throws CopyBookException, InstantiationException, IllegalAccessException {
