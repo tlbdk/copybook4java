@@ -7,7 +7,7 @@ import static org.junit.Assert.assertNull;
 public class SerializerNullValuesTest {
 
     @CopyBook()
-    @CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, paddingChar = ' ', nullFillerChar = (byte)0, signingPostfix = true, rightPadding = false)
+    @CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX, rightPadding = false)
     static public class fieldTypeStringSetToNull {
         @CopyBookLine("01 FIELD PIC X(4).")
         public String field;

@@ -1,17 +1,14 @@
 package dk.nversion.copybook.packed;
 
-import dk.nversion.copybook.CopyBook;
-import dk.nversion.copybook.CopyBookFieldFormat;
-import dk.nversion.copybook.CopyBookFieldType;
-import dk.nversion.copybook.CopyBookLine;
+import dk.nversion.copybook.*;
 
 @CopyBook()
-@CopyBookFieldFormat(fieldType = CopyBookFieldType.INT, rightPadding = true, paddingChar = '0', nullFillerChar = (byte)0, signingPostfix = false)
-@CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = true, paddingChar = ' ', nullFillerChar = (byte)0, signingPostfix = false)
+@CopyBookFieldFormat(fieldType = CopyBookFieldType.INT, rightPadding = true, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+@CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = true, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 public class RequestMessage {
     @CopyBookLine("02 TITLE PIC X(10).")
     public String title;
-    @CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = false, paddingChar = '_', nullFillerChar = (byte)0, signingPostfix = false)
+    @CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = false, paddingChar = '_', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
     @CopyBookLine("02 BODY PIC X(20).")
     public String body;
 

@@ -63,19 +63,32 @@ public class SerializerTypeTest {
     }
 
     @CopyBook()
-    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_INT, paddingChar = '0', nullFillerChar = (byte)0, signingPostfix = true, rightPadding = false)
+    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_INT, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.POSTFIX, rightPadding = false)
     static public class fieldTypeSignedIntegerPostfix {
         @CopyBookLine("01 FIELD PIC S9(3).")
         public int field;
     }
 
     @CopyBook()
-    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_DECIMAL, paddingChar = '0', nullFillerChar = (byte)0, signingPostfix = true, rightPadding = false)
+    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_DECIMAL, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.POSTFIX, rightPadding = false)
     static public class fieldTypeSignedDecimalPostfix {
         @CopyBookLine("01 FIELD PIC S9(3)V9(2).")
         public BigDecimal field;
     }
 
+    @CopyBook()
+    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_INT, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.LAST_BYTE_BIT8, rightPadding = false)
+    static public class fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteBit8 {
+        @CopyBookLine("01 FIELD PIC S9(2).")
+        public int field;
+    }
+
+    @CopyBook(charset = "cp037")
+    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_INT, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.LAST_BYTE_EBCDIC_BIT5, rightPadding = false)
+    static public class fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteEbcdicBit5 {
+        @CopyBookLine("01 FIELD PIC S9(2).")
+        public int field;
+    }
 
     @org.junit.Test
     public void testFieldTypeUnsignedIntegerToInt() throws Exception {
@@ -198,4 +211,37 @@ public class SerializerTypeTest {
         fieldTypeSignedDecimalPostfix test2 = serializer.deserialize(testBytes, fieldTypeSignedDecimalPostfix.class);
         assertEquals(new BigDecimal("-10.01"), test2.field);
     }
+
+    @org.junit.Test
+    public void testFieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteBit8() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteBit8.class);
+        fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteBit8 test = new fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteBit8();
+        test.field = -10;
+        byte[] testBytes = serializer.serialize(test);
+        assertArrayEquals(testBytes, new byte[] { (byte)'1', (byte)-80 } );
+        fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteBit8 test2 = serializer.deserialize(testBytes, fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteBit8.class);
+        assertEquals(-10, test2.field);
+    }
+
+    @org.junit.Test
+    public void testFieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteEbcdicBit5() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteEbcdicBit5.class);
+        fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteEbcdicBit5 test = new fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteEbcdicBit5();
+        test.field = -10;
+        byte[] testBytes = serializer.serialize(test);
+        assertArrayEquals(testBytes, new byte[]{(byte) -15, (byte) -48});
+        fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteEbcdicBit5 test2 = serializer.deserialize(testBytes, fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteEbcdicBit5.class);
+        assertEquals(-10, test2.field);
+
+        // Test with some more values that should fit into the fields
+        for(int i=-99; i < 99; i++) {
+            test.field = i;
+            testBytes = serializer.serialize(test);
+            test2 = serializer.deserialize(testBytes, fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteEbcdicBit5.class);
+            assertEquals(i, test2.field);
+        }
+    }
+
+
+
 }

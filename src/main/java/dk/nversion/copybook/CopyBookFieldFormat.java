@@ -10,5 +10,5 @@ public @interface CopyBookFieldFormat {
     public boolean rightPadding();
     public char paddingChar();
     public char nullFillerChar();
-    public boolean signingPostfix();
+    public CopyBookFieldSigningType signingType();
 }

@@ -29,7 +29,7 @@ public class CopyBookField {
     public byte padding;
     public byte nullFiller;
     public Charset charset;
-    public boolean signingPostfix;
+    public CopyBookFieldSigningType signingType;
 
     public boolean packingItem;
 
@@ -134,7 +134,7 @@ public class CopyBookField {
         this.nullFiller = nullFillerBytes[0];
 
         this.rightPadding = paddingDefaults.get(this.type).rightPadding();
-        this.signingPostfix = paddingDefaults.get(this.type).signingPostfix();
+        this.signingType = paddingDefaults.get(this.type).signingType();
     }
 
     public Object get(Object obj) throws IllegalAccessException, CopyBookException {
@@ -172,7 +172,7 @@ public class CopyBookField {
         Object current = get(obj);
         if(current != null) {
             String valueString;
-            String signString = "";
+            String signString = null;
             switch (type) {
                 case STRING: {
                     valueString = ((String) current);
@@ -237,8 +237,32 @@ public class CopyBookField {
                 }
             }
 
-            valueString = signingPostfix ? valueString + signString : signString + valueString;
-            strBytes = valueString.getBytes(charset);
+            if(signString != null) {
+                if (signingType == CopyBookFieldSigningType.POSTFIX) {
+                    strBytes = (valueString + signString).getBytes(charset);
+                } else if (signingType == CopyBookFieldSigningType.PREFIX) {
+                    strBytes = (signString + valueString).getBytes(charset);
+                } else if (signingType == CopyBookFieldSigningType.LAST_BYTE_BIT8) {
+                    strBytes = valueString.getBytes(charset);
+                    if(signString.equals("-")) {
+                        strBytes[strBytes.length -1] = (byte)(strBytes[strBytes.length -1] | 128); // Set bit 8
+                    } else {
+                        strBytes[strBytes.length -1] = (byte)(strBytes[strBytes.length -1] | 127); // Unset bit 8
+                    }
+
+                } else if (signingType == CopyBookFieldSigningType.LAST_BYTE_EBCDIC_BIT5) {
+                    strBytes = valueString.getBytes(charset);
+                    strBytes[strBytes.length -1] = (byte)(strBytes[strBytes.length -1] & 15); // zero top 4 bits, 00001111
+                    if(signString.equals("-")) {
+                        strBytes[strBytes.length -1] = (byte)(strBytes[strBytes.length -1] | 208); // Set bits 1101 0000
+                    } else {
+                        strBytes[strBytes.length -1] = (byte)(strBytes[strBytes.length -1] | 192); // Set bits 1100 0000
+                    }
+                }
+
+            } else {
+                strBytes = valueString.getBytes(charset);
+            }
 
         } else if(addPaddingOrNullFiller) {
             strBytes = new byte[size];
@@ -279,25 +303,56 @@ public class CopyBookField {
         try {
             Object result;
             Class fieldType = getField().getType();
-            switch (type) {
-                case STRING: {
-                    if(ByteUtils.indexOf(value, nullFiller, 0, value.length) == value.length - 1) { // All of value is null filler
-                        result = null;
-                    } else {
-                        result = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 0) : value, charset);
-                    }
-                    break;
+
+            if(type == CopyBookFieldType.STRING) {
+                if(ByteUtils.indexOf(value, nullFiller, 0, value.length) == value.length - 1) { // All of value is null filler
+                    result = null;
+                } else {
+                    result = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 0) : value, charset);
                 }
-                case SIGNED_INT:
-                case INT: {
-                    String strValue = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 1) : value, charset);
-                    // Fix signing
-                    if (type == CopyBookFieldType.SIGNED_INT) {
-                        strValue = normalizeNumericSigning(strValue, signingPostfix);
-                    } else if(strValue.startsWith("-")) {
-                        throw new CopyBookException("Unsigned field '" + getFieldName()+ "' starts with -");
+
+            } else {
+                String strValue;
+
+                // Fix signing
+                // TODO: Refactor and move to own function
+                if (type == CopyBookFieldType.SIGNED_INT || type == CopyBookFieldType.SIGNED_DECIMAL) {
+                    if(signingType == CopyBookFieldSigningType.POSTFIX) {
+                        strValue = normalizeNumericSigning(new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 1) : value, charset), true);
+
+                    } else if (signingType == CopyBookFieldSigningType.PREFIX) {
+                        strValue = normalizeNumericSigning(new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 1) : value, charset), false);
+
+                    } else if (signingType == CopyBookFieldSigningType.LAST_BYTE_BIT8) {
+                        if((value[value.length -1] & 128) != 0) { // Check if bit 8 is set
+                            byte[] valueCopy = Arrays.copyOf(value, value.length);
+                            valueCopy[valueCopy.length -1] =  (byte)(valueCopy[valueCopy.length -1] & 127);
+                            strValue = "-" + new String(trimPadding ? ByteUtils.trim(valueCopy, padding, rightPadding, 1) : valueCopy, charset);
+
+                        } else {
+                            strValue = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 1) : value, charset);
+                        }
+                    } else if (signingType == CopyBookFieldSigningType.LAST_BYTE_EBCDIC_BIT5) {
+                        byte res = (byte)(value[value.length -1] & 240); // Read last byte and zero first 4 bits of the result, 11110000
+                        byte[] valueCopy = Arrays.copyOf(value, value.length - 1);
+                        if((byte)(res ^ 208) == 0 ||(byte)(res ^ 176) == 0) { // 208 = 11010000, 176 = 10110000
+                            strValue = "-" + new String(trimPadding ? ByteUtils.trim(valueCopy, padding, rightPadding, 1) : valueCopy, charset) + String.valueOf((byte)value[value.length -1] & 15);
+                        } else {
+                            strValue = new String(trimPadding ? ByteUtils.trim(valueCopy, padding, rightPadding, 1) : valueCopy, charset) + String.valueOf((byte)value[value.length -1] & 15);
+                        }
+
+                    } else {
+                        throw new CopyBookException("Unknown signing type for field '" + getFieldName()+ "'");
                     }
 
+                } else {
+                    strValue = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 1) : value, charset);
+                    if(strValue.startsWith("-") || strValue.endsWith("-")) {
+                        throw new CopyBookException("Unsigned field '" + getFieldName()+ "' starts or ends with -");
+                    }
+                }
+
+                if(type == CopyBookFieldType.INT || type == CopyBookFieldType.SIGNED_INT) {
                     // Parse numeric
                     if(fieldType.equals(Integer.TYPE)) {
                         result = Integer.parseInt(strValue);
@@ -308,19 +363,8 @@ public class CopyBookField {
                     } else {
                         throw new CopyBookException("Field did not match type : " + getFieldName());
                     }
-                    break;
-                }
-                case SIGNED_DECIMAL:
-                case DECIMAL: {
-                    String strValue = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 1) : value, charset);
 
-                    // Fix signing
-                    if (type == CopyBookFieldType.SIGNED_DECIMAL) {
-                        strValue = normalizeNumericSigning(strValue, signingPostfix);
-                    } else if(strValue.startsWith("-")) {
-                        throw new CopyBookException("Unsigned field '" + getFieldName()+ "' starts with -");
-                    }
-
+                } else if(type == CopyBookFieldType.DECIMAL || type == CopyBookFieldType.SIGNED_DECIMAL) {
                     // Parse numeric
                     if(fieldType.equals(Float.TYPE)) {
                         throw new CopyBookException("Not implement yet"); // TODO: Implement Float support
@@ -331,9 +375,7 @@ public class CopyBookField {
                     } else {
                         throw new CopyBookException("Field "+  getFieldName() + " type is not a supported for this copybook field type" );
                     }
-                    break;
-                }
-                default: {
+                } else {
                     throw new CopyBookException("Unknown copybook field type");
                 }
             }
@@ -355,7 +397,7 @@ public class CopyBookField {
         } else if (str.startsWith("-")) {
             // DO nothing
         } else {
-            throw new CopyBookException("Missing signed extensions");
+            throw new CopyBookException("Field '"+ getFieldName() + "' is missing signed chars for value '" + str + "'");
         }
         return str;
     }

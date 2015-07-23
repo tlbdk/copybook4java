@@ -6,7 +6,7 @@ import static org.junit.Assert.assertEquals;
 public class SerializerCharsetTest {
 
     @CopyBook(charset = "cp037")
-    @CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, paddingChar = ' ', nullFillerChar = (byte)0, signingPostfix = true, rightPadding = false)
+    @CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX, rightPadding = false)
     static public class fieldTypeStringCp037 {
         @CopyBookLine("01 FIELD PIC X(4).")
         public String field;
