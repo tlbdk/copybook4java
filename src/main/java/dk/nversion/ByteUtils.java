@@ -23,7 +23,7 @@ public class ByteUtils {
                     break;
                 }
             }
-            if(offset == src.length) {
+            if(offset == 0) {
                 return new byte[0];
             } else if (offset < src.length - 1){
                 return Arrays.copyOfRange(src, 0, offset + 1);
