@@ -63,14 +63,14 @@ public class SerializerTypeTest {
     }
 
     @CopyBook()
-    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_INT, paddingChar = '0', signingPostfix = true, rightPadding = false)
+    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_INT, paddingChar = '0', nullFillerChar = (byte)0, signingPostfix = true, rightPadding = false)
     static public class fieldTypeSignedIntegerPostfix {
         @CopyBookLine("01 FIELD PIC S9(3).")
         public int field;
     }
 
     @CopyBook()
-    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_DECIMAL, paddingChar = '0', signingPostfix = true, rightPadding = false)
+    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_DECIMAL, paddingChar = '0', nullFillerChar = (byte)0, signingPostfix = true, rightPadding = false)
     static public class fieldTypeSignedDecimalPostfix {
         @CopyBookLine("01 FIELD PIC S9(3)V9(2).")
         public BigDecimal field;

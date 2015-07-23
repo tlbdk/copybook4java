@@ -240,41 +240,8 @@ public class CopyBookSerializer {
     private <T> byte[] serializeFull(T obj) throws CopyBookException, IllegalAccessException {
         ByteBuffer buf = ByteBuffer.wrap(new byte[this.recordSize]);
         for(CopyBookField cbfield : cbfields) {
-            Object current = cbfield.get(obj);
-            if (current != null) {
-                byte[] strbytes = cbfield.getBytes(obj, true);
-
-                // Add padding to bytes
-                byte[] result;
-                if(strbytes.length <= cbfield.size) {
-                    result = new byte[cbfield.size];
-                    Arrays.fill(result, cbfield.padding);
-                    if(cbfield.rightPadding) {
-                        System.arraycopy(strbytes, 0, result, 0, strbytes.length);
-                    } else {
-                        System.arraycopy(strbytes, 0, result, result.length - strbytes.length, strbytes.length);
-                    }
-
-                } else {
-                    throw new CopyBookException("Field '"+ cbfield.getFieldName() +"' to long : " + strbytes.length + " > " + cbfield.size);
-                }
-
-                buf.put(result);
-                if(debug) {
-                    System.out.println(cbfield.type + "(" + cbfield.size + "," + result.length + "): '" + current.toString() + "'");
-                }
-
-            } else {
-                // Write empty space for missing obj
-                byte[] filler = new byte[cbfield.size];
-                Arrays.fill(filler, cbfield.padding);
-                buf.put(filler);
-                if(debug) {
-                    System.out.println(cbfield.type.name() + "(" + cbfield.size + "): '" + new String(new char[cbfield.size]).replace('\0', ' ') + "'");
-                }
-            }
+            buf.put(cbfield.getBytes(obj, true));
         }
-
         return buf.array();
     }
 

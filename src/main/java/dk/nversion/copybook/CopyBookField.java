@@ -27,6 +27,7 @@ public class CopyBookField {
 
     public boolean rightPadding;
     public byte padding;
+    public byte nullFiller;
     public Charset charset;
     public boolean signingPostfix;
 
@@ -120,7 +121,18 @@ public class CopyBookField {
             throw new CopyBookException("Could not parse the PIC type");
         }
 
-        this.padding = (byte)paddingDefaults.get(this.type).paddingChar();
+        byte[] paddingBytes = (paddingDefaults.get(this.type).paddingChar() + "").getBytes(charset);
+        if(paddingBytes.length > 1) {
+            throw new CopyBookException("Selected charset and padding char is more than 1 byte long for field '"+ getFieldName() + "'");
+        }
+        this.padding = paddingBytes[0];
+
+        byte[] nullFillerBytes = (paddingDefaults.get(this.type).nullFillerChar() + "").getBytes(charset);
+        if(nullFillerBytes.length > 1) {
+            throw new CopyBookException("Selected charset and null filler char is more than 1 byte long for field '"+ getFieldName() + "'");
+        }
+        this.nullFiller = nullFillerBytes[0];
+
         this.rightPadding = paddingDefaults.get(this.type).rightPadding();
         this.signingPostfix = paddingDefaults.get(this.type).signingPostfix();
     }
@@ -153,7 +165,7 @@ public class CopyBookField {
         return current;
     }
 
-    public byte[] getBytes(Object obj, boolean addPadding) throws CopyBookException, IllegalAccessException {
+    public byte[] getBytes(Object obj, boolean addPaddingOrNullFiller) throws CopyBookException, IllegalAccessException {
         byte[] strBytes = new byte[0];
 
         // Get bytes for field
@@ -227,11 +239,15 @@ public class CopyBookField {
 
             valueString = signingPostfix ? valueString + signString : signString + valueString;
             strBytes = valueString.getBytes(charset);
+
+        } else if(addPaddingOrNullFiller) {
+            strBytes = new byte[size];
+            Arrays.fill(strBytes, nullFiller);
         }
 
         // Add padding to bytes
         if (strBytes.length <= size) {
-            if (addPadding) {
+            if (addPaddingOrNullFiller) {
                 byte[] paddedStrBytes = new byte[size];
                 Arrays.fill(paddedStrBytes, padding);
                 if (rightPadding) {
@@ -265,7 +281,11 @@ public class CopyBookField {
             Class fieldType = getField().getType();
             switch (type) {
                 case STRING: {
-                    result = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 0) : value, charset);
+                    if(ByteUtils.indexOf(value, nullFiller, 0, value.length) == value.length - 1) { // All of value is null filler
+                        result = null;
+                    } else {
+                        result = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 0) : value, charset);
+                    }
                     break;
                 }
                 case SIGNED_INT:
