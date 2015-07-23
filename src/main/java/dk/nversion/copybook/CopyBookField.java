@@ -18,7 +18,7 @@ public class CopyBookField {
     public CopyBookFieldType type;
     public int offset;
     public int size;
-    public int decimal;
+    public int decimals;
     public Field[] fields;
     public int[] indexes;
     public int[] occurs;
@@ -28,6 +28,7 @@ public class CopyBookField {
     public boolean rightPadding;
     public byte padding;
     public Charset charset;
+    public boolean signingPostfix;
 
     public boolean packingItem;
 
@@ -59,10 +60,10 @@ public class CopyBookField {
         if(matcher.find()) {
             String type = matcher.group(1);
             this.size = matcher.group(2) != null ? Integer.parseInt(matcher.group(2)) : matcher.group(1).length();
-            this.decimal = matcher.group(3) != null ? Integer.parseInt(matcher.group(3)) : -1;
+            this.decimals = matcher.group(3) != null ? Integer.parseInt(matcher.group(3)) : -1;
 
             // Add decimals to size if they are set
-            this.size += this.decimal > -1 ? this.decimal : 0;
+            this.size += this.decimals > -1 ? this.decimals : 0;
 
             // Find type for this copybook line
             if(type.startsWith("X")) { // String type
@@ -74,7 +75,7 @@ public class CopyBookField {
                 }
 
             } else if (type.startsWith("S9")) { // Signed number
-                    if (this.decimal > -1) {
+                    if (this.decimals > -1) {
                         // With decimals
                         if (fieldType.equals(Float.TYPE) || fieldType.equals(Double.TYPE) || fieldType.equals(BigDecimal.class)) {
                             this.type = CopyBookFieldType.SIGNED_DECIMAL;
@@ -92,8 +93,8 @@ public class CopyBookField {
                     }
 
             } else if (type.startsWith("9")) { // unsigned number
-                // Check if it's a decimal number
-                if (this.decimal > -1) {
+                // Check if it's a decimals number
+                if (this.decimals > -1) {
                     // With decimals
                     if (fieldType.equals(Float.TYPE) || fieldType.equals(Double.TYPE) || fieldType.equals(BigDecimal.class)) {
                         this.type = CopyBookFieldType.DECIMAL;
@@ -121,6 +122,7 @@ public class CopyBookField {
 
         this.padding = (byte)paddingDefaults.get(this.type).paddingChar();
         this.rightPadding = paddingDefaults.get(this.type).rightPadding();
+        this.signingPostfix = paddingDefaults.get(this.type).signingPostfix();
     }
 
     public Object get(Object obj) throws IllegalAccessException, CopyBookException {
@@ -157,43 +159,74 @@ public class CopyBookField {
         // Get bytes for field
         Object current = get(obj);
         if(current != null) {
+            String valueString;
+            String signString = "";
             switch (type) {
                 case STRING: {
-                    strBytes = ((String) current).getBytes(charset);
+                    valueString = ((String) current);
                     break;
                 }
                 case SIGNED_INT:
                 case INT: {
-                    // TODO: Handling signing
-                    strBytes = current.toString().getBytes(charset);
+                    if(Integer.class.isInstance(current)) {
+                        Integer value = ((Integer)current);
+                        valueString = String.valueOf(Math.abs(value.intValue()));
+                        if(type == CopyBookFieldType.SIGNED_INT) {
+                            signString = value.intValue() < 0 ? "-" : "+";
+                        } else if (value.intValue() < 0) {
+                            throw new CopyBookException("Unsigned field '" + getFieldName() + "' has negative value");
+                        }
+
+                    } else if(Long.class.isInstance(current)) {
+                        Long value = ((Long)current);
+                        valueString = String.valueOf(Math.abs(value.longValue()));
+                        if(type == CopyBookFieldType.SIGNED_INT) {
+                            signString = value.longValue() < 0L ? "-" : "+";
+                        } else if (value.longValue() < 0L) {
+                            throw new CopyBookException("Unsigned field '" + getFieldName() + "' has negative value");
+                        }
+
+                    } else if(BigInteger.class.isInstance(current)) {
+                        BigInteger value = ((BigInteger)current);
+                        valueString = String.valueOf(value.abs());
+                        if(type == CopyBookFieldType.SIGNED_INT) {
+                            signString = value.signum() < 0 ? "-" : "+";
+                        } else if (value.signum() < 0) {
+                            throw new CopyBookException("Unsigned field '" + getFieldName() + "' has negative value");
+                        }
+
+                    } else {
+                        throw new CopyBookException("Unsupported field type");
+                    }
                     break;
                 }
                 case SIGNED_DECIMAL:
                 case DECIMAL: {
-                    String valueString = "";
                     if(BigDecimal.class.isInstance(current)) {
                         BigDecimal value = ((BigDecimal)current);
+                        valueString = value.movePointRight(2).toBigInteger().abs().toString();
                         if(type == CopyBookFieldType.SIGNED_DECIMAL) {
-                            valueString = value.signum() < 0 ? "-" : "+";
+                            signString = value.signum() < 0 ? "-" : "+";
+                        } else if (value.signum() < 0) {
+                            throw new CopyBookException("Unsigned field '" + getFieldName() + "' has negative value");
                         }
-                        valueString += value.movePointRight(2).toBigInteger().abs().toString();
 
                     } else if(Float.class.isInstance(current)) {
                         throw new CopyBookException("Not implement yet"); // TODO: Implement Float support
-
                     } else if(Double.class.isInstance(current)) {
                         throw new CopyBookException("Not implement yet"); // TODO: Implement Double support
                     } else {
                         throw new CopyBookException("Unsupported field type");
                     }
-
-                    strBytes = valueString.getBytes(charset);
                     break;
                 }
                 default: {
                     throw new CopyBookException("Unknown copybook field type");
                 }
             }
+
+            valueString = signingPostfix ? valueString + signString : signString + valueString;
+            strBytes = valueString.getBytes(charset);
         }
 
         // Add padding to bytes
@@ -221,11 +254,11 @@ public class CopyBookField {
     }
 
     public void set(Object obj, byte[] value, boolean recursive, boolean trimPadding) throws IllegalAccessException, CopyBookException, InstantiationException {
-        int[] sizes = new int[this.counters.length];
-        set(obj, value, recursive, sizes, trimPadding);
+        int[] sizeHints = new int[this.counters.length];
+        set(obj, value, recursive, trimPadding, sizeHints);
     }
 
-    public void set(Object obj, byte[] value, boolean recursive, int[] sizes, boolean trimPadding) throws CopyBookException {
+    public void set(Object obj, byte[] value, boolean recursive, boolean trimPadding, int[] sizeHints) throws CopyBookException {
         // Convert to native types
         try {
             Object result;
@@ -237,14 +270,21 @@ public class CopyBookField {
                 }
                 case SIGNED_INT:
                 case INT: {
-                    // FIXME: Handling signed values
                     String strValue = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 1) : value, charset);
+                    // Fix signing
+                    if (type == CopyBookFieldType.SIGNED_INT) {
+                        strValue = normalizeNumericSigning(strValue, signingPostfix);
+                    } else if(strValue.startsWith("-")) {
+                        throw new CopyBookException("Unsigned field '" + getFieldName()+ "' starts with -");
+                    }
+
+                    // Parse numeric
                     if(fieldType.equals(Integer.TYPE)) {
                         result = Integer.parseInt(strValue);
                     } else if (fieldType.equals(Long.TYPE)) {
                         result = Long.parseLong(strValue);
                     } else if (fieldType.equals(BigInteger.class)) {
-                        result = Long.parseLong(strValue);
+                        result = new BigInteger(strValue);
                     } else {
                         throw new CopyBookException("Field did not match type : " + getFieldName());
                     }
@@ -252,14 +292,22 @@ public class CopyBookField {
                 }
                 case SIGNED_DECIMAL:
                 case DECIMAL: {
-                    // FIXME: Handling signed values
                     String strValue = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 1) : value, charset);
+
+                    // Fix signing
+                    if (type == CopyBookFieldType.SIGNED_DECIMAL) {
+                        strValue = normalizeNumericSigning(strValue, signingPostfix);
+                    } else if(strValue.startsWith("-")) {
+                        throw new CopyBookException("Unsigned field '" + getFieldName()+ "' starts with -");
+                    }
+
+                    // Parse numeric
                     if(fieldType.equals(Float.TYPE)) {
                         throw new CopyBookException("Not implement yet"); // TODO: Implement Float support
                     } else if (fieldType.equals(Double.TYPE)) {
                         throw new CopyBookException("Not implement yet"); // TODO: Implement Double support
                     } else if (fieldType.equals(BigDecimal.class)) {
-                        result = new BigDecimal(new BigInteger(strValue), decimal);
+                        result = new BigDecimal(new BigInteger(strValue), decimals);
                     } else {
                         throw new CopyBookException("Field "+  getFieldName() + " type is not a supported for this copybook field type" );
                     }
@@ -270,11 +318,26 @@ public class CopyBookField {
                 }
             }
 
-            set(obj, result, recursive, sizes);
+            set(obj, result, recursive, sizeHints);
 
         } catch(NumberFormatException ex) {
             throw new CopyBookException("Failed to deserialize field '" + getFieldName() + "': ("+ ex.getClass().getName() + ") " + ex.getLocalizedMessage());
         }
+    }
+
+    private String normalizeNumericSigning(String str, boolean signingPostfix) throws CopyBookException {
+        if (signingPostfix && str.endsWith("-")) {
+            str = '-' + str.substring(0, str.length() - 1);
+        } else if (signingPostfix && str.endsWith("+")) {
+            str = str.substring(0, str.length() - 1);
+        } else if (str.startsWith("+")) {
+            str = str.substring(1, str.length());
+        } else if (str.startsWith("-")) {
+            // DO nothing
+        } else {
+            throw new CopyBookException("Missing signed extensions");
+        }
+        return str;
     }
 
     public void set(Object obj, Object value, boolean recursive) throws CopyBookException {

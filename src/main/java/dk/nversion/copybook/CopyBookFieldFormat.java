@@ -9,4 +9,5 @@ public @interface CopyBookFieldFormat {
     public CopyBookFieldType fieldType();
     public boolean rightPadding();
     public char paddingChar();
+    public boolean signingPostfix();
 }

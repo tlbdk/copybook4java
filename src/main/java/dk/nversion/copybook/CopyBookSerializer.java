@@ -59,15 +59,21 @@ public class CopyBookSerializer {
             }
         }
 
+
+
         // Read copybook field annotations
         List<CopyBookFieldFormats> copybookFieldAnnotations = getAnnotationsRecursively(CopyBookDefaults.class, CopyBookFieldFormats.class);
         copybookFieldAnnotations.addAll(getAnnotationsRecursively(type, CopyBookFieldFormats.class));
         for(CopyBookFieldFormats annotations : copybookFieldAnnotations) {
-            // TODO: Add logic for merging an annotation type when some of the fields are not set.
             for(CopyBookFieldFormat annotation : annotations.value()) {
                 paddingDefaults.put(annotation.fieldType(), annotation);
             }
         }
+        // Handle case where there is only one annotation
+        for(CopyBookFieldFormat annotation : getAnnotationsRecursively(type, CopyBookFieldFormat.class)) {
+            paddingDefaults.put(annotation.fieldType(), annotation);
+        }
+
 
         // Walk class hierarchy
         this.cbfields = walkClass(type, new Field[0], new int[0], new int[0], new CopyBookField[0]);
@@ -122,8 +128,6 @@ public class CopyBookSerializer {
     private <T> List<CopyBookField> walkClass(Class<T> type, Field[] fields, int[] indexes, int[] occurs, CopyBookField[] counters) throws Exception {
         List<CopyBookField> results = new ArrayList<>();
         Map<String, CopyBookField> fieldNames = new HashMap<>();
-
-        //TODO: Validate that copybook matches the fields
 
         // Iterate over the class fields with CopyBookLine annotation
         for (Field field : type.getDeclaredFields()) {
@@ -279,7 +283,7 @@ public class CopyBookSerializer {
 
         // Set bit 64(bit index 63) to 1
         for(int i = 0; i < bitmapBlocks - 1; ++i) {
-            bytes[i * bitmapBlockSize + (bitmapBlockSize - 1)] = 1; // 1 decimal = 00000001 binary
+            bytes[i * bitmapBlockSize + (bitmapBlockSize - 1)] = 1; // 1 decimals = 00000001 binary
         }
 
         // Write values to bytes after the bitmap blocks
@@ -338,12 +342,12 @@ public class CopyBookSerializer {
     // Sets 63 bits(bit index 0-62) in 8 bytes N times where bit 64(bit index 63) tells if a new 8 bytes block is used
     private void setBitInBitmap(byte[] bytes, int bitindex, int blocksize) {
         bitindex += bitindex / (blocksize * 8 - 1);
-        bytes[bitindex / blocksize] = (byte)(bytes[bitindex / blocksize] | (128 >> (bitindex % 8))); // 128 decimal = 10000000 binary
+        bytes[bitindex / blocksize] = (byte)(bytes[bitindex / blocksize] | (128 >> (bitindex % 8))); // 128 decimals = 10000000 binary
     }
 
     private boolean getBitInBitmap(byte[] bytes, int bitIndex, int blockSize) {
         bitIndex += bitIndex / 63;
-        return (bytes[bitIndex / blockSize] & (128 >> (bitIndex % blockSize))) != 0; // 128 decimal = 10000000 binary
+        return (bytes[bitIndex / blockSize] & (128 >> (bitIndex % blockSize))) != 0; // 128 decimals = 10000000 binary
     }
 
 
@@ -369,6 +373,7 @@ public class CopyBookSerializer {
     }
 
     public <T> T deserialize(byte[] data, Class<T> type) throws CopyBookException, InstantiationException, IllegalAccessException {
+        // TODO: Validate that the type is the same as when we created the serializer
         if(this.format == CopyBookSerializationFormat.FULL) {
             return deserializeFull(data, type);
 
@@ -408,7 +413,7 @@ public class CopyBookSerializer {
                     }
                 }
 
-                cbfield.set(obj, bytevalue, true, sizeHints, true);
+                cbfield.set(obj, bytevalue, true, true, sizeHints);
             }
 
             return obj;
@@ -446,7 +451,7 @@ public class CopyBookSerializer {
                         byte[] byteValue = new byte[index - buf.position()];
                         buf.get(byteValue);
                         buf.position(buf.position() + 1); // Skip separatorByte
-                        cbfield.set(obj, byteValue, true, sizeHints, false); // Variable length fields with separatorByte
+                        cbfield.set(obj, byteValue, true, false, sizeHints); // Variable length fields with separatorByte
 
                     } else {
                         throw new CopyBookException("Could not find expected separator in response at index " + buf.position());
@@ -459,7 +464,7 @@ public class CopyBookSerializer {
                     // Read field size from buf if it's set in the bitmap
                     byte[] bytevalue = new byte[cbfield.size];
                     buf.get(bytevalue);
-                    cbfield.set(obj, bytevalue, true, sizeHints, true); // Fixed length fields
+                    cbfield.set(obj, bytevalue, true, true, sizeHints); // Fixed length fields
                 }
 
                 // Check if last field in this root object or this is end of list
