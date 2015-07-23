@@ -1,11 +1,17 @@
 package dk.nversion.copybook;
 
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
+
 import java.math.BigDecimal;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-public class SerializerTypeTest {
+public class SerializerTypeExceptionsTest {
+
+    @Rule
+    public ExpectedException expectedEx = ExpectedException.none();
 
     @CopyBook()
     static public class fieldTypeInteger {
@@ -27,34 +33,31 @@ public class SerializerTypeTest {
 
     @org.junit.Test
     public void testRightFieldTypeInteger() throws Exception {
+        expectedEx.expect(CopyBookException.class);
+        expectedEx.expectMessage("serialized bytes are to long");
         CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeInteger.class);
         fieldTypeInteger test = new fieldTypeInteger();
-        test.field = 10;
+        test.field = 100;
         byte[] testBytes = serializer.serialize(test);
-        assertArrayEquals(testBytes, new byte[]{(byte) '1', (byte) '0'});
-        fieldTypeInteger test2 = serializer.deserialize(testBytes, fieldTypeInteger.class);
-        assertEquals(10, test2.field);
     }
 
     @org.junit.Test
     public void testRightFieldTypeString() throws Exception {
+        expectedEx.expect(CopyBookException.class);
+        expectedEx.expectMessage("serialized bytes are to long");
         CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeString.class);
         fieldTypeString test = new fieldTypeString();
-        test.field = "ok";
+        test.field = "ok1234";
         byte[] testBytes = serializer.serialize(test);
-        assertArrayEquals(testBytes, new byte[] { (byte)'o', (byte)'k'});
-        fieldTypeString test2 = serializer.deserialize(testBytes, fieldTypeString.class);
-        assertEquals("ok", test2.field);
     }
 
     @org.junit.Test
     public void testRightFieldTypeDecimal() throws Exception {
+        expectedEx.expect(CopyBookException.class);
+        expectedEx.expectMessage("serialized bytes are to long");
         CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeDecimal.class);
         fieldTypeDecimal test = new fieldTypeDecimal();
-        test.field = new BigDecimal("10.01");
+        test.field = new BigDecimal("100.01");
         byte[] testBytes = serializer.serialize(test);
-        assertArrayEquals(testBytes, new byte[] { (byte)'1', (byte)'0', (byte)'0', (byte)'1'});
-        fieldTypeDecimal test2 = serializer.deserialize(testBytes, fieldTypeDecimal.class);
-        assertEquals(new BigDecimal("10.01"), test2.field);
     }
 }

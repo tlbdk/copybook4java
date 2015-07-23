@@ -216,7 +216,7 @@ public class CopyBookField {
             }
 
         } else {
-            throw new CopyBookException("Field '" + getFieldName() + "' to long : " + strBytes.length + " > " + size);
+            throw new CopyBookException("Field '" + getFieldName() + "' serialized bytes are to long : " + strBytes.length + " > " + size);
         }
     }
 
