@@ -60,8 +60,6 @@ public class CopyBookSerializer {
             }
         }
 
-
-
         // Read copybook field annotations
         List<CopyBookFieldFormats> copybookFieldAnnotations = getAnnotationsRecursively(CopyBookDefaults.class, CopyBookFieldFormats.class);
         copybookFieldAnnotations.addAll(getAnnotationsRecursively(type, CopyBookFieldFormats.class));
@@ -340,6 +338,10 @@ public class CopyBookSerializer {
         }
     }
 
+    public int getRecordSize () {
+        return this.recordSize;
+    }
+
     public <T> T deserialize(byte[] data, Class<T> type) throws CopyBookException, InstantiationException, IllegalAccessException {
         if(!this.type.equals(type)) {
             throw new CopyBookException("Type needs to match the type used when constructing the serializer");
@@ -358,7 +360,7 @@ public class CopyBookSerializer {
 
     private <T> T deserializeFull(byte[] data, Class<T> type) throws CopyBookException, InstantiationException, IllegalAccessException {
         if(data.length != recordSize) {
-            throw new CopyBookException("Data length does not match the size of the copybook");
+            throw new CopyBookException("Data length does not match the size of the copybook : " + data.length + " vs " + recordSize);
         }
         T obj = type.newInstance();
         ByteBuffer buf = ByteBuffer.wrap(data);

@@ -1,2 +1,5 @@
 # TODO
-* Implement CopyBookFieldFormat to hold Data and time formatting for strings, maybe move CopyBookPadding to this as well, use java.time from Java 8
+* Implement type matching for the CopyBookFieldFormat annotation fx. cobolType=CopyBookFieldType.STRING, javaType=Integer.TYPE to support different to and from conversions
+* Implement parser for Date's use java.time from Java 8, fx. by fx. cobolType=CopyBookFieldType.STRING, javaType=LocalDate.class
+* Add support for handling CopyBoookLine's as documentations os flattened nested structures
+
