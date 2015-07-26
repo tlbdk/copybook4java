@@ -2,10 +2,15 @@ package dk.nversion.copybook;
 
 import dk.nversion.copybook.packed.RequestMessage;
 import dk.nversion.copybook.packed.RequestTest;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertEquals;
 
 public class SerializerPackedTest {
+
+    @Rule
+    public ExpectedException expectedEx = ExpectedException.none();
 
     @org.junit.Test
     public void testSerializeDeserialize() throws Exception {
@@ -23,4 +28,16 @@ public class SerializerPackedTest {
 
         assertEquals(test1, test2);
     }
+
+    @org.junit.Test
+    public void testSerializeDeserializeSeparatorByteException() throws Exception {
+        expectedEx.expect(CopyBookException.class);
+        expectedEx.expectMessage("contains the separator char");
+        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
+        RequestTest test1 = new RequestTest().builder()
+                .setCommand("c" + '\u000b' + "extra")
+                .build();
+        byte[] test1data = requestTestSerializer.serialize(test1);
+    }
+
 }

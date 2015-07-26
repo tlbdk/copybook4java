@@ -261,25 +261,36 @@ public class CopyBookSerializer {
             CopyBookField cbfield = cbfields.get(i);
             byte strBytes[];
 
+
             if (cbfield.fields.length == 1) { // Simple and Array of Simple
                 strBytes = cbfield.getBytes(obj, false);
                 if(strBytes != null) {
-                    setBitInBitmap(bytes, bitIndex, bitmapBlockSize);
-                    buf.put(strBytes);
-                    buf.put(separatorByte);
+                    if(ByteUtils.indexOf(strBytes, separatorByte, 0, strBytes.length) < 0) {
+                        setBitInBitmap(bytes, bitIndex, bitmapBlockSize);
+                        buf.put(strBytes);
+                        buf.put(separatorByte);
+
+                    } else {
+                        throw new CopyBookException("Field '"+ cbfield.getFieldName() + "' contains the separator char");
+                    }
                 }
                 bitIndex++;
 
             } else { // Object and Array of Object
                 if(cbfield.fields[0].get(obj) != null) {
                     strBytes = cbfield.getBytes(obj, true);
-                    buf.put(strBytes);
+                    if(ByteUtils.indexOf(strBytes, separatorByte, 0, strBytes.length) < 0) {
+                        buf.put(strBytes);
 
-                    // Check if last field in this root object or this is end of list
-                    if (i + 1 == cbfields.size() || !cbfields.get(i + 1).fields[0].equals(cbfield.fields[0]) || cbfields.get(i + 1).indexes[0] != cbfield.indexes[0]) {
-                        setBitInBitmap(bytes, bitIndex, 8);
-                        buf.put(separatorByte);
-                        bitIndex++;
+                        // Check if last field in this root object or this is end of list
+                        if (i + 1 == cbfields.size() || !cbfields.get(i + 1).fields[0].equals(cbfield.fields[0]) || cbfields.get(i + 1).indexes[0] != cbfield.indexes[0]) {
+                            setBitInBitmap(bytes, bitIndex, 8);
+                            buf.put(separatorByte);
+                            bitIndex++;
+                        }
+
+                    } else {
+                        throw new CopyBookException("Field '"+ cbfield.getFieldName() + "' contains the separator char");
                     }
                 }
             }
