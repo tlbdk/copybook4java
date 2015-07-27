@@ -414,6 +414,7 @@ public class CopyBookSerializer {
 
             // Find size of packed array
             int[] sizeHints = new int[cbfield.fields.length];
+            Arrays.fill(sizeHints, -1);
             if (cbfield.isArray(0) && cbfield.indexes[0] == 0) { // Is array and first element
                 for (int j = 0; j < cbfield.occurs[0]; j++) {
                     if (getBitInBitmap(bitmapBytes, bitIndex + j, bitmapBlockSize)) {
