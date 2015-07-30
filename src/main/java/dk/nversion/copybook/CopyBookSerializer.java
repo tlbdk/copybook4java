@@ -2,9 +2,11 @@ package dk.nversion.copybook;
 
 import dk.nversion.ByteUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -28,7 +30,7 @@ public class CopyBookSerializer {
     private int bitmapBlockSize = 8; // Allocate 8 bytes for bit map of what fields are in use, bit 64 show if another 8 bytes has been allocated
 
     // Calculated fields
-    private int recordSize = 0;
+    private int maxRecordSize = 0;
     private int packingItemsCount;
     private int bitmapBlocks;
     private int bitmapSize;
@@ -81,13 +83,16 @@ public class CopyBookSerializer {
         Field lastRootField = null;
         packingItemsCount = 0;
         for(CopyBookField cbfield : cbfields) {
-            cbfield.offset = recordSize;
-            recordSize += cbfield.size;
+            cbfield.offset = maxRecordSize;
+            maxRecordSize += cbfield.size;
 
             // Count the number fields that can be packed with 1 level packing
-            if(!cbfield.fields[0].equals(lastRootField) || cbfield.isArray(0)) {
-                packingItemsCount++;
-                cbfield.packingItem = true;
+            if(!cbfield.fields[0].equals(lastRootField)) {
+                if(cbfield.isArray(0)) {
+                    packingItemsCount += cbfield.occurs[0];
+                } else {
+                    packingItemsCount++;
+                }
             }
             lastRootField = cbfield.fields[0];
 
@@ -100,14 +105,16 @@ public class CopyBookSerializer {
                 System.out.print("[" + Arrays.stream(cbfield.indexes).mapToObj(String::valueOf).collect(joining(", ")) + "]");
                 System.out.print(", ");
                 System.out.print("[" + Arrays.stream(cbfield.occurs).mapToObj(String::valueOf).collect(joining(", ")) + "]");
+                System.out.print(", ");
+                System.out.print("[" + Arrays.stream(cbfield.subFields).mapToObj(String::valueOf).collect(joining(", ")) + "]");
                 System.out.println();
             }
         }
 
         // Calculate sizes for packing
-        bitmapBlocks = this.packingItemsCount / (bitmapBlockSize * 8 - 1) + 1;
+        bitmapBlocks = packingItemsCount / (bitmapBlockSize * 8 - 1) + 1;
         bitmapSize = bitmapBlockSize * bitmapBlocks;
-        separatorsSize = this.packingItemsCount;
+        separatorsSize = packingItemsCount;
     }
 
     private <T extends Annotation> List<T> getAnnotationsRecursively(Class type, Class<T> annotationType) {
@@ -126,6 +133,7 @@ public class CopyBookSerializer {
     // Walk and find all copybook annotations and flatten to a list of CopyBookfields
     private <T> List<CopyBookField> walkClass(Class<T> type, Field[] fields, int[] indexes, int[] occurs, CopyBookField[] counters) throws Exception {
         List<CopyBookField> results = new ArrayList<>();
+        List<CopyBookField> subResults;
         Map<String, CopyBookField> fieldNames = new HashMap<>();
 
         // Iterate over the class fields with CopyBookLine annotation
@@ -163,7 +171,11 @@ public class CopyBookSerializer {
                     if(fieldClass.isArray() && fieldClass.getComponentType().getAnnotation(CopyBook.class) != null) {
                         // Array type in package
                         for (int i=0; i < occurscount; i++) {
-                            results.addAll(walkClass(fieldClass.getComponentType(), currentfields, arrayAppend(indexes, i), arrayAppend(occurs, occurscount), currentcounters));
+                            subResults = walkClass(fieldClass.getComponentType(), currentfields, arrayAppend(indexes, i), arrayAppend(occurs, occurscount), currentcounters);
+                            for(int j=0; j < subResults.size(); j++) {
+                                subResults.get(j).subFields = arrayPrepend(subResults.get(j).subFields, subResults.size() - j - 1);
+                            }
+                            results.addAll(subResults);
                         }
                     } else {
                         throw new CopyBookException("Field '" + getFullFieldName(currentfields) + "' should be an array type with an CopyBook annotation");
@@ -171,11 +183,16 @@ public class CopyBookSerializer {
 
                 } else if(fieldClass.getAnnotation(CopyBook.class) != null) {
                     // Complex type in package
-                    results.addAll(walkClass(fieldClass, currentfields, arrayAppend(indexes, -1), arrayAppend(occurs, occurscount), currentcounters));
+                    subResults = walkClass(fieldClass, currentfields, arrayAppend(indexes, -1), arrayAppend(occurs, occurscount), currentcounters);
+                    for(int j=0; j < subResults.size(); j++) {
+                        subResults.get(j).subFields = arrayPrepend(subResults.get(j).subFields, subResults.size() - j - 1);
+                    }
+                    results.addAll(subResults);
 
                 } else {
                     // Simple types, such as int and String
                     CopyBookField cbf = new CopyBookField(cbls[0].value(), charset, currentfields, currentcounters, arrayAppend(indexes, -1), arrayAppend(occurs, occurscount), fieldPaddings);
+                    cbf.subFields = new int[] { 0 };
                     results.add(cbf);
                     fieldNames.put(field.getName(), cbf);
 
@@ -201,7 +218,7 @@ public class CopyBookSerializer {
                             System.out.println(new String(new char[currentfields.length * 2 + 2]).replace("\0", " ") + cbls[1].value());
                         }
                         CopyBookField cbf = new CopyBookField(cbls[1].value(), charset, currentfields, currentcounters, arrayAppend(indexes, i), arrayAppend(occurs, occursCount), fieldPaddings);
-
+                        cbf.subFields = new int[] { 0 };
                         results.add(cbf);
                         fieldNames.put(field.getName(), cbf);
 
@@ -236,7 +253,7 @@ public class CopyBookSerializer {
     }
 
     private <T> byte[] serializeFull(T obj) throws CopyBookException, IllegalAccessException {
-        ByteBuffer buf = ByteBuffer.wrap(new byte[this.recordSize]);
+        ByteBuffer buf = ByteBuffer.wrap(new byte[this.maxRecordSize]);
         for(CopyBookField cbfield : cbfields) {
             buf.put(cbfield.getBytes(obj, true));
         }
@@ -245,7 +262,7 @@ public class CopyBookSerializer {
 
     private <T> byte[] serializePacked(T obj) throws CopyBookException, IllegalAccessException {
         // Init byte array
-        byte[] bytes = new byte[bitmapSize + separatorsSize + this.recordSize]; // Calculate max size of bytes
+        byte[] bytes = new byte[bitmapSize + separatorsSize + this.maxRecordSize]; // Calculate max size of bytes
 
         // Set bit 64(bit index 63) to 1
         for(int i = 0; i < bitmapBlocks - 1; ++i) {
@@ -255,12 +272,11 @@ public class CopyBookSerializer {
         // Write values to bytes after the bitmap blocks
         ByteBuffer buf = ByteBuffer.wrap(bytes, bitmapBlocks * bitmapBlockSize, bytes.length - bitmapBlocks * bitmapBlockSize);
         int bitIndex = 0;
-        int lastRootIndex = cbfields.get(0).getIndex(0);
-        Field lastRootField = cbfields.get(0).fields[0];
         for(int i=0; i < cbfields.size(); i++) {
             CopyBookField cbfield = cbfields.get(i);
             byte strBytes[];
 
+            String cbline = cbfield.line;
 
             if (cbfield.fields.length == 1) { // Simple and Array of Simple
                 strBytes = cbfield.getBytes(obj, false);
@@ -276,22 +292,33 @@ public class CopyBookSerializer {
                 }
                 bitIndex++;
 
-            } else { // Object and Array of Object
-                if(cbfield.fields[0].get(obj) != null) {
+            } else { // Nested Object or Array of Object
+                boolean isLastFieldInRootObj = i + 1 == cbfields.size() // Last item in for loop
+                        || !cbfields.get(i + 1).fields[0].equals(cbfield.fields[0]) // New root object on next iteration
+                        || cbfields.get(i + 1).indexes[0] != cbfield.indexes[0];  // New index in root object on next iteration
+
+                if(!cbfield.isNull(obj, 0)) { // If root object is not null then write bytes
                     strBytes = cbfield.getBytes(obj, true);
-                    if(ByteUtils.indexOf(strBytes, separatorByte, 0, strBytes.length) < 0) {
+                    if (ByteUtils.indexOf(strBytes, separatorByte, 0, strBytes.length) < 0) {
                         buf.put(strBytes);
-
-                        // Check if last field in this root object or this is end of list
-                        if (i + 1 == cbfields.size() || !cbfields.get(i + 1).fields[0].equals(cbfield.fields[0]) || cbfields.get(i + 1).indexes[0] != cbfield.indexes[0]) {
-                            setBitInBitmap(bytes, bitIndex, 8);
-                            buf.put(separatorByte);
-                            bitIndex++;
-                        }
-
                     } else {
-                        throw new CopyBookException("Field '"+ cbfield.getFieldName() + "' contains the separator char");
+                        throw new CopyBookException("Field '" + cbfield.getFieldName() + "' contains the separator char");
                     }
+
+                    if (isLastFieldInRootObj)  // New index in root object on next iteration
+                    {
+                        setBitInBitmap(bytes, bitIndex, 8);
+                        buf.put(separatorByte);
+                    }
+
+                } else {
+                    // Skip fields since the root item is null
+                    i += cbfield.subFields[0];
+                    bitIndex++;
+                }
+
+                if(isLastFieldInRootObj) {
+                    bitIndex++;
                 }
             }
         }
@@ -340,6 +367,13 @@ public class CopyBookSerializer {
         return newarray;
     }
 
+    private int[] arrayPrepend(int[] src, int obj) {
+        int[] dst = new int[src.length + 1];
+        System.arraycopy(src, 0, dst, 1, src.length);
+        dst[0] = obj;
+        return dst;
+    }
+
     private int getOccurs(String str) {
         Matcher matcher = re_occurs.matcher(str);
         if(matcher.find()) {
@@ -349,8 +383,12 @@ public class CopyBookSerializer {
         }
     }
 
-    public int getRecordSize () {
-        return this.recordSize;
+    public int getMaxRecordSize() {
+        return this.maxRecordSize;
+    }
+
+    public <T> T deserialize(InputStream inputStream, Class<T> type) throws CopyBookException, InstantiationException, IllegalAccessException, IOException {
+        return deserialize(ByteUtils.toByteArray(inputStream), type);
     }
 
     public <T> T deserialize(byte[] data, Class<T> type) throws CopyBookException, InstantiationException, IllegalAccessException {
@@ -370,8 +408,8 @@ public class CopyBookSerializer {
     }
 
     private <T> T deserializeFull(byte[] data, Class<T> type) throws CopyBookException, InstantiationException, IllegalAccessException {
-        if(data.length != recordSize) {
-            throw new CopyBookException("Data length does not match the size of the copybook : " + data.length + " vs " + recordSize);
+        if(data.length != maxRecordSize) {
+            throw new CopyBookException("Data length does not match the size of the copybook : " + data.length + " vs " + maxRecordSize);
         }
         T obj = type.newInstance();
         ByteBuffer buf = ByteBuffer.wrap(data);
@@ -410,7 +448,8 @@ public class CopyBookSerializer {
         int bitIndex = 0;
         for (int i = 0; i < cbfields.size(); i++) {
             CopyBookField cbfield = cbfields.get(i);
-            String test = debugBitmap(bitmapBytes, 0, 8);
+            String debugBitmapString = debugBitmap(bitmapBytes, 0, 8);
+            String cbline = cbfield.line;
 
             // Find size of packed array
             int[] sizeHints = new int[cbfield.fields.length];
@@ -426,7 +465,7 @@ public class CopyBookSerializer {
             // Read fields
             if (cbfield.fields.length == 1) { // Simple and Simple Array
                 if (getBitInBitmap(bitmapBytes, bitIndex, bitmapBlockSize)) {
-                    int index = ByteUtils.indexOf(data, separatorByte, buf.position(), Math.min(data.length, cbfield.size));
+                    int index = ByteUtils.indexOf(data, separatorByte, buf.position() + 1, cbfield.size);
                     if(index > 0) {
                         byte[] byteValue = new byte[index - buf.position()];
                         buf.get(byteValue);
@@ -440,17 +479,28 @@ public class CopyBookSerializer {
                 bitIndex++;
 
             } else { // Object and Object Array
+                boolean isLastFieldInRootObj = i + 1 == cbfields.size() // Last item in for loop
+                        || !cbfields.get(i + 1).fields[0].equals(cbfield.fields[0]) // New root object on next iteration
+                        || cbfields.get(i + 1).indexes[0] != cbfield.indexes[0];  // New index in root object on next iteration
+
                 if (getBitInBitmap(bitmapBytes, bitIndex, bitmapBlockSize)) {
                     // Read field size from buf if it's set in the bitmap
                     byte[] bytevalue = new byte[cbfield.size];
                     buf.get(bytevalue);
                     cbfield.set(obj, bytevalue, true, true, sizeHints); // Fixed length fields
+
+                } else {
+                    // Skip fields since the root item is null
+                    i += cbfield.subFields[0];
+                    bitIndex++;
                 }
 
                 // Check if last field in this root object or this is end of list
-                if (i + 1 == cbfields.size() || !cbfields.get(i + 1).fields[0].equals(cbfield.fields[0]) || cbfields.get(i + 1).indexes[0] != cbfield.indexes[0]) {
+                if (isLastFieldInRootObj) {
+                    if (getBitInBitmap(bitmapBytes, bitIndex, bitmapBlockSize)) {
+                        buf.position(buf.position() + 1);
+                    }
                     bitIndex++;
-                    buf.position(buf.position() + 1); // Skip separatorByte
                 }
             }
         }

@@ -9,11 +9,12 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CopyBookField {
-    private Pattern re_pictype = Pattern.compile("PIC\\s+(X+|9+|S9+)(?:\\((\\d+)\\))?(?:V9\\((\\d+)\\))?\\.");
+    private Pattern re_pictype = Pattern.compile("(\\d+)\\s+([^\\s]+)\\s+PIC\\s+(S)?(X+|9+)(?:\\((\\d+)\\))?(?:V(9+)(?:\\((\\d+)\\))?)?\\.");
 
     public CopyBookFieldType type;
     public int offset;
@@ -22,6 +23,7 @@ public class CopyBookField {
     public Field[] fields;
     public int[] indexes;
     public int[] occurs;
+    public int[] subFields;
     public CopyBookField[] counters;
     public String line;
 
@@ -30,8 +32,6 @@ public class CopyBookField {
     public byte nullFiller;
     public Charset charset;
     public CopyBookFieldSigningType signingType;
-
-    public boolean packingItem;
 
     public CopyBookField() {
 
@@ -45,11 +45,8 @@ public class CopyBookField {
         this.indexes = indexes;
         this.occurs = occurs;
 
-        // Parse copybook line and validate types
-        Matcher matcher = re_pictype.matcher(copybookLine);
+        // Check if the field is also array and extract the component type for that
         Class fieldType = getField().getType();
-
-        // Check if the field is also array
         if(isArray()) {
             if(fieldType.isArray()) {
                 fieldType = fieldType.getComponentType();
@@ -57,48 +54,34 @@ public class CopyBookField {
                 throw new CopyBookException("Field '" + getFieldName() + "' is not an array type");
             }
         }
-
+        // Parse copybook line and validate types
+        Matcher matcher = re_pictype.matcher(copybookLine);
         if(matcher.find()) {
-            String type = matcher.group(1);
-            this.size = matcher.group(2) != null ? Integer.parseInt(matcher.group(2)) : matcher.group(1).length();
-            this.decimals = matcher.group(3) != null ? Integer.parseInt(matcher.group(3)) : -1;
+            int level = Integer.parseInt(matcher.group(1));
+            String name = matcher.group(2);
+            boolean signed = matcher.group(3) != null ? true : false;
+            String mainType = matcher.group(4);
+            int mainSize = matcher.group(5) != null ? Integer.parseInt(matcher.group(5)) : mainType.length();
+            String decimalType = matcher.group(6) != null ?  matcher.group(6) : "";
+            int decimalSize = matcher.group(7) != null ? Integer.parseInt(matcher.group(7)) : decimalType.length();
 
             // Add decimals to size if they are set
-            this.size += this.decimals > -1 ? this.decimals : 0;
+            this.size = mainSize + decimalSize;
+            this.decimals = decimalSize;
 
             // Find type for this copybook line
-            if(type.startsWith("X")) { // String type
+            if (mainType.startsWith("X")) { // String type
                 if (fieldType.equals(String.class)) {
-                    // String
                     this.type = CopyBookFieldType.STRING;
                 } else {
                     throw new CopyBookException("Field " + getFieldName() + " is not one of the supported types(String) for this copybook line");
                 }
 
-            } else if (type.startsWith("S9")) { // Signed number
-                    if (this.decimals > -1) {
-                        // With decimals
-                        if (fieldType.equals(Float.TYPE) || fieldType.equals(Double.TYPE) || fieldType.equals(BigDecimal.class)) {
-                            this.type = CopyBookFieldType.SIGNED_DECIMAL;
-                        } else {
-                            throw new CopyBookException("Field " + getFieldName() + " is not one of the supported types(float, double, BigDecimal) for this copybook line");
-                        }
-
-                    } else {
-                        // Without decimals
-                        if (fieldType.equals(Integer.TYPE) || fieldType.equals(Long.TYPE) || fieldType.equals(BigInteger.class)) {
-                            this.type = CopyBookFieldType.SIGNED_INT;
-                        } else {
-                            throw new CopyBookException("Field " + getFieldName() + " is not one of the supported types(int, long, BigInteger) for this copybook line");
-                        }
-                    }
-
-            } else if (type.startsWith("9")) { // unsigned number
-                // Check if it's a decimals number
-                if (this.decimals > -1) {
+            } else if (mainType.startsWith("9")) { // Signed number
+                if (!decimalType.isEmpty()) {
                     // With decimals
                     if (fieldType.equals(Float.TYPE) || fieldType.equals(Double.TYPE) || fieldType.equals(BigDecimal.class)) {
-                        this.type = CopyBookFieldType.DECIMAL;
+                        this.type = signed ? CopyBookFieldType.SIGNED_DECIMAL : CopyBookFieldType.DECIMAL;
                     } else {
                         throw new CopyBookException("Field " + getFieldName() + " is not one of the supported types(float, double, BigDecimal) for this copybook line");
                     }
@@ -106,8 +89,7 @@ public class CopyBookField {
                 } else {
                     // Without decimals
                     if (fieldType.equals(Integer.TYPE) || fieldType.equals(Long.TYPE) || fieldType.equals(BigInteger.class)) {
-                        this.type = CopyBookFieldType.INT;
-
+                        this.type = signed ? CopyBookFieldType.SIGNED_INT : CopyBookFieldType.INT;
                     } else {
                         throw new CopyBookException("Field " + getFieldName() + " is not one of the supported types(int, long, BigInteger) for this copybook line");
                     }
@@ -138,8 +120,12 @@ public class CopyBookField {
     }
 
     public Object get(Object obj) throws IllegalAccessException, CopyBookException {
+        return get(obj, fields.length - 1);
+    }
+
+    public Object get(Object obj, int index) throws IllegalAccessException, CopyBookException {
         Object current = obj;
-        for (int i = 0; i < fields.length; i++) {
+        for (int i = 0; i <= index; i++) {
             current = fields[i].get(current);
             // Handle array types
             if (current != null && indexes[i] > -1) {
@@ -305,7 +291,7 @@ public class CopyBookField {
             Class fieldType = getField().getType();
 
             if(type == CopyBookFieldType.STRING) {
-                if(ByteUtils.indexOf(value, nullFiller, 0, value.length) == value.length - 1) { // All of value is null filler
+                if(ByteUtils.allEquals(value, nullFiller, 0, value.length)) { // All of value is null filler
                     result = null;
                 } else {
                     result = new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 0) : value, charset);
@@ -513,5 +499,13 @@ public class CopyBookField {
 
     public boolean isArray(int index) {
         return indexes[index] > -1;
+    }
+
+    public boolean isNull(Object obj) throws CopyBookException, IllegalAccessException {
+        return get(obj) == null;
+    }
+
+    public boolean isNull(Object obj, int index) throws CopyBookException, IllegalAccessException {
+        return get(obj, index) == null;
     }
 }
