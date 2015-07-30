@@ -5,7 +5,6 @@ import dk.nversion.ByteUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -32,8 +31,8 @@ public class CopyBookSerializer {
     // Calculated fields
     private int maxRecordSize = 0;
     private int packingItemsCount;
-    private int bitmapBlocks;
-    private int bitmapSize;
+    private int bitmapMaxBlocks;
+    private int bitmapMaxSize;
     private int separatorsSize;
 
     public <T> CopyBookSerializer(Class<T> type) throws Exception {
@@ -112,8 +111,8 @@ public class CopyBookSerializer {
         }
 
         // Calculate sizes for packing
-        bitmapBlocks = packingItemsCount / (bitmapBlockSize * 8 - 1) + 1;
-        bitmapSize = bitmapBlockSize * bitmapBlocks;
+        bitmapMaxBlocks = packingItemsCount / (bitmapBlockSize * 8 - 1) + 1;
+        bitmapMaxSize = bitmapBlockSize * bitmapMaxBlocks;
         separatorsSize = packingItemsCount;
     }
 
@@ -262,16 +261,13 @@ public class CopyBookSerializer {
 
     private <T> byte[] serializePacked(T obj) throws CopyBookException, IllegalAccessException {
         // Init byte array
-        byte[] bytes = new byte[bitmapSize + separatorsSize + this.maxRecordSize]; // Calculate max size of bytes
-
-        // Set bit 64(bit index 63) to 1
-        for(int i = 0; i < bitmapBlocks - 1; ++i) {
-            bytes[i * bitmapBlockSize + (bitmapBlockSize - 1)] = 1; // 1 decimals = 00000001 binary
-        }
+        byte[] dataBytes = new byte[separatorsSize + this.maxRecordSize]; // Calculate max size of data bytes
+        byte[] bitMapBytes = new byte[bitmapMaxSize];
 
         // Write values to bytes after the bitmap blocks
-        ByteBuffer buf = ByteBuffer.wrap(bytes, bitmapBlocks * bitmapBlockSize, bytes.length - bitmapBlocks * bitmapBlockSize);
+        ByteBuffer buf = ByteBuffer.wrap(dataBytes);
         int bitIndex = 0;
+        int maxBit = 0;
         for(int i=0; i < cbfields.size(); i++) {
             CopyBookField cbfield = cbfields.get(i);
             byte strBytes[];
@@ -282,7 +278,8 @@ public class CopyBookSerializer {
                 strBytes = cbfield.getBytes(obj, false);
                 if(strBytes != null) {
                     if(ByteUtils.indexOf(strBytes, separatorByte, 0, strBytes.length) < 0) {
-                        setBitInBitmap(bytes, bitIndex, bitmapBlockSize);
+                        setBitInBitmap(bitMapBytes, bitIndex);
+                        maxBit = bitIndex;
                         buf.put(strBytes);
                         buf.put(separatorByte);
 
@@ -298,17 +295,25 @@ public class CopyBookSerializer {
                         || cbfields.get(i + 1).indexes[0] != cbfield.indexes[0];  // New index in root object on next iteration
 
                 if(!cbfield.isNull(obj, 0)) { // If root object is not null then write bytes
-                    strBytes = cbfield.getBytes(obj, true);
-                    if (ByteUtils.indexOf(strBytes, separatorByte, 0, strBytes.length) < 0) {
-                        buf.put(strBytes);
-                    } else {
-                        throw new CopyBookException("Field '" + cbfield.getFieldName() + "' contains the separator char");
-                    }
-
                     if (isLastFieldInRootObj)  // New index in root object on next iteration
                     {
-                        setBitInBitmap(bytes, bitIndex, 8);
+                        strBytes = cbfield.getBytes(obj, false); // Don't pad if it's the last field
+                        if(strBytes == null) {
+                            strBytes = cbfield.getBytes(obj, true); // Except if it's null
+                        }
+                        buf.put(strBytes);
+                        setBitInBitmap(bitMapBytes, bitIndex);
+                        maxBit = bitIndex;
                         buf.put(separatorByte);
+
+
+                    } else {
+                        strBytes = cbfield.getBytes(obj, true);
+                        buf.put(strBytes);
+                    }
+
+                    if (ByteUtils.indexOf(strBytes, separatorByte, 0, strBytes.length) > -1) {
+                        throw new CopyBookException("Field '" + cbfield.getFieldName() + "' contains the separator char");
                     }
 
                 } else {
@@ -323,8 +328,21 @@ public class CopyBookSerializer {
             }
         }
 
-        // Trim bytes when returning the array
-        return Arrays.copyOf(bytes, buf.position());
+
+        // Trim unused bytes before returning the array
+        int bitMapBlocks = maxBit / (bitmapBlockSize * 8 - 1) + 1;
+        int bitMapSize = bitMapBlocks * bitmapBlockSize;
+
+        // Set bit 64(bit index 63) to 1
+        for(int i = 0; i < bitMapSize / bitmapBlockSize  - 1; ++i) {
+            bitMapBytes[i * bitmapBlockSize + (bitmapBlockSize - 1)] = (byte)(bitMapBytes[i * bitmapBlockSize + (bitmapBlockSize - 1)] | 1); // 1 decimals = 00000001 binary
+        }
+
+        byte[] result = new byte[buf.position() + bitMapSize];
+        System.arraycopy(bitMapBytes, 0, result, 0, bitMapSize); // Copy bitmap to result array
+        System.arraycopy(dataBytes, 0, result, bitMapSize, buf.position());
+
+        return result;
     }
 
     private static String getFullFieldName(Field[] fields) {
@@ -344,16 +362,19 @@ public class CopyBookSerializer {
     }
 
     // Sets 63 bits(bit index 0-62) in 8 bytes N times where bit 64(bit index 63) tells if a new 8 bytes block is used
-    private void setBitInBitmap(byte[] bytes, int bitindex, int blocksize) {
-        bitindex += bitindex / (blocksize * 8 - 1);
-        bytes[bitindex / blocksize] = (byte)(bytes[bitindex / blocksize] | (128 >> (bitindex % 8))); // 128 decimals = 10000000 binary
+    private void setBitInBitmap(byte[] bytes, int bitindex) {
+        bitindex += bitindex / (this.bitmapBlockSize * 8 - 1);
+        bytes[bitindex / this.bitmapBlockSize] = (byte)(bytes[bitindex / this.bitmapBlockSize] | (128 >> (bitindex % 8))); // 128 decimals = 10000000 binary
     }
 
-    private boolean getBitInBitmap(byte[] bytes, int bitIndex, int blockSize) {
+    private boolean getBitInBitmap(byte[] bytes, int bitIndex, int bitmapSize) {
         bitIndex += bitIndex / 63;
-        return (bytes[bitIndex / blockSize] & (128 >> (bitIndex % blockSize))) != 0; // 128 decimals = 10000000 binary
+        if(bitIndex < bitmapSize * 8) {
+            return (bytes[bitIndex / this.bitmapBlockSize] & (128 >> (bitIndex % this.bitmapBlockSize))) != 0; // 128 decimals = 10000000 binary
+        } else {
+            return false;
+        }
     }
-
 
     private <T> T[] arrayAppend(T[] array, T obj) {
         T[] newarray = Arrays.copyOf(array, array.length + 1);
@@ -443,7 +464,8 @@ public class CopyBookSerializer {
     private <T> T deserializePacked(byte[] data, Class<T> type) throws CopyBookException, InstantiationException, IllegalAccessException {
         T obj = type.newInstance();
         ByteBuffer buf = ByteBuffer.wrap(data);
-        byte[] bitmapBytes = new byte[bitmapSize];
+        int bitMapSize = getBitMapSize(data);
+        byte[] bitmapBytes = new byte[bitMapSize];
         buf.get(bitmapBytes);
         int bitIndex = 0;
         for (int i = 0; i < cbfields.size(); i++) {
@@ -456,7 +478,7 @@ public class CopyBookSerializer {
             Arrays.fill(sizeHints, -1);
             if (cbfield.isArray(0) && cbfield.indexes[0] == 0) { // Is array and first element
                 for (int j = 0; j < cbfield.occurs[0]; j++) {
-                    if (getBitInBitmap(bitmapBytes, bitIndex + j, bitmapBlockSize)) {
+                    if (getBitInBitmap(bitmapBytes, bitIndex + j, bitMapSize)) {
                         sizeHints[0] = j + 1;
                     }
                 }
@@ -464,7 +486,7 @@ public class CopyBookSerializer {
 
             // Read fields
             if (cbfield.fields.length == 1) { // Simple and Simple Array
-                if (getBitInBitmap(bitmapBytes, bitIndex, bitmapBlockSize)) {
+                if (getBitInBitmap(bitmapBytes, bitIndex, bitMapSize)) {
                     int index = ByteUtils.indexOf(data, separatorByte, buf.position() + 1, cbfield.size);
                     if(index > 0) {
                         byte[] byteValue = new byte[index - buf.position()];
@@ -483,11 +505,23 @@ public class CopyBookSerializer {
                         || !cbfields.get(i + 1).fields[0].equals(cbfield.fields[0]) // New root object on next iteration
                         || cbfields.get(i + 1).indexes[0] != cbfield.indexes[0];  // New index in root object on next iteration
 
-                if (getBitInBitmap(bitmapBytes, bitIndex, bitmapBlockSize)) {
+                if (getBitInBitmap(bitmapBytes, bitIndex, bitMapSize)) {
                     // Read field size from buf if it's set in the bitmap
-                    byte[] bytevalue = new byte[cbfield.size];
-                    buf.get(bytevalue);
-                    cbfield.set(obj, bytevalue, true, true, sizeHints); // Fixed length fields
+                    byte[] byteValue;
+                    if(isLastFieldInRootObj) {
+                        int index = ByteUtils.indexOf(data, separatorByte, buf.position() + 1, cbfield.size);
+                        if(index > 0) {
+                            byteValue = new byte[index - buf.position()];
+
+                        } else {
+                            throw new CopyBookException("Could not find expected separator at index " + buf.position());
+                        }
+                    } else {
+                        byteValue = new byte[cbfield.size];
+                    }
+
+                    buf.get(byteValue);
+                    cbfield.set(obj, byteValue, true, true, sizeHints); // Fixed length fields
 
                 } else {
                     // Skip fields since the root item is null
@@ -497,7 +531,7 @@ public class CopyBookSerializer {
 
                 // Check if last field in this root object or this is end of list
                 if (isLastFieldInRootObj) {
-                    if (getBitInBitmap(bitmapBytes, bitIndex, bitmapBlockSize)) {
+                    if (getBitInBitmap(bitmapBytes, bitIndex, bitMapSize)) {
                         buf.position(buf.position() + 1);
                     }
                     bitIndex++;
@@ -506,5 +540,17 @@ public class CopyBookSerializer {
         }
 
         return obj;
+    }
+
+    private int getBitMapSize(byte[] data) throws CopyBookException {
+        // Read bit map size by comparing the last bit in each block
+        int e;
+        for(e = 1; (data[e * 8 - 1] & 1) != 0; ++e) { }
+        int bitMapSize = e * bitmapBlockSize;
+        if(bitMapSize > bitmapMaxSize) {
+            throw new CopyBookException("Bitmap is to large for this copybook");
+        }
+
+        return bitMapSize;
     }
 }
