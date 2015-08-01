@@ -47,7 +47,7 @@ public class Response {
 }
 ```
 
-Construct CopyBookSerializer for Request and Response classes, to scan the class hierarchy and build a field map that will be used in the serialization and deserialization process:
+Construct CopyBookSerializer for Request and Response classes, this will scan the class hierarchy and build a field map that will be used in the serialization and deserialization process:
 ```java
 CopyBookSerializer requestSerializer = new CopyBookSerializer(Request.class);
 CopyBookSerializer responseSerializer = new CopyBookSerializer(Response.class);
