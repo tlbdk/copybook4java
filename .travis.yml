@@ -7,3 +7,18 @@ notifications:
       - tlb@nversion.dk
     on_success: never
     on_failure: always
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "aRHy60GdoMJCWKzZI4bTW8qeJEKkt7XXy2Eo/ufONVXOYM+5lvMaWbwK3+UiphzdP6jK5ITq1+TPv02nTRQ6lF+LZ32StH1FLeYyzFiv317Tym0YHP9JFZKz0cWqdj/LIFKpXsCUJp0kayyCO/kHpktqLfJoqv8cltp9Ul2AazQfJRSDLcrwxgU2iPUufmy8ajonrnQKOY99QMMh0ONjgrueAa3WzY2anwrY1hKbWdNHiOFN7hqL8PfW+cQ5Aw+j8MC0KKsgeYjMWVYtWq87alc0rEZ+Hv0DbCheRrqi2rG4T+JL5lG0+ec+P+8uwbi4Pgtjq9YK4HqdoedFq8PoiIbqGkUetrJPoRLZRUeU1dql3tGHnRS1QEKTR6tZvtKmKawbdUi8F7pkxQxn11Bk4g31ZoafSh7h2tCGeIA53vdTtAkqArgE0U/yTe0Dmxr+lS4jIY8unoGGArWSPnWmg4s3o7HDgVLSzDSATUtd+gB0Ji8NK6IXKZ0u1sGQtbsMiB04KqlipRKpmU/yKxJC7ZHm3jllVEatjciVtGgniItOYci2V/i7DaY83DYdCq8GxcEXP2JkyBsCFivTToKnFa8a/7s3tyrmRhjGfHA5JM9OuK6bcoVESwI19H8svAZGXjowqH67PzWtUmPmIbzdFjZLBHSf+Mm06nTmGjD48mo="
+
+addons:
+  coverity_scan:
+    project:
+      name: "tlbdk/copybook4java"
+      description: "Build submitted via Travis CI"
+    notification_email: tlb@nversion.dk
+    build_command_prepend: "mvn clean"
+    build_command:   "mvn -DskipTests=true compile"
+    branch_pattern: coverity_scan
