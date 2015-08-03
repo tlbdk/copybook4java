@@ -35,11 +35,11 @@ public class CopyBookSerializer {
     private int bitmapMaxSize;
     private int separatorsSize;
 
-    public <T> CopyBookSerializer(Class<T> type) throws Exception {
+    public <T> CopyBookSerializer(Class<T> type) throws CopyBookException {
         this(type, false);
     }
 
-    public <T> CopyBookSerializer(Class<T> type, boolean debug) throws Exception {
+    public <T> CopyBookSerializer(Class<T> type, boolean debug) throws CopyBookException {
         this.debug = debug;
         this.type = type;
 
@@ -130,7 +130,7 @@ public class CopyBookSerializer {
     }
 
     // Walk and find all copybook annotations and flatten to a list of CopyBookfields
-    private <T> List<CopyBookField> walkClass(Class<T> type, Field[] fields, int[] indexes, int[] occurs, CopyBookField[] counters) throws Exception {
+    private <T> List<CopyBookField> walkClass(Class<T> type, Field[] fields, int[] indexes, int[] occurs, CopyBookField[] counters) throws CopyBookException {
         List<CopyBookField> results = new ArrayList<>();
         List<CopyBookField> subResults;
         Map<String, CopyBookField> fieldNames = new HashMap<>();
@@ -232,7 +232,7 @@ public class CopyBookSerializer {
                     }
 
                 } else {
-                    throw new Exception("Field is missing CopyBookLine with OCCURS");
+                    throw new CopyBookException("Field is missing CopyBookLine with OCCURS");
                 }
             }
         }
