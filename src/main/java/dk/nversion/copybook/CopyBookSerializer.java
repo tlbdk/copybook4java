@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -73,7 +74,6 @@ public class CopyBookSerializer {
         for(CopyBookFieldFormat annotation : getAnnotationsRecursively(type, CopyBookFieldFormat.class)) {
             paddingDefaults.put(annotation.fieldType(), annotation);
         }
-
 
         // Walk class hierarchy
         this.cbfields = walkClass(type, new Field[0], new int[0], new int[0], new CopyBookField[0]);
@@ -153,9 +153,17 @@ public class CopyBookSerializer {
 
             // Append new field and index to arrays
             Field[] currentfields = arrayAppend(fields, field);
-
-            // Append counter filed
-            CopyBookField countercbf = fieldNames.get(field.getName() + "_count");
+            
+            // Append counter field
+            CopyBookField countercbf = null;
+            countercbf = fieldNames.get(field.getName() + "_count");
+            if(countercbf != null) {
+                // Only try to load the counter field if it's a valid integer type
+                Class counterType = countercbf.getField().getType();
+                if(!(counterType.equals(Integer.TYPE) || counterType.equals(Long.TYPE) || counterType.equals(BigInteger.class))) {
+                    countercbf = null;
+                }
+            }
             CopyBookField[] currentcounters = arrayAppend(counters, countercbf);;
 
             if(cbls.length == 0) {
@@ -197,7 +205,7 @@ public class CopyBookSerializer {
 
                     // Find field this field is a counter for and reference it
                     String name = field.getName();
-                    if(name.endsWith("_count")) {
+                    if(name.endsWith("_count") && (fieldClass.equals(Integer.TYPE) || fieldClass.equals(Long.TYPE) || fieldClass.equals(BigInteger.class))) {
                         CopyBookField refcbf = fieldNames.get(name.substring(name.length() - 6));
                         if(refcbf != null) {
                             refcbf.setCounter(cbf);
@@ -220,15 +228,6 @@ public class CopyBookSerializer {
                         cbf.subFields = new int[] { 0 };
                         results.add(cbf);
                         fieldNames.put(field.getName(), cbf);
-
-                        // Find field this field is a counter for and reference it
-                        String name = field.getName();
-                        if(name.endsWith("_count")) {
-                            CopyBookField refcbf = fieldNames.get(name.substring(name.length() - 6));
-                            if(refcbf != null) {
-                                refcbf.setCounter(cbf); ;
-                            }
-                        }
                     }
 
                 } else {
