@@ -65,6 +65,11 @@
                 var java_name = toCamelCase(name);
                 result += "@CopyBookLine(\"" + line.trim() + "\")\n";
                 result += "private " + toCapitalCase(java_name) + "[] " + java_name + ";\n";
+                if(name.match(/^\w{1,2}\d+/)) {
+                    result += "//public class " + name + "() {\n";
+                } else {
+                    result += "//public class " + toCapitalCase(java_name) + "() {\n";
+                }
                 result += "\n";
 
             } else if (match = re_name.exec(line)) {
