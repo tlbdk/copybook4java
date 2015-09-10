@@ -53,7 +53,7 @@ CopyBookSerializer requestSerializer = new CopyBookSerializer(Request.class);
 CopyBookSerializer responseSerializer = new CopyBookSerializer(Response.class);
 
 Request request = new Request(1, "cmd", new String[] { "arg1", "arg2" })
-byte[] requestBytes = requestSerializer.serialize(test1);
+byte[] requestBytes = requestSerializer.serialize(request);
 
 // Call the Backend with whatever client you have for this:
 byte[] responseBytes = Backend.submit(requestBytes);
