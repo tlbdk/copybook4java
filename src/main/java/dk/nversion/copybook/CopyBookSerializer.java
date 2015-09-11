@@ -5,6 +5,7 @@ import dk.nversion.ByteUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -261,10 +262,32 @@ public class CopyBookSerializer {
 
     private <T> byte[] serializeFull(T obj) throws CopyBookException, IllegalAccessException {
         ByteBuffer buf = ByteBuffer.wrap(new byte[this.maxRecordSize]);
-        for(CopyBookField cbfield : cbfields) {
-            buf.put(cbfield.getBytes(obj, true));
+
+        // Find the size of the last array if it is an array
+        Field lastRootArrayField = null;
+        int lastRootArraySize = -1;
+        if(cbfields.get(cbfields.size() - 1).isArray(0)) {
+            lastRootArrayField = cbfields.get(cbfields.size() - 1).getField(0);
+            lastRootArraySize = Array.getLength(lastRootArrayField.get(obj));
         }
-        return buf.array();
+
+        // Write out copybook data.
+        for(int i = 0; i< cbfields.size(); i++) {
+            CopyBookField cbfield = cbfields.get(i);
+            if(lastRootArrayField == cbfield.getField(0) && lastRootArraySize <= cbfield.getIndex(0)) {
+                // Stop writing data because we reached the end of the array of the last array
+                break;
+
+            } else {
+                Object current = cbfield.get(obj);
+                byte[] bytes = cbfield.getBytes(current, true);
+                buf.put(bytes);
+            }
+        }
+
+        byte[] result = new byte[buf.position()];
+        System.arraycopy(buf.array(), 0, result, 0, buf.position()); // Copy bytes to result array
+        return result;
     }
 
     private <T> byte[] serializePacked(T obj) throws CopyBookException, IllegalAccessException {
@@ -283,7 +306,7 @@ public class CopyBookSerializer {
             String cbline = cbfield.line;
 
             if (cbfield.fields.length == 1) { // Simple and Array of Simple
-                strBytes = cbfield.getBytes(obj, false);
+                strBytes = cbfield.getBytes(cbfield.get(obj), false);
                 if(strBytes != null) {
                     if(ByteUtils.indexOf(strBytes, separatorByte, 0, strBytes.length) < 0) {
                         setBitInBitmap(bitMapBytes, bitIndex);
@@ -305,9 +328,9 @@ public class CopyBookSerializer {
                 if(!cbfield.isNull(obj, 0)) { // If root object is not null then write bytes
                     if (isLastFieldInRootObj)  // New index in root object on next iteration
                     {
-                        strBytes = cbfield.getBytes(obj, false); // Don't pad if it's the last field
+                        strBytes = cbfield.getBytes(cbfield.get(obj), false); // Don't pad if it's the last field
                         if(strBytes == null) {
-                            strBytes = cbfield.getBytes(obj, true); // Except if it's null
+                            strBytes = cbfield.getBytes(cbfield.get(obj), true); // Except if it's null
                         }
                         buf.put(strBytes);
                         setBitInBitmap(bitMapBytes, bitIndex);
@@ -316,7 +339,7 @@ public class CopyBookSerializer {
 
 
                     } else {
-                        strBytes = cbfield.getBytes(obj, true);
+                        strBytes = cbfield.getBytes(cbfield.get(obj), true);
                         buf.put(strBytes);
                     }
 
@@ -335,7 +358,6 @@ public class CopyBookSerializer {
                 }
             }
         }
-
 
         // Trim unused bytes before returning the array
         int bitMapBlocks = maxBit / (bitmapBlockSize * 8 - 1) + 1;
@@ -437,14 +459,23 @@ public class CopyBookSerializer {
     }
 
     private <T> T deserializeFull(byte[] data, Class<T> type) throws CopyBookException, InstantiationException, IllegalAccessException {
-        if(data.length != maxRecordSize) {
+        // TODO: Create check for minRecordSize and maxRecordSize
+        /*if(data.length != maxRecordSize) {
             throw new CopyBookException("Data length does not match the size of the copybook : " + data.length + " vs " + maxRecordSize);
-        }
+        } */
+
         T obj = type.newInstance();
         ByteBuffer buf = ByteBuffer.wrap(data);
 
+        //TODO: Implement calculating size hint when the last field is an array
+
         CBFIELDS:
         for (CopyBookField cbfield : cbfields) {
+            // Stop reading if we don't have any more data left
+            if(!buf.hasRemaining()) {
+                break;
+            }
+
             // Convert field bytes to string and trim value
             byte[] byteValue = new byte[cbfield.size];
             buf.get(byteValue);

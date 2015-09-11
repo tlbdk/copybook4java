@@ -151,11 +151,10 @@ public class CopyBookField {
         return current;
     }
 
-    public byte[] getBytes(Object obj, boolean addPaddingOrNullFiller) throws CopyBookException, IllegalAccessException {
+    public byte[] getBytes(Object current, boolean addPaddingOrNullFiller) throws CopyBookException, IllegalAccessException {
         byte[] strBytes = new byte[0];
 
         // Get bytes for field
-        Object current = get(obj);
         if(current != null) {
             String valueString;
             String signString = null;
