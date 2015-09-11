@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CopyBookField {
-    private Pattern re_pictype = Pattern.compile("(\\d+)\\s+([^\\s]+)\\s+PIC\\s+(S)?(X+|9+)(?:\\((\\d+)\\))?(?:V(9+)(?:\\((\\d+)\\))?)?\\.");
+    private Pattern re_pictype = Pattern.compile("^\\s*(\\d+)\\s+([^\\s]+)\\s+PIC\\s+(S)?(X+|9+)(?:\\((\\d+)\\))?(?:V(9+)(?:\\((\\d+)\\))?)?\\s*\\.\\s*$");
 
     public CopyBookFieldType type;
     public int offset;
@@ -289,6 +289,9 @@ public class CopyBookField {
         try {
             Object result;
             Class fieldType = getField().getType();
+            if(fieldType.isArray()) {
+                fieldType = fieldType.getComponentType();
+            }
 
             if(type == CopyBookFieldType.STRING) {
                 if(ByteUtils.allEquals(value, nullFiller, 0, value.length)) { // All of value is null filler
@@ -300,8 +303,8 @@ public class CopyBookField {
             } else {
                 String strValue;
 
-                // Fix signing
                 // TODO: Refactor and move to own function
+                // Fix signing
                 if (type == CopyBookFieldType.SIGNED_INT || type == CopyBookFieldType.SIGNED_DECIMAL) {
                     if(signingType == CopyBookFieldSigningType.POSTFIX) {
                         strValue = normalizeNumericSigning(new String(trimPadding ? ByteUtils.trim(value, padding, rightPadding, 1) : value, charset), true);
@@ -347,7 +350,7 @@ public class CopyBookField {
                     } else if (fieldType.equals(BigInteger.class)) {
                         result = new BigInteger(strValue);
                     } else {
-                        throw new CopyBookException("Field did not match type : " + getFieldName());
+                        throw new CopyBookException("Field '" + getFieldName() + "' did not match expected type");
                     }
 
                 } else if(type == CopyBookFieldType.DECIMAL || type == CopyBookFieldType.SIGNED_DECIMAL) {
@@ -359,7 +362,7 @@ public class CopyBookField {
                     } else if (fieldType.equals(BigDecimal.class)) {
                         result = new BigDecimal(new BigInteger(strValue), decimals);
                     } else {
-                        throw new CopyBookException("Field "+  getFieldName() + " type is not a supported for this copybook field type" );
+                        throw new CopyBookException("The type for field '" + getFieldName() + "' is not a supported for this copybook field type" );
                     }
                 } else {
                     throw new CopyBookException("Unknown copybook field type");

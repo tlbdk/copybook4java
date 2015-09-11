@@ -18,6 +18,7 @@ import static java.util.stream.Collectors.joining;
 public class CopyBookSerializer {
     private Class type;
     private Pattern re_occurs = Pattern.compile("OCCURS\\s+(\\d+)\\s+TIMES");
+    private Pattern re_occursAndPic = Pattern.compile("^(.+)(OCCURS\\s+\\d+\\s+TIMES)\\s+(PIC.+)\\s*\\.\\s*$");
     private List<CopyBookField> cbfields = new ArrayList<CopyBookField>();
     private boolean debug = false;
 
@@ -138,7 +139,14 @@ public class CopyBookSerializer {
         // Iterate over the class fields with CopyBookLine annotation
         for (Field field : type.getDeclaredFields()) {
             Class fieldClass = field.getType();
-            CopyBookLine[] cbls = (CopyBookLine[])field.getAnnotationsByType(CopyBookLine.class);
+            String[] cbls =  Arrays.stream((CopyBookLine[])field.getAnnotationsByType(CopyBookLine.class)).map(cl -> cl.value()).toArray(String[]::new);
+
+            if(cbls.length == 1) {
+                Matcher matcher = re_occursAndPic.matcher(cbls[0]);
+                if(matcher.find()) {
+                    cbls = new String[] { matcher.group(1) + matcher.group(2) + ".", matcher.group(1) + matcher.group(3) + "." };
+                }
+            }
 
             // Read annotations for padding of this field
             Map<CopyBookFieldType,CopyBookFieldFormat> fieldPaddings = new HashMap<>(paddingDefaults);
@@ -171,9 +179,9 @@ public class CopyBookSerializer {
 
             } else if(cbls.length == 1) {
                 if(debug) {
-                    System.out.println(new String(new char[currentfields.length * 2]).replace("\0", " ") + cbls[0].value());
+                    System.out.println(new String(new char[currentfields.length * 2]).replace("\0", " ") + cbls[0]);
                 }
-                int occurscount = getOccurs(cbls[0].value());
+                int occurscount = getOccurs(cbls[0]);
                 if(occurscount > 1) {
                     if(fieldClass.isArray() && fieldClass.getComponentType().getAnnotation(CopyBook.class) != null) {
                         // Array type in package
@@ -184,8 +192,9 @@ public class CopyBookSerializer {
                             }
                             results.addAll(subResults);
                         }
+
                     } else {
-                        throw new CopyBookException("Field '" + getFullFieldName(currentfields) + "' should be an array type with an CopyBook annotation");
+                        throw new CopyBookException("Field '" + getFullFieldName(currentfields) + "' should be an array of another CopyBook class, you might be missing the CopyBook annotation");
                     }
 
                 } else if(fieldClass.getAnnotation(CopyBook.class) != null) {
@@ -198,7 +207,7 @@ public class CopyBookSerializer {
 
                 } else {
                     // Simple types, such as int and String
-                    CopyBookField cbf = new CopyBookField(cbls[0].value(), charset, currentfields, currentcounters, arrayAppend(indexes, -1), arrayAppend(occurs, occurscount), fieldPaddings);
+                    CopyBookField cbf = new CopyBookField(cbls[0], charset, currentfields, currentcounters, arrayAppend(indexes, -1), arrayAppend(occurs, occurscount), fieldPaddings);
                     cbf.subFields = new int[] { 0 };
                     results.add(cbf);
                     fieldNames.put(field.getName(), cbf);
@@ -215,16 +224,16 @@ public class CopyBookSerializer {
 
             } else if(cbls.length == 2) {
                 if(debug) {
-                    System.out.println(new String(new char[currentfields.length * 2]).replace("\0", " ") + cbls[0].value());
+                    System.out.println(new String(new char[currentfields.length * 2]).replace("\0", " ") + cbls[0]);
                 }
-                int occursCount = getOccurs(cbls[0].value());
+                int occursCount = getOccurs(cbls[0]);
                 if(occursCount > 1) {
                     // Simple array types, such as int[] and String[]
                     for (int i = 0; i < occursCount; i++) {
                         if(debug) {
-                            System.out.println(new String(new char[currentfields.length * 2 + 2]).replace("\0", " ") + cbls[1].value());
+                            System.out.println(new String(new char[currentfields.length * 2 + 2]).replace("\0", " ") + cbls[1]);
                         }
-                        CopyBookField cbf = new CopyBookField(cbls[1].value(), charset, currentfields, currentcounters, arrayAppend(indexes, i), arrayAppend(occurs, occursCount), fieldPaddings);
+                        CopyBookField cbf = new CopyBookField(cbls[1], charset, currentfields, currentcounters, arrayAppend(indexes, i), arrayAppend(occurs, occursCount), fieldPaddings);
                         cbf.subFields = new int[] { 0 };
                         results.add(cbf);
                         fieldNames.put(field.getName(), cbf);

@@ -101,7 +101,7 @@ public class SerializerFieldValidationExceptionsTest {
     @org.junit.Test
     public void testWrongFieldTypeObjectArray() throws Exception {
         expectedEx.expect(CopyBookException.class);
-        expectedEx.expectMessage("should be an array type");
+        expectedEx.expectMessage("should be an array of another CopyBook class, you might be missing the CopyBook annotation");
         CopyBookSerializer requestTestSerializer = new CopyBookSerializer(WrongFieldTypeObjectArray.class);
     }
 }
