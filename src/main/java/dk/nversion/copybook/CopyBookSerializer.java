@@ -1,6 +1,7 @@
 package dk.nversion.copybook;
 
 import dk.nversion.ByteUtils;
+import dk.nversion.copybook.annotations.*;
 
 import java.io.IOException;
 import java.io.InputStream;

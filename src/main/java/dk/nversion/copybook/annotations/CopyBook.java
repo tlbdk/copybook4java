@@ -1,4 +1,6 @@
-package dk.nversion.copybook;
+package dk.nversion.copybook.annotations;
+
+import dk.nversion.copybook.CopyBookSerializationFormat;
 
 import java.lang.annotation.*;
 import java.nio.charset.Charset;

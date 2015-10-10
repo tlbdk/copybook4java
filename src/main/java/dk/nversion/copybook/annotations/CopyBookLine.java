@@ -1,4 +1,4 @@
-package dk.nversion.copybook;
+package dk.nversion.copybook.annotations;
 
 import java.lang.annotation.*;
 
