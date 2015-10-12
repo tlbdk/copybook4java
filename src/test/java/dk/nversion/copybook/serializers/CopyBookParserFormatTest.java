@@ -172,7 +172,7 @@ public class CopyBookParserFormatTest {
         CopyBookParser copyBookParser = new CopyBookParser(DecimalArrayToDecimalArray.class);
         CopyBookField field = copyBookParser.getConfig().getFields().get(0);
         assertTrue(field.isArray());
-        assertEquals(8, field.getSize());
+        assertEquals(10, field.getSize());
         assertEquals(2, field.getDecimals());
         assertEquals(10, field.getMaxOccurs());
         assertEquals(10, field.getMinOccurs());
@@ -219,7 +219,7 @@ public class CopyBookParserFormatTest {
         CopyBookParser copyBookParser = new CopyBookParser(SignedDecimalArrayToDecimalArray.class);
         CopyBookField field = copyBookParser.getConfig().getFields().get(0);
         assertTrue(field.isArray());
-        assertEquals(8, field.getSize());
+        assertEquals(10, field.getSize());
         assertEquals(2, field.getDecimals());
         assertEquals(10, field.getMaxOccurs());
         assertEquals(10, field.getMinOccurs());
@@ -262,5 +262,84 @@ public class CopyBookParserFormatTest {
         assertEquals(8, field.getSubCopyBookFields().get(0).getSize());
         assertEquals(10, field.getMaxOccurs());
         assertEquals(10, field.getMinOccurs());
+    }
+
+    // Depending on fields
+    @CopyBook()
+    public class StringArrayToStringArrayDependingOn {
+        @CopyBookLine("02 COUNT PIC 9(2).")
+        private int count;
+        @CopyBookLine("01 FIELDS OCCURS 0 TO 10 TIMES PIC X(8) DEPENDING ON COUNT.")
+        private String[] fields;
+    }
+    @CopyBook()
+    public class StringArrayToStringArrayDependingOnMultiLine {
+        @CopyBookLine("02 COUNT PIC 9(2).")
+        private int count;
+        @CopyBookLine("01 FIELDS OCCURS 0 TO 10 TIMES DEPENDING ON COUNT.")
+        @CopyBookLine("02 FIELD PIC X(8).")
+        private String[] fields;
+    }
+
+    @org.junit.Test
+    public void testStringArrayToStringArrayDependingOn() throws Exception {
+        CopyBookParser copyBookParser = new CopyBookParser(StringArrayToStringArrayDependingOn.class);
+        CopyBookField field = copyBookParser.getConfig().getFields().get(1);
+        assertTrue(field.isArray());
+        assertEquals(8, field.getSize());
+        assertEquals(0, field.getMinOccurs());
+        assertEquals(10, field.getMaxOccurs());
+    }
+    @org.junit.Test
+    public void testStringArrayToStringArrayDependingOnMultiLine() throws Exception {
+        CopyBookParser copyBookParser = new CopyBookParser(StringArrayToStringArrayDependingOnMultiLine.class);
+        CopyBookField field = copyBookParser.getConfig().getFields().get(1);
+        assertTrue(field.isArray());
+        assertEquals(8, field.getSize());
+        assertEquals(0, field.getMinOccurs());
+        assertEquals(10, field.getMaxOccurs());
+    }
+
+    // Depending on fields in subfield
+    @CopyBook()
+    public class CounterDependingInOn {
+        @CopyBookLine("02 COUNT PIC 9(2).")
+        private int count;
+    }
+    @CopyBook()
+    public class StringArrayToStringArrayDependingInOn {
+        @CopyBookLine("01 SUBFIELD.")
+        private CounterDependingInOn subfield;
+        @CopyBookLine("01 RESULT.")
+        @CopyBookLine("02 FIELDS OCCURS 0 TO 10 TIMES PIC X(8) DEPENDING ON COUNT IN SUBFIELD.")
+        private String[] fields;
+    }
+    @CopyBook()
+    public class StringArrayToStringArrayDependingOnInMultiLine {
+        @CopyBookLine("01 SUBFIELD.")
+        private CounterDependingInOn subfield;
+        @CopyBookLine("01 RESULT.")
+        @CopyBookLine("02 FIELDS OCCURS 0 TO 10 TIMES DEPENDING ON COUNT IN SUBFIELD.")
+        @CopyBookLine("03 FIELD PIC X(8).")
+        private String[] fields;
+    }
+
+    @org.junit.Test
+    public void testStringArrayToStringArrayDependingOnIn() throws Exception {
+        CopyBookParser copyBookParser = new CopyBookParser(StringArrayToStringArrayDependingInOn.class);
+        CopyBookField field = copyBookParser.getConfig().getFields().get(1);
+        assertTrue(field.isArray());
+        assertEquals(8, field.getSize());
+        assertEquals(0, field.getMinOccurs());
+        assertEquals(10, field.getMaxOccurs());
+    }
+    @org.junit.Test
+    public void testStringArrayToStringArrayDependingOnInMultiLine() throws Exception {
+        CopyBookParser copyBookParser = new CopyBookParser(StringArrayToStringArrayDependingOnInMultiLine.class);
+        CopyBookField field = copyBookParser.getConfig().getFields().get(1);
+        assertTrue(field.isArray());
+        assertEquals(8, field.getSize());
+        assertEquals(0, field.getMinOccurs());
+        assertEquals(10, field.getMaxOccurs());
     }
 }

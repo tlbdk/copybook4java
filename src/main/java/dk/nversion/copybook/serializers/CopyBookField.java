@@ -11,6 +11,7 @@ public class CopyBookField {
     private Field field;
     private String[] lines;
     private TypeConverterBase converter;
+    private String name;
     private int size;
     private int decimals;
     private int minOccurs;
@@ -21,7 +22,7 @@ public class CopyBookField {
         return field.getType().isArray();
     }
 
-    public CopyBookField(Field field, int size, int decimals, int minOccurs, int maxOccurs, String[] lines, String counterKey, TypeConverterBase converter) {
+    public CopyBookField(Field field, String name, int size, int decimals, int minOccurs, int maxOccurs, String[] lines, String counterKey, TypeConverterBase converter) {
         // Handle private fields
         if(!field.isAccessible()) {
             field.setAccessible(true);
@@ -31,6 +32,7 @@ public class CopyBookField {
         this.lines = lines;
         this.counterKey = counterKey;
         this.converter = converter;
+        this.name = name;
         this.size = size;
         this.decimals = decimals;
         this.minOccurs = minOccurs;
@@ -146,5 +148,13 @@ public class CopyBookField {
 
     public void setCounterKey(String counterKey) {
         this.counterKey = counterKey;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

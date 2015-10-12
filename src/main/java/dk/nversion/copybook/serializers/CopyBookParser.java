@@ -12,12 +12,13 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class CopyBookParser {
-    private Pattern re_simpletype = Pattern.compile("^\\s*(\\d+)\\s+([^\\s\\.]+)\\.\\s*$");
-    private Pattern re_piconly = Pattern.compile("^\\s*(\\d+)\\s+([^\\s]+)\\s+PIC\\s+(S)?(X+|9+)(?:\\((\\d+)\\))?(?:V(9+)(?:\\((\\d+)\\))?)?\\s*\\.\\s*$");
-    private Pattern re_occursMax = Pattern.compile("^\\s*(\\d+)\\s+([^\\s]+)\\s+OCCURS\\s+(\\d+)\\s+TIMES\\s*\\.$");
-    private Pattern re_occursAndPic = Pattern.compile("^\\s*(\\d+)\\s+([^\\s]+)\\s+OCCURS\\s+(\\d+)\\s+TIMES\\s+PIC\\s+(S)?(X+|9+)(?:\\((\\d+)\\))?(?:V(9+)(?:\\((\\d+)\\))?)?\\s*\\.\\s*$");
+    private Pattern re_CopyBookLine = Pattern.compile("^\\s*(\\d+)\\s+([^\\s]+)(\\s+OCCURS\\s+\\d+(?:\\s+TO\\s+\\d+)?\\s+TIMES)?(\\s+PIC\\s+[^\\s]+)?(\\s+DEPENDING\\s+ON\\s+[^\\s]+(?:\\s+IN\\s+[^\\s+]+)?)?\\s*\\.\\s*$");
+    private Pattern re_Occurs = Pattern.compile("^\\s*OCCURS\\s+(?:(\\d+)\\s+TO\\s+)?(\\d+)\\s+TIMES\\s*$");
+    private Pattern re_Pic = Pattern.compile("^\\s*PIC\\s+(S)?(X+|9+)(?:\\((\\d+)\\))?(?:V(9+)(?:\\((\\d+)\\))?)?\\s*$");
+    private Pattern re_DependingOn = Pattern.compile("^\\s*DEPENDING\\s+ON\\s+([^\\s]+)(?:\\s+IN\\s+([^\\s]+))?\\s*$");
 
     private Class<? extends CopyBookSerializerBase> serializerClass = null;
     private CopyBookSerializerConfig config = new CopyBookSerializerConfig();
@@ -70,7 +71,7 @@ public class CopyBookParser {
                 String fieldName = type.getName() + "." + field.getName();
                 Class fieldBaseType = field.getType().isArray() ? field.getType().getComponentType() : field.getType();
                 String fieldTypeName = getTypeClassSimpleName(fieldBaseType);
-                String name = null;
+                List<String> names = new ArrayList<>();
                 int size = 0;
                 int decimals = -1;
                 int minOccurs = -1;
@@ -79,56 +80,69 @@ public class CopyBookParser {
                 String copyBookType = null;
 
                 for(String copyBookLine : copyBookLines) {
-                    // Parse copybook line and validate types
-                    Matcher simpletype_matcher = re_simpletype.matcher(copyBookLine);
-                    Matcher piconly_matcher = re_piconly.matcher(copyBookLine);
-                    Matcher picAndOccurs_matcher = re_occursAndPic.matcher(copyBookLine);
-                    Matcher occurs_matcher = re_occursMax.matcher(copyBookLine);
+                    Matcher copyBookLineMatcher = re_CopyBookLine.matcher(copyBookLine);
+                    if (copyBookLineMatcher.find()) {
+                        int level = Integer.parseInt(copyBookLineMatcher.group(1));
+                        names.add(copyBookLineMatcher.group(2));
 
-                    if (simpletype_matcher.find()) {
-                        int level = Integer.parseInt(simpletype_matcher.group(1));
-                        name = simpletype_matcher.group(2);
-
-                    } else if(piconly_matcher.find()) {
-                        int level = Integer.parseInt(piconly_matcher.group(1));
-                        name = piconly_matcher.group(2);
-                        boolean signed = piconly_matcher.group(3) != null;
-                        String mainType = piconly_matcher.group(4);
-                        int mainSize = piconly_matcher.group(5) != null ? Integer.parseInt(piconly_matcher.group(5)) : mainType.length();
-                        String decimalType = piconly_matcher.group(6) != null ?  piconly_matcher.group(6) : "";
-                        int decimalSize = piconly_matcher.group(7) != null ? Integer.parseInt(piconly_matcher.group(7)) : decimalType.length();
-
-                        // Add decimals to size if they are set
-                        size = mainSize + decimalSize;
-                        decimals = decimalSize;
-
-                        // Find type for this copybook line
-                        if (mainType.startsWith("X")) { // String type
-                            copyBookType = "String";
-
-                        } else if (mainType.startsWith("9")) { // Signed number
-                            if (!decimalType.isEmpty()) {
-                               copyBookType = "Decimal";
+                        if (copyBookLineMatcher.group(3) != null) {
+                            Matcher occursMatcher = re_Occurs.matcher(copyBookLineMatcher.group(3));
+                            if (occursMatcher.find()) {
+                                maxOccurs = Integer.parseInt(occursMatcher.group(2));
+                                minOccurs = occursMatcher.group(1) != null ? Integer.parseInt(occursMatcher.group(1)) : maxOccurs;
 
                             } else {
-                                copyBookType = "Integer";
+                                throw new CopyBookException("Could not parse occurs section in copybook line for field '" + fieldName + "'");
                             }
-                            if(signed) {
-                                copyBookType = "Signed" + copyBookType;
-                            }
-
-                        } else {
-                            throw new CopyBookException("Unknown PIC type for field '" + fieldName + "'");
                         }
 
-                    } else if (picAndOccurs_matcher.find()) {
-                        // TODO
+                        if (copyBookLineMatcher.group(4) != null) {
+                            Matcher picMatcher = re_Pic.matcher(copyBookLineMatcher.group(4));
+                            if (picMatcher.find()) {
+                                boolean signed = picMatcher.group(1) != null;
+                                String mainType = picMatcher.group(2);
+                                int mainSize = picMatcher.group(3) != null ? Integer.parseInt(picMatcher.group(3)) : mainType.length();
+                                String decimalType = picMatcher.group(4) != null ? picMatcher.group(4) : "";
+                                int decimalSize = picMatcher.group(5) != null ? Integer.parseInt(picMatcher.group(5)) : decimalType.length();
 
-                    } else if (occurs_matcher.find()) {
-                        int level = Integer.parseInt(occurs_matcher.group(1));
-                        name = occurs_matcher.group(2);
-                        minOccurs = Integer.parseInt(occurs_matcher.group(3));
-                        maxOccurs = minOccurs;
+                                // Add decimals to size if they are set
+                                size = mainSize + decimalSize;
+                                decimals = decimalSize;
+
+                                // Find type for this copybook line
+                                if (mainType.startsWith("X")) { // String type
+                                    copyBookType = "String";
+
+                                } else if (mainType.startsWith("9")) { // Signed number
+                                    if (!decimalType.isEmpty()) {
+                                        copyBookType = "Decimal";
+
+                                    } else {
+                                        copyBookType = "Integer";
+                                    }
+                                    if (signed) {
+                                        copyBookType = "Signed" + copyBookType;
+                                    }
+
+                                } else {
+                                    throw new CopyBookException("Unknown PIC type for field '" + fieldName + "'");
+                                }
+
+
+                            } else {
+                                throw new CopyBookException("Could not parse occurs section in copybook line for field '" + fieldName + "'");
+                            }
+                        }
+                        if (copyBookLineMatcher.group(5) != null) {
+                            Matcher dependingOnMatcher = re_DependingOn.matcher(copyBookLineMatcher.group(5));
+                            if (dependingOnMatcher.find()) {
+                                String dependedName = dependingOnMatcher.group(1);
+                                String subFieldName = dependingOnMatcher.group(2);
+
+                            } else {
+                                throw new CopyBookException("Could not parse depending on section in copybook line for field '" + fieldName + "'");
+                            }
+                        }
 
                     } else {
                         throw new CopyBookException("Could not parse copybook line for field '" + fieldName + "'");
@@ -162,7 +176,8 @@ public class CopyBookParser {
                     }
                 }
 
-                CopyBookField copyBookField = new CopyBookField(field, size, decimals, minOccurs, maxOccurs, copyBookLines, counterKey, typeConverter);
+                String name = names.stream().collect(Collectors.joining("."));
+                CopyBookField copyBookField = new CopyBookField(field, name, size, decimals, minOccurs, maxOccurs, copyBookLines, counterKey, typeConverter);
 
                 // Did not find a type convert so lets see if it's another copybook class
                 if(typeConverter == null) {
