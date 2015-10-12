@@ -18,7 +18,7 @@ public class CopyBookField {
     private String counterKey;
 
     public boolean isArray() {
-        return field.getClass().isArray();
+        return field.getType().isArray();
     }
 
     public CopyBookField(Field field, int size, int decimals, int minOccurs, int maxOccurs, String[] lines, String counterKey, TypeConverterBase converter) {
@@ -35,9 +35,6 @@ public class CopyBookField {
         this.decimals = decimals;
         this.minOccurs = minOccurs;
         this.maxOccurs = maxOccurs;
-
-        // Padding
-
     }
 
     public void setBytes(Object obj, byte[] bytes, int offset, int length, boolean removePadding) {
@@ -85,5 +82,69 @@ public class CopyBookField {
 
     public void setSubCopyBookFields(List<CopyBookField> subCopyBookFields) {
         this.subCopyBookFields = subCopyBookFields;
+    }
+
+    public Field getField() {
+        return field;
+    }
+
+    public void setField(Field field) {
+        this.field = field;
+    }
+
+    public String[] getLines() {
+        return lines;
+    }
+
+    public void setLines(String[] lines) {
+        this.lines = lines;
+    }
+
+    public TypeConverterBase getConverter() {
+        return converter;
+    }
+
+    public void setConverter(TypeConverterBase converter) {
+        this.converter = converter;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public int getDecimals() {
+        return decimals;
+    }
+
+    public void setDecimals(int decimals) {
+        this.decimals = decimals;
+    }
+
+    public int getMinOccurs() {
+        return minOccurs;
+    }
+
+    public void setMinOccurs(int minOccurs) {
+        this.minOccurs = minOccurs;
+    }
+
+    public int getMaxOccurs() {
+        return maxOccurs;
+    }
+
+    public void setMaxOccurs(int maxOccurs) {
+        this.maxOccurs = maxOccurs;
+    }
+
+    public String getCounterKey() {
+        return counterKey;
+    }
+
+    public void setCounterKey(String counterKey) {
+        this.counterKey = counterKey;
     }
 }

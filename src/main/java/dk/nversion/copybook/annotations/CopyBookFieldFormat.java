@@ -2,6 +2,7 @@ package dk.nversion.copybook.annotations;
 
 import dk.nversion.copybook.CopyBookFieldSigningType;
 import dk.nversion.copybook.CopyBookFieldType;
+import dk.nversion.copybook.converters.TypeConverterBase;
 
 import java.lang.annotation.*;
 
@@ -9,7 +10,7 @@ import java.lang.annotation.*;
 @Target({ ElementType.TYPE, ElementType.FIELD })
 @Repeatable(CopyBookFieldFormats.class)
 public @interface CopyBookFieldFormat {
-    Class type();
+    Class<? extends TypeConverterBase> type();
     CopyBookFieldSigningType signingType();
 
     boolean rightPadding();

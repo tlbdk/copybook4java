@@ -10,7 +10,7 @@ public class SerializerFullTest {
 
     @org.junit.Test
     public void testSerializeDeserialize() throws Exception {
-        FullSerializer requestTestSerializer = new FullSerializer(RequestTest.class);
+        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
         RequestTest test1 = new RequestTest().builder()
                 .setId(1)
                 .setCommand("cmd1234()")
