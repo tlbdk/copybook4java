@@ -47,10 +47,10 @@ public class CopyBookParser {
         }
 
         Map<String,TypeConverterBase> defaultTypeConverterMap = getTypeConvertersRecursively(CopyBookDefaults.class, config.getCharset());
-        config.setFields(walkClass(type, defaultTypeConverterMap, config.getCharset()));
+        config.setFields(walkClass(type, null, defaultTypeConverterMap, config.getCharset(), new HashMap<>()));
     }
 
-    private List<CopyBookField> walkClass(Class type, Map<String,TypeConverterBase> inheritedTypeConverterMap, Charset charset) throws CopyBookException {
+    private List<CopyBookField> walkClass(Class type, String copyBookName, Map<String,TypeConverterBase> inheritedTypeConverterMap, Charset charset, Map<String,CopyBookField> copyBookFieldNames) throws CopyBookException {
         List<CopyBookField> results = new ArrayList<>();
 
         CopyBook copyBookAnnotation = (CopyBook)type.getAnnotation(CopyBook.class);
@@ -72,6 +72,9 @@ public class CopyBookParser {
                 Class fieldBaseType = field.getType().isArray() ? field.getType().getComponentType() : field.getType();
                 String fieldTypeName = getTypeClassSimpleName(fieldBaseType);
                 List<String> names = new ArrayList<>();
+                if(copyBookName != null) {
+                    names.add(copyBookName);
+                }
                 int size = 0;
                 int decimals = -1;
                 int minOccurs = -1;
@@ -138,6 +141,22 @@ public class CopyBookParser {
                             if (dependingOnMatcher.find()) {
                                 String dependedName = dependingOnMatcher.group(1);
                                 String subFieldName = dependingOnMatcher.group(2);
+                                if(names.size() > 1) {
+                                    List<String> counterKeyNames = new ArrayList<>(names.subList(0, names.size() - 2));
+                                    counterKeyNames.add(subFieldName);
+                                    counterKeyNames.add(dependedName);
+
+                                    counterKey = counterKeyNames.stream().collect(Collectors.joining("."));
+                                    if(copyBookFieldNames.containsKey(counterKey)) {
+                                        copyBookFieldNames.get(counterKey).setIsCounter(true);
+                                        
+                                    } else {
+                                        throw new CopyBookException("Could not find referenced counter " + counterKey +  "for field '" + fieldName + "'");
+                                    }
+
+                                } else {
+                                    throw new CopyBookException("IN only makes sense when you are in another level for field '" + fieldName + "'");
+                                }
 
                             } else {
                                 throw new CopyBookException("Could not parse depending on section in copybook line for field '" + fieldName + "'");
@@ -178,11 +197,12 @@ public class CopyBookParser {
 
                 String name = names.stream().collect(Collectors.joining("."));
                 CopyBookField copyBookField = new CopyBookField(field, name, size, decimals, minOccurs, maxOccurs, copyBookLines, counterKey, typeConverter);
+                copyBookFieldNames.put(name, copyBookField);
 
                 // Did not find a type convert so lets see if it's another copybook class
                 if(typeConverter == null) {
                     if (fieldBaseType.getAnnotation(CopyBook.class) != null) {
-                        copyBookField.setSubCopyBookFields(walkClass(fieldBaseType, typeConverterMap, charset));
+                        copyBookField.setSubCopyBookFields(walkClass(fieldBaseType, name, typeConverterMap, charset, copyBookFieldNames));
 
                     } else {
                         if(fieldBaseType.isPrimitive() || fieldBaseType.getName().startsWith("java")) {

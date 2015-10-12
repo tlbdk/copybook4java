@@ -17,6 +17,7 @@ public class CopyBookField {
     private int minOccurs;
     private int maxOccurs;
     private String counterKey;
+    private boolean isCounter;
 
     public boolean isArray() {
         return field.getType().isArray();
@@ -156,5 +157,13 @@ public class CopyBookField {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isCounter() {
+        return isCounter;
+    }
+
+    public void setIsCounter(boolean isCounter) {
+        this.isCounter = isCounter;
     }
 }
