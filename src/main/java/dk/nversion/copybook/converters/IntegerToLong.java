@@ -1,7 +1,17 @@
 package dk.nversion.copybook.converters;
 
-/**
- * Created by tlb on 10/8/15.
- */
-public class IntegerToLong {
+public class IntegerToLong extends TypeConverterBase {
+    public IntegerToLong(TypeConverterConfig config) {
+        super(config);
+    }
+
+    @Override
+    public Object to(byte[] bytes, int offset, int length, boolean removePadding) {
+        return null;
+    }
+
+    @Override
+    public byte[] from(Object value, boolean addPadding) {
+        return new byte[0];
+    }
 }

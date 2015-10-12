@@ -1,7 +1,7 @@
 package dk.nversion.copybook;
 
-import dk.nversion.copybook.full.RequestMessage;
-import dk.nversion.copybook.full.RequestTest;
+import dk.nversion.copybook.annotations.CopyBook;
+import dk.nversion.copybook.annotations.CopyBookLine;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;

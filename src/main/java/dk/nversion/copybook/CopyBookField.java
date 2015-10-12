@@ -1,6 +1,7 @@
 package dk.nversion.copybook;
 
 import dk.nversion.ByteUtils;
+import dk.nversion.copybook.annotations.CopyBookFieldFormat;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -9,7 +10,6 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

@@ -1,5 +1,11 @@
 package dk.nversion.copybook;
 
+import dk.nversion.copybook.annotations.CopyBook;
+import dk.nversion.copybook.annotations.CopyBookFieldFormat;
+import dk.nversion.copybook.annotations.CopyBookLine;
+import dk.nversion.copybook.converters.SignedDecimalToBigDecimal;
+import dk.nversion.copybook.converters.SignedIntegerToInteger;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -63,28 +69,28 @@ public class SerializerTypeTest {
     }
 
     @CopyBook()
-    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_INT, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.POSTFIX, rightPadding = false)
+    @CopyBookFieldFormat(type = SignedIntegerToInteger.class, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.POSTFIX, rightPadding = false)
     static public class fieldTypeSignedIntegerPostfix {
         @CopyBookLine("01 FIELD PIC S9(3).")
         public int field;
     }
 
     @CopyBook()
-    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_DECIMAL, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.POSTFIX, rightPadding = false)
+    @CopyBookFieldFormat(type = SignedDecimalToBigDecimal.class, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.POSTFIX, rightPadding = false)
     static public class fieldTypeSignedDecimalPostfix {
         @CopyBookLine("01 FIELD PIC S9(3)V9(2).")
         public BigDecimal field;
     }
 
     @CopyBook()
-    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_INT, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.LAST_BYTE_BIT8, rightPadding = false)
+    @CopyBookFieldFormat(type = SignedIntegerToInteger.class, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.LAST_BYTE_BIT8, rightPadding = false)
     static public class fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteBit8 {
         @CopyBookLine("01 FIELD PIC S9(2).")
         public int field;
     }
 
     @CopyBook(charset = "cp037")
-    @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_INT, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.LAST_BYTE_EBCDIC_BIT5, rightPadding = false)
+    @CopyBookFieldFormat(type = SignedIntegerToInteger.class, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.LAST_BYTE_EBCDIC_BIT5, rightPadding = false)
     static public class fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteEbcdicBit5 {
         @CopyBookLine("01 FIELD PIC S9(2).")
         public int field;

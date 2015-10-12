@@ -1,5 +1,9 @@
 package dk.nversion.copybook;
 
+import dk.nversion.copybook.annotations.CopyBook;
+import dk.nversion.copybook.annotations.CopyBookLine;
+import dk.nversion.copybook.serializers.FullSerializer;
+
 import java.math.BigDecimal;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -7,31 +11,31 @@ import static org.junit.Assert.assertEquals;
 
 public class SerializerOccursPicSingleLineTest {
 
-    @CopyBook(format = CopyBookSerializationFormat.FULL)
+    @CopyBook(type = FullSerializer.class)
     static public class StringFieldOccursTwoTimes {
         @CopyBookLine("01 FIELDS OCCURS 2 TIMES PIC X(4).")
         public String[] fields;
     }
 
-    @CopyBook(format = CopyBookSerializationFormat.FULL)
+    @CopyBook(type = FullSerializer.class)
     static public class IntFieldOccursTwoTimes {
         @CopyBookLine("01 FIELDS OCCURS 2 TIMES PIC 9(4).")
         public int[] fields;
     }
 
-    @CopyBook(format = CopyBookSerializationFormat.FULL)
+    @CopyBook(type = FullSerializer.class)
     static public class SignedIntFieldOccursTwoTimes {
         @CopyBookLine("01 FIELDS OCCURS 2 TIMES PIC S9(4).")
         public int[] fields;
     }
 
-    @CopyBook(format = CopyBookSerializationFormat.FULL)
+    @CopyBook(type = FullSerializer.class)
     static public class DecimalFieldOccursTwoTimes {
         @CopyBookLine("01 FIELDS OCCURS 2 TIMES PIC 9(3)V9(2).")
         public BigDecimal[] fields;
     }
 
-    @CopyBook(format = CopyBookSerializationFormat.FULL)
+    @CopyBook(type = FullSerializer.class)
     static public class SignedDecimalFieldOccursTwoTimes {
         @CopyBookLine("01 FIELDS OCCURS 2 TIMES PIC S9(3)V9(2).")
         public BigDecimal[] fields;

@@ -51,9 +51,9 @@ public class CopyBookSerializer {
         List<CopyBook> copybookAnnotations = getAnnotationsRecursively(CopyBookDefaults.class, CopyBook.class);
         copybookAnnotations.addAll(getAnnotationsRecursively(type, CopyBook.class));
         for(CopyBook annotation : copybookAnnotations) {
-            if (annotation.format() != CopyBookSerializationFormat.NONE) {
+            /*if (annotation.format() != CopyBookSerializationFormat.NONE) {
                 format = annotation.format();
-            }
+            } */
             if (!annotation.charset().isEmpty()) {
                 charset = Charset.forName(annotation.charset());
             }
@@ -70,12 +70,12 @@ public class CopyBookSerializer {
         copybookFieldAnnotations.addAll(getAnnotationsRecursively(type, CopyBookFieldFormats.class));
         for(CopyBookFieldFormats annotations : copybookFieldAnnotations) {
             for(CopyBookFieldFormat annotation : annotations.value()) {
-                paddingDefaults.put(annotation.fieldType(), annotation);
+                //paddingDefaults.put(annotation.fieldType(), annotation);
             }
         }
         // Handle case where there is only one annotation
         for(CopyBookFieldFormat annotation : getAnnotationsRecursively(type, CopyBookFieldFormat.class)) {
-            paddingDefaults.put(annotation.fieldType(), annotation);
+            //paddingDefaults.put(annotation.fieldType(), annotation);
         }
 
         // Walk class hierarchy
@@ -153,7 +153,7 @@ public class CopyBookSerializer {
             // Read annotations for padding of this field
             Map<CopyBookFieldType,CopyBookFieldFormat> fieldPaddings = new HashMap<>(paddingDefaults);
             for(CopyBookFieldFormat padding : (CopyBookFieldFormat[])field.getAnnotationsByType(CopyBookFieldFormat.class)) {
-                fieldPaddings.put(padding.fieldType(), padding);
+                //fieldPaddings.put(padding.fieldType(), padding);
             }
 
             // Handle private fields

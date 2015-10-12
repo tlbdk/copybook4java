@@ -1,7 +1,7 @@
 package dk.nversion.copybook;
 
+import dk.nversion.copybook.annotations.CopyBookFieldFormat;
 import org.junit.Before;
-import org.junit.BeforeClass;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -11,11 +11,12 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-@CopyBookFieldFormat(fieldType = CopyBookFieldType.INT, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+/* @CopyBookFieldFormat(fieldType = CopyBookFieldType.INT, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_INT, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 @CopyBookFieldFormat(fieldType = CopyBookFieldType.DECIMAL, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 @CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_DECIMAL, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 @CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = true, paddingChar  = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+*/
 public class CopyBookFieldTest {
     private String stringField;
     private int intField;
@@ -38,7 +39,7 @@ public class CopyBookFieldTest {
         bigDecimalFields = new Field[] { this.getClass().getDeclaredField("bigDecimalField") };
         CopyBookFieldFormat[] annotations = CopyBookFieldTest.class.getAnnotationsByType(CopyBookFieldFormat.class);
         for(CopyBookFieldFormat annotation : annotations) {
-            paddingDefaults.put(annotation.fieldType(), annotation);
+            //paddingDefaults.put(annotation.fieldType(), annotation);
         }
     }
 

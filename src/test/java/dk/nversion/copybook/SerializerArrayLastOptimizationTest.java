@@ -1,6 +1,8 @@
 package dk.nversion.copybook;
 
-import java.lang.reflect.Array;
+import dk.nversion.copybook.annotations.CopyBook;
+import dk.nversion.copybook.annotations.CopyBookLine;
+
 import java.math.BigDecimal;
 import java.util.Arrays;
 

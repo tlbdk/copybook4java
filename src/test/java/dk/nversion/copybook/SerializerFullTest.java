@@ -2,6 +2,7 @@ package dk.nversion.copybook;
 
 import dk.nversion.copybook.full.RequestMessage;
 import dk.nversion.copybook.full.RequestTest;
+import dk.nversion.copybook.serializers.FullSerializer;
 
 import static org.junit.Assert.*;
 
@@ -9,7 +10,7 @@ public class SerializerFullTest {
 
     @org.junit.Test
     public void testSerializeDeserialize() throws Exception {
-        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
+        FullSerializer requestTestSerializer = new FullSerializer(RequestTest.class);
         RequestTest test1 = new RequestTest().builder()
                 .setId(1)
                 .setCommand("cmd1234()")

@@ -1,5 +1,8 @@
 package dk.nversion.copybook;
 
+import dk.nversion.copybook.annotations.CopyBook;
+import dk.nversion.copybook.annotations.CopyBookLine;
+
 public class SerializerFieldValidationTest {
 
     @CopyBook()

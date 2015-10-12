@@ -1,10 +1,13 @@
 package dk.nversion.copybook.packed;
 
 import dk.nversion.copybook.*;
+import dk.nversion.copybook.annotations.CopyBook;
+import dk.nversion.copybook.annotations.CopyBookLine;
+import dk.nversion.copybook.serializers.PackedFirstLevelSerializer;
 
 import java.util.Arrays;
 
-@CopyBook(format = CopyBookSerializationFormat.PACKED)
+@CopyBook(type = PackedFirstLevelSerializer.class)
 public class RequestTest {
     // Fields
     @CopyBookLine("01 ID PIC 9(8).")

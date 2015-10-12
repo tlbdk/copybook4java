@@ -1,14 +1,19 @@
 package dk.nversion.copybook.full;
 
 import dk.nversion.copybook.*;
+import dk.nversion.copybook.annotations.CopyBook;
+import dk.nversion.copybook.annotations.CopyBookFieldFormat;
+import dk.nversion.copybook.annotations.CopyBookLine;
+import dk.nversion.copybook.converters.IntegerToInteger;
+import dk.nversion.copybook.converters.StringToString;
 
 @CopyBook()
-@CopyBookFieldFormat(fieldType = CopyBookFieldType.INT, rightPadding = true, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
-@CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = true, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+@CopyBookFieldFormat(type = IntegerToInteger.class, rightPadding = true, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+@CopyBookFieldFormat(type = StringToString.class, rightPadding = true, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 public class RequestMessage {
     @CopyBookLine("02 TITLE PIC X(5).")
     public String title;
-    @CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = false, paddingChar = '_', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+    @CopyBookFieldFormat(type = StringToString.class, rightPadding = false, paddingChar = '_', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
     @CopyBookLine("02 BODY PIC X(10).")
     public String body;
 

@@ -9,9 +9,11 @@ import java.lang.annotation.*;
 @Target({ ElementType.TYPE, ElementType.FIELD })
 @Repeatable(CopyBookFieldFormats.class)
 public @interface CopyBookFieldFormat {
-    public CopyBookFieldType fieldType();
-    public boolean rightPadding();
-    public char paddingChar();
-    public char nullFillerChar();
-    public CopyBookFieldSigningType signingType();
+    Class type();
+    CopyBookFieldSigningType signingType();
+
+    boolean rightPadding();
+    char paddingChar();
+    char nullFillerChar();
+
 }
