@@ -141,21 +141,28 @@ public class CopyBookParser {
                             if (dependingOnMatcher.find()) {
                                 String dependedName = dependingOnMatcher.group(1);
                                 String subFieldName = dependingOnMatcher.group(2);
-                                if(names.size() > 1) {
-                                    List<String> counterKeyNames = new ArrayList<>(names.subList(0, names.size() - 2));
-                                    counterKeyNames.add(subFieldName);
-                                    counterKeyNames.add(dependedName);
 
-                                    counterKey = counterKeyNames.stream().collect(Collectors.joining("."));
-                                    if(copyBookFieldNames.containsKey(counterKey)) {
-                                        copyBookFieldNames.get(counterKey).setIsCounter(true);
-                                        
+                                List<String> counterKeyNames = new ArrayList<>(names.subList(0, names.size() - 1));
+
+                                if(subFieldName != null) {
+                                    if(names.size() > 1) {
+                                        // Go up one level and add subfield that the counter exists in
+                                        counterKeyNames.remove(counterKeyNames.size() - 1);
+                                        counterKeyNames.add(subFieldName);
+
                                     } else {
-                                        throw new CopyBookException("Could not find referenced counter " + counterKey +  "for field '" + fieldName + "'");
+                                        throw new CopyBookException("IN only makes sense when you are in another level for field '" + fieldName + "'");
                                     }
+                                }
+
+                                counterKeyNames.add(dependedName);
+                                counterKey = counterKeyNames.stream().collect(Collectors.joining("."));
+
+                                if(copyBookFieldNames.containsKey(counterKey)) {
+                                    copyBookFieldNames.get(counterKey).setIsCounter(true);
 
                                 } else {
-                                    throw new CopyBookException("IN only makes sense when you are in another level for field '" + fieldName + "'");
+                                    throw new CopyBookException("Could not find referenced counter " + counterKey +  "for field '" + fieldName + "'");
                                 }
 
                             } else {

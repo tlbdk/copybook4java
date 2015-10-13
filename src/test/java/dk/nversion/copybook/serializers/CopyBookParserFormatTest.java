@@ -4,11 +4,161 @@ import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookLine;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class CopyBookParserFormatTest {
+
+    // Format test
+    @CopyBook()
+    public class FormatTest {
+        @CopyBookLine("04 FIELD1 PIC X.")
+        private String string1;
+        @CopyBookLine("04 FIELD1 PIC XX.")
+        private String string2;
+        @CopyBookLine("04 FIELD1 PIC X(1).")
+        private String string3;
+        @CopyBookLine("04 FIELD1 PIC X(2).")
+        private String string4;
+        @CopyBookLine("04 FIELD1 PIC X(10).")
+        private String string5;
+
+        @CopyBookLine("04 FIELD1 PIC 9.")
+        private int integer1;
+        @CopyBookLine("04 FIELD1 PIC 99.")
+        private int integer2;
+        @CopyBookLine("04 FIELD1 PIC 9(1).")
+        private int integer3;
+        @CopyBookLine("04 FIELD1 PIC 9(2).")
+        private int integer4;
+        @CopyBookLine("04 FIELD1 PIC 9(10).")
+        private int integer5;
+
+        @CopyBookLine("04 FIELD1 PIC S9.")
+        private int signedinteger1;
+        @CopyBookLine("04 FIELD1 PIC S99.")
+        private int signedinteger2;
+        @CopyBookLine("04 FIELD1 PIC S9(1).")
+        private int signedinteger3;
+        @CopyBookLine("04 FIELD1 PIC S9(2).")
+        private int signedinteger4;
+        @CopyBookLine("04 FIELD1 PIC S9(10).")
+        private int signedinteger5;
+
+        @CopyBookLine("04 FIELD1 PIC 9V9.")
+        private BigDecimal decimal1;
+        @CopyBookLine("04 FIELD1 PIC 99V99.")
+        private BigDecimal decimal2;
+        @CopyBookLine("04 FIELD1 PIC 9(1)V9.")
+        private BigDecimal decimal3;
+        @CopyBookLine("04 FIELD1 PIC 9(1)V99.")
+        private BigDecimal decimal4;
+        @CopyBookLine("04 FIELD1 PIC 9(1)V9(1).")
+        private BigDecimal decimal5;
+        @CopyBookLine("04 FIELD1 PIC 9(2)V9(2).")
+        private BigDecimal decimal6;
+        @CopyBookLine("04 FIELD1 PIC 9(10)V9(10).")
+        private BigDecimal decimal7;
+
+        @CopyBookLine("04 FIELD1 PIC S9V9.")
+        private BigDecimal signeddecimal1;
+        @CopyBookLine("04 FIELD1 PIC S99V99.")
+        private BigDecimal signeddecimal2;
+        @CopyBookLine("04 FIELD1 PIC S9(1)V9.")
+        private BigDecimal signeddecimal3;
+        @CopyBookLine("04 FIELD1 PIC S9(1)V99.")
+        private BigDecimal signeddecimal4;
+        @CopyBookLine("04 FIELD1 PIC S9(1)V9(1).")
+        private BigDecimal signeddecimal5;
+        @CopyBookLine("04 FIELD1 PIC S9(2)V9(2).")
+        private BigDecimal signeddecimal6;
+        @CopyBookLine("04 FIELD1 PIC S9(10)V9(10).")
+        private BigDecimal signeddecimal7;
+    }
+
+    @org.junit.Test()
+    public void testFormatTest() throws Exception {
+        CopyBookParser copyBookParser = new CopyBookParser(FormatTest.class);
+        List<CopyBookField> fields = copyBookParser.getConfig().getFields();
+        assertEquals(1, fields.get(0).getSize());
+        assertEquals(fields.get(0).getConverter().getClass().getSimpleName(), "StringToString");
+        assertEquals(2, fields.get(1).getSize());
+        assertEquals(fields.get(1).getConverter().getClass().getSimpleName(), "StringToString");
+        assertEquals(1, fields.get(2).getSize());
+        assertEquals(fields.get(2).getConverter().getClass().getSimpleName(), "StringToString");
+        assertEquals(2, fields.get(3).getSize());
+        assertEquals(fields.get(3).getConverter().getClass().getSimpleName(), "StringToString");
+        assertEquals(10, fields.get(4).getSize());
+        assertEquals(fields.get(4).getConverter().getClass().getSimpleName(), "StringToString");
+
+        assertEquals(1, fields.get(5).getSize());
+        assertEquals(fields.get(5).getConverter().getClass().getSimpleName(), "IntegerToInteger");
+        assertEquals(2, fields.get(6).getSize());
+        assertEquals(fields.get(6).getConverter().getClass().getSimpleName(), "IntegerToInteger");
+        assertEquals(1, fields.get(7).getSize());
+        assertEquals(fields.get(7).getConverter().getClass().getSimpleName(), "IntegerToInteger");
+        assertEquals(2, fields.get(8).getSize());
+        assertEquals(fields.get(8).getConverter().getClass().getSimpleName(), "IntegerToInteger");
+        assertEquals(10, fields.get(9).getSize());
+        assertEquals(fields.get(9).getConverter().getClass().getSimpleName(), "IntegerToInteger");
+
+        assertEquals(1, fields.get(10).getSize());
+        assertEquals(fields.get(10).getConverter().getClass().getSimpleName(), "SignedIntegerToInteger");
+        assertEquals(2, fields.get(11).getSize());
+        assertEquals(fields.get(11).getConverter().getClass().getSimpleName(), "SignedIntegerToInteger");
+        assertEquals(1, fields.get(12).getSize());
+        assertEquals(fields.get(12).getConverter().getClass().getSimpleName(), "SignedIntegerToInteger");
+        assertEquals(2, fields.get(13).getSize());
+        assertEquals(fields.get(13).getConverter().getClass().getSimpleName(), "SignedIntegerToInteger");
+        assertEquals(10, fields.get(14).getSize());
+        assertEquals(fields.get(14).getConverter().getClass().getSimpleName(), "SignedIntegerToInteger");
+
+        assertEquals(2, fields.get(15).getSize());
+        assertEquals(1, fields.get(15).getDecimals());
+        assertEquals(fields.get(15).getConverter().getClass().getSimpleName(), "DecimalToBigDecimal");
+        assertEquals(4, fields.get(16).getSize());
+        assertEquals(2, fields.get(16).getDecimals());
+        assertEquals(fields.get(16).getConverter().getClass().getSimpleName(), "DecimalToBigDecimal");
+        assertEquals(2, fields.get(17).getSize());
+        assertEquals(1, fields.get(17).getDecimals());
+        assertEquals(fields.get(17).getConverter().getClass().getSimpleName(), "DecimalToBigDecimal");
+        assertEquals(3, fields.get(18).getSize());
+        assertEquals(2, fields.get(18).getDecimals());
+        assertEquals(fields.get(18).getConverter().getClass().getSimpleName(), "DecimalToBigDecimal");
+        assertEquals(2, fields.get(19).getSize());
+        assertEquals(1, fields.get(19).getDecimals());
+        assertEquals(fields.get(19).getConverter().getClass().getSimpleName(), "DecimalToBigDecimal");
+        assertEquals(4, fields.get(20).getSize());
+        assertEquals(2, fields.get(20).getDecimals());
+        assertEquals(fields.get(20).getConverter().getClass().getSimpleName(), "DecimalToBigDecimal");
+        assertEquals(20, fields.get(21).getSize());
+        assertEquals(10, fields.get(21).getDecimals());
+        assertEquals(fields.get(21).getConverter().getClass().getSimpleName(), "DecimalToBigDecimal");
+
+        assertEquals(2, fields.get(22).getSize());
+        assertEquals(1, fields.get(22).getDecimals());
+        assertEquals(fields.get(22).getConverter().getClass().getSimpleName(), "SignedDecimalToBigDecimal");
+        assertEquals(4, fields.get(23).getSize());
+        assertEquals(2, fields.get(23).getDecimals());
+        assertEquals(fields.get(23).getConverter().getClass().getSimpleName(), "SignedDecimalToBigDecimal");
+        assertEquals(2, fields.get(24).getSize());
+        assertEquals(1, fields.get(24).getDecimals());
+        assertEquals(fields.get(24).getConverter().getClass().getSimpleName(), "SignedDecimalToBigDecimal");
+        assertEquals(3, fields.get(25).getSize());
+        assertEquals(2, fields.get(25).getDecimals());
+        assertEquals(fields.get(25).getConverter().getClass().getSimpleName(), "SignedDecimalToBigDecimal");
+        assertEquals(2, fields.get(26).getSize());
+        assertEquals(1, fields.get(26).getDecimals());
+        assertEquals(fields.get(26).getConverter().getClass().getSimpleName(), "SignedDecimalToBigDecimal");
+        assertEquals(4, fields.get(27).getSize());
+        assertEquals(2, fields.get(27).getDecimals());
+        assertEquals(fields.get(27).getConverter().getClass().getSimpleName(), "SignedDecimalToBigDecimal");
+        assertEquals(20, fields.get(28).getSize());
+        assertEquals(10, fields.get(28).getDecimals());
+        assertEquals(fields.get(28).getConverter().getClass().getSimpleName(), "SignedDecimalToBigDecimal");
+    }
 
     // String / String Array
     @CopyBook()
