@@ -1,8 +1,11 @@
 package dk.nversion.copybook.converters;
 
+import dk.nversion.copybook.exceptions.TypeConverterException;
+
 public class SignedIntegerToLong extends TypeConverterBase {
-    public SignedIntegerToLong(TypeConverterConfig config) {
-        super(config);
+    @Override
+    public void validate(Class type, int size, int decimals) throws TypeConverterException {
+
     }
 
     @Override
@@ -11,7 +14,7 @@ public class SignedIntegerToLong extends TypeConverterBase {
     }
 
     @Override
-    public byte[] from(Object value, boolean addPadding) {
+    public byte[] from(Object value, int length, boolean addPadding) throws TypeConverterException {
         return new byte[0];
     }
 }

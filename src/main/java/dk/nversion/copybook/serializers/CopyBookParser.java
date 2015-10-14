@@ -1,13 +1,13 @@
 package dk.nversion.copybook.serializers;
 
-import dk.nversion.copybook.CopyBookException;
+import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.annotations.*;
 import dk.nversion.copybook.converters.TypeConverterBase;
 import dk.nversion.copybook.converters.TypeConverterConfig;
+import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -29,7 +29,7 @@ public class CopyBookParser {
         copybookAnnotations.addAll(getAnnotationsRecursively(type, CopyBook.class));
         for(CopyBook annotation : copybookAnnotations) {
             if (!annotation.type().equals(CopyBookSerializerBase.class)) {
-                serializerClass = annotation.type();
+                this.serializerClass = annotation.type();
             }
             if (!annotation.charset().isEmpty()) {
                 config.setCharset(Charset.forName(annotation.charset()));
@@ -202,8 +202,17 @@ public class CopyBookParser {
                     }
                 }
 
+                if(typeConverter != null) {
+                    try {
+                        typeConverter.validate(fieldBaseType, size, decimals);
+
+                    } catch (TypeConverterException ex) {
+                        throw new CopyBookException(fieldName + ":", ex);
+                    }
+                }
+
                 String name = names.stream().collect(Collectors.joining("."));
-                CopyBookField copyBookField = new CopyBookField(field, name, size, decimals, minOccurs, maxOccurs, copyBookLines, counterKey, typeConverter);
+                CopyBookField copyBookField = new CopyBookField(type, field, name, size, decimals, minOccurs, maxOccurs, copyBookLines, counterKey, typeConverter);
                 copyBookFieldNames.put(name, copyBookField);
 
                 // Did not find a type convert so lets see if it's another copybook class
@@ -292,9 +301,11 @@ public class CopyBookParser {
         config.setSigningType(copyBookFieldFormat.signingType());
 
         try {
-            return (TypeConverterBase)copyBookFieldFormat.type().getDeclaredConstructor(TypeConverterConfig.class).newInstance(config);
+            TypeConverterBase typeConverter = (TypeConverterBase)copyBookFieldFormat.type().newInstance();
+            typeConverter.setConfig(config);
+            return typeConverter;
 
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+        } catch (InstantiationException | IllegalAccessException ex) {
             throw new CopyBookException("Failed to load TypeConverterBase");
         }
     }

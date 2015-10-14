@@ -1,6 +1,8 @@
 package dk.nversion.copybook.serializers;
 
+import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.converters.TypeConverterBase;
+import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -8,6 +10,7 @@ import java.util.List;
 
 public class CopyBookField {
     private List<CopyBookField> subCopyBookFields;
+    private Class type;
     private Field field;
     private String[] lines;
     private TypeConverterBase converter;
@@ -23,12 +26,13 @@ public class CopyBookField {
         return field.getType().isArray();
     }
 
-    public CopyBookField(Field field, String name, int size, int decimals, int minOccurs, int maxOccurs, String[] lines, String counterKey, TypeConverterBase converter) {
+    public CopyBookField(Class type, Field field, String name, int size, int decimals, int minOccurs, int maxOccurs, String[] lines, String counterKey, TypeConverterBase converter) {
         // Handle private fields
         if(!field.isAccessible()) {
             field.setAccessible(true);
         }
 
+        this.type = type;
         this.field = field;
         this.lines = lines;
         this.counterKey = counterKey;
@@ -40,42 +44,60 @@ public class CopyBookField {
         this.maxOccurs = maxOccurs;
     }
 
-    public void setBytes(Object obj, byte[] bytes, int offset, int length, boolean removePadding) {
-        Object value = converter.to(bytes, offset, length, removePadding);
+    public void setBytes(Object obj, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
         try {
+            Object value = converter.to(bytes, offset, length, removePadding);
             field.set(obj, value);
+
         } catch (IllegalAccessException ex) {
             // We already set it to accessible so this should not happen
+
+        } catch (TypeConverterException ex) {
+            throw new CopyBookException(getFieldName() + ": ", ex);
         }
+
     }
 
-    public void setBytes(Object obj, int index, byte[] bytes, int offset, int length, boolean removePadding) {
-        Object value = converter.to(bytes, offset, length, removePadding);
+    public void setBytes(Object obj, int index, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
         try {
+            Object value = converter.to(bytes, offset, length, removePadding);
             Object array = field.get(obj);
             Array.set(array, index, value);
             field.set(obj, value);
+
         } catch (IllegalAccessException ex) {
             // We already set it to accessible so this should not happen
+
+        } catch (TypeConverterException ex) {
+            throw new CopyBookException(getFieldName() + ": ", ex);
         }
+
     }
 
-    public byte[] getBytes(Object obj, boolean addPadding) {
+    public byte[] getBytes(Object obj, boolean addPadding) throws CopyBookException {
         try {
-            return converter.from(field.get(obj), addPadding);
+            return converter.from(field.get(obj), this.size, addPadding);
+            
         } catch (IllegalAccessException ex) {
             // We already set it to accessible so this should not happen
             return null;
+
+        } catch (TypeConverterException ex) {
+            throw new CopyBookException(getFieldName() + ": ", ex);
         }
     }
 
-    public byte[] getBytes(Object obj, int index, boolean addPadding) {
+    public byte[] getBytes(Object obj, int index, boolean addPadding) throws CopyBookException {
         try {
             Object array = field.get(obj);
-            return converter.from(Array.get(array, index), addPadding);
+            return converter.from(Array.get(array, index), this.size, addPadding);
+
         } catch (IllegalAccessException ex) {
             // We already set it to accessible so this should not happen
             return null;
+
+        } catch (TypeConverterException ex) {
+            throw new CopyBookException(getFieldName() + ": ", ex);
         }
     }
 
@@ -85,6 +107,10 @@ public class CopyBookField {
 
     public void setSubCopyBookFields(List<CopyBookField> subCopyBookFields) {
         this.subCopyBookFields = subCopyBookFields;
+    }
+
+    public String getFieldName() {
+        return this.type.getName() + "." + this.field.getName();
     }
 
     public Field getField() {

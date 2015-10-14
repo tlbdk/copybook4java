@@ -34,7 +34,7 @@ public class CopyBookParserFormatTest {
         @CopyBookLine("04 FIELD1 PIC 9(2).")
         private int integer4;
         @CopyBookLine("04 FIELD1 PIC 9(10).")
-        private int integer5;
+        private long integer5;
 
         @CopyBookLine("04 FIELD1 PIC S9.")
         private int signedinteger1;
@@ -45,7 +45,7 @@ public class CopyBookParserFormatTest {
         @CopyBookLine("04 FIELD1 PIC S9(2).")
         private int signedinteger4;
         @CopyBookLine("04 FIELD1 PIC S9(10).")
-        private int signedinteger5;
+        private long signedinteger5;
 
         @CopyBookLine("04 FIELD1 PIC 9V9.")
         private BigDecimal decimal1;
@@ -102,7 +102,7 @@ public class CopyBookParserFormatTest {
         assertEquals(2, fields.get(8).getSize());
         assertEquals(fields.get(8).getConverter().getClass().getSimpleName(), "IntegerToInteger");
         assertEquals(10, fields.get(9).getSize());
-        assertEquals(fields.get(9).getConverter().getClass().getSimpleName(), "IntegerToInteger");
+        assertEquals(fields.get(9).getConverter().getClass().getSimpleName(), "IntegerToLong");
 
         assertEquals(1, fields.get(10).getSize());
         assertEquals(fields.get(10).getConverter().getClass().getSimpleName(), "SignedIntegerToInteger");
@@ -113,7 +113,7 @@ public class CopyBookParserFormatTest {
         assertEquals(2, fields.get(13).getSize());
         assertEquals(fields.get(13).getConverter().getClass().getSimpleName(), "SignedIntegerToInteger");
         assertEquals(10, fields.get(14).getSize());
-        assertEquals(fields.get(14).getConverter().getClass().getSimpleName(), "SignedIntegerToInteger");
+        assertEquals(fields.get(14).getConverter().getClass().getSimpleName(), "SignedIntegerToLong");
 
         assertEquals(2, fields.get(15).getSize());
         assertEquals(1, fields.get(15).getDecimals());

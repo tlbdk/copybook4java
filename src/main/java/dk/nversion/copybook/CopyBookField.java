@@ -2,6 +2,7 @@ package dk.nversion.copybook;
 
 import dk.nversion.ByteUtils;
 import dk.nversion.copybook.annotations.CopyBookFieldFormat;
+import dk.nversion.copybook.exceptions.CopyBookException;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;

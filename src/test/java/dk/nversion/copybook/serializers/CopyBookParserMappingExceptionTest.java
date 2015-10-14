@@ -1,6 +1,6 @@
 package dk.nversion.copybook.serializers;
 
-import dk.nversion.copybook.CopyBookException;
+import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookLine;
 import org.junit.Rule;

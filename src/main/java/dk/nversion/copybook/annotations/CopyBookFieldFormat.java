@@ -16,5 +16,4 @@ public @interface CopyBookFieldFormat {
     boolean rightPadding();
     char paddingChar();
     char nullFillerChar();
-
 }
