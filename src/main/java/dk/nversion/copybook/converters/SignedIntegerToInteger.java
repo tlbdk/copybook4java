@@ -30,7 +30,7 @@ public class SignedIntegerToInteger extends TypeConverterBase {
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
         int i = (int)value;
-        byte[] strBytes = getSignedBytes(Integer.toString(i), i < 0);
+        byte[] strBytes = getSignedBytes(Integer.toString(Math.abs(i)), i < 0);
         if(addPadding) {
             strBytes = padBytes(strBytes, length);
         }

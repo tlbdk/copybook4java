@@ -26,7 +26,7 @@ public class SignedIntegerToLong extends SignedIntegerToInteger {
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
         long i = (long)value;
-        byte[] strBytes = getSignedBytes(Long.toString(i), i < 0L);
+        byte[] strBytes = getSignedBytes(Long.toString(Math.abs(i)), i < 0L);
         if(addPadding) {
             strBytes = padBytes(strBytes, length);
         }
