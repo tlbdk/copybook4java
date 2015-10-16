@@ -45,7 +45,7 @@ public class CopyBookParserFormatTest {
         @CopyBookLine("04 FIELD1 PIC S9(2).")
         private int signedinteger4;
         @CopyBookLine("04 FIELD1 PIC S9(10).")
-        private long signedinteger5;
+        private int signedinteger5;
 
         @CopyBookLine("04 FIELD1 PIC 9V9.")
         private BigDecimal decimal1;
@@ -113,7 +113,7 @@ public class CopyBookParserFormatTest {
         assertEquals(2, fields.get(13).getSize());
         assertEquals(fields.get(13).getConverter().getClass().getSimpleName(), "SignedIntegerToInteger");
         assertEquals(10, fields.get(14).getSize());
-        assertEquals(fields.get(14).getConverter().getClass().getSimpleName(), "SignedIntegerToLong");
+        assertEquals(fields.get(14).getConverter().getClass().getSimpleName(), "SignedIntegerToInteger");
 
         assertEquals(2, fields.get(15).getSize());
         assertEquals(1, fields.get(15).getDecimals());
@@ -160,7 +160,29 @@ public class CopyBookParserFormatTest {
         assertEquals(fields.get(28).getConverter().getClass().getSimpleName(), "SignedDecimalToBigDecimal");
     }
 
-    // String / String Array
+    // Format test
+    @CopyBook()
+    public class FormatTestComplex {
+        @CopyBookLine("04 FIELD1 PIC 9.")
+        private Integer integer1;
+
+        @CopyBookLine("04 FIELD1 PIC S9.")
+        private Integer signedinteger1;
+
+        @CopyBookLine("04 FIELD1 PIC 9.")
+        private Long long1;
+
+        @CopyBookLine("04 FIELD1 PIC S9.")
+        private Long signedlong1;
+    }
+
+    @org.junit.Test()
+    public void testFormatTestComplex() throws Exception {
+        CopyBookParser copyBookParser = new CopyBookParser(FormatTestComplex.class);
+        List<CopyBookField> fields = copyBookParser.getConfig().getFields();
+    }
+
+        // String / String Array
     @CopyBook()
     public class StringToString {
         @CopyBookLine("01 FIELD PIC X(8).")
@@ -252,7 +274,7 @@ public class CopyBookParserFormatTest {
     @CopyBook()
     public class SignedIntegerToInteger {
         @CopyBookLine("01 FIELD PIC S9(16).")
-        private int field;
+        private long field;
     }
     @CopyBook()
     public class SignedIntegerArrayToIntegerArray {

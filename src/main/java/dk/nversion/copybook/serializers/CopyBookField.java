@@ -46,7 +46,7 @@ public class CopyBookField {
 
     public void setBytes(Object obj, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
         try {
-            Object value = converter.to(bytes, offset, length, removePadding);
+            Object value = converter.to(bytes, offset, length, this.decimals, removePadding);
             field.set(obj, value);
 
         } catch (IllegalAccessException ex) {
@@ -60,7 +60,7 @@ public class CopyBookField {
 
     public void setBytes(Object obj, int index, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
         try {
-            Object value = converter.to(bytes, offset, length, removePadding);
+            Object value = converter.to(bytes, offset, length, this.decimals, removePadding);
             Object array = field.get(obj);
             Array.set(array, index, value);
             field.set(obj, value);
@@ -76,7 +76,7 @@ public class CopyBookField {
 
     public byte[] getBytes(Object obj, boolean addPadding) throws CopyBookException {
         try {
-            return converter.from(field.get(obj), this.size, addPadding);
+            return converter.from(field.get(obj), this.size, this.decimals, addPadding);
             
         } catch (IllegalAccessException ex) {
             // We already set it to accessible so this should not happen
@@ -90,7 +90,7 @@ public class CopyBookField {
     public byte[] getBytes(Object obj, int index, boolean addPadding) throws CopyBookException {
         try {
             Object array = field.get(obj);
-            return converter.from(Array.get(array, index), this.size, addPadding);
+            return converter.from(Array.get(array, index), this.size, this.decimals, addPadding);
 
         } catch (IllegalAccessException ex) {
             // We already set it to accessible so this should not happen

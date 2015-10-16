@@ -15,7 +15,6 @@ public class IntegerToIntegerTest {
     public IntegerToIntegerTest() {
         TypeConverterConfig config = new TypeConverterConfig();
         config.setCharset(StandardCharsets.UTF_8);
-        config.setSize(2);
         config.setPaddingChar('0');
         config.setNullFillerChar((char) 0);
         typeConverter = new IntegerToInteger();
@@ -34,13 +33,13 @@ public class IntegerToIntegerTest {
 
     @Test
     public void testTo() throws Exception {
-        int result = (int)typeConverter.to(new byte[] { 48, 48, 49, 50 }, 0, 4, true);
+        int result = (int)typeConverter.to(new byte[] { 48, 48, 49, 50 }, 0, 4, -1, true);
         assertEquals(12, result);
     }
 
     @Test
     public void testFrom() throws Exception {
-        byte[] bytes = typeConverter.from(12, 4, true);
+        byte[] bytes = typeConverter.from(12, 4, -1, true);
         assertArrayEquals(new byte[] { 48, 48, 49, 50 }, bytes);
 
     }

@@ -8,16 +8,16 @@ public class IntegerToInteger extends TypeConverterBase {
         if(size > 9) {
             throw new TypeConverterException("int is not large enough to hold possible value");
         }
-        if(!(Integer.class.isInstance(type) || Integer.TYPE.equals(type))) {
+        if(!(Integer.class.equals(type) || Integer.TYPE.equals(type))) {
             throw new TypeConverterException("Only supports converting to and from int or Integer");
         }
     }
 
-    public Object to(byte[] bytes, int offset, int length, boolean removePadding) throws TypeConverterException {
+    public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
         return Integer.parseInt(getIntegerString(bytes, offset, length, removePadding));
     }
 
-    public byte[] from(Object value, int length, boolean addPadding) throws TypeConverterException {
+    public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
         int i = (int)value;
         if(i < 0) {
             throw new TypeConverterException("Number can not be negative");
@@ -30,20 +30,10 @@ public class IntegerToInteger extends TypeConverterBase {
     }
 
     protected String getIntegerString(byte[] bytes, int offset, int length, boolean removePadding) throws TypeConverterException {
-        if(removePadding) {
-            length = decrementLengthWithPaddingLength(bytes, offset, length, 1);
-            int newOffset = incrementOffsetWithPaddingLength(bytes, offset, length, 1);
-            length -= newOffset - offset;
-            offset = newOffset;
-        }
-        String strValue = new String(bytes, offset, length, charset);
-
+        String strValue = getString(bytes, offset, length, removePadding, 1);
         if(strValue.startsWith("-") || strValue.endsWith("-")) {
             throw new TypeConverterException("Integer value can not start or end with -");
         }
-
         return strValue;
     }
-
-
 }

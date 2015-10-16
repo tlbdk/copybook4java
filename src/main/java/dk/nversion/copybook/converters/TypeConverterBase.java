@@ -22,11 +22,11 @@ public abstract class TypeConverterBase {
     }
 
     public abstract void validate(Class type, int size, int decimals) throws TypeConverterException;
-    public abstract Object to(byte[] bytes, int offset, int length, boolean removePadding) throws TypeConverterException;
-    public abstract byte[] from(Object value, int length, boolean addPadding) throws TypeConverterException;
+    public abstract Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException;
+    public abstract byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException;
 
-    public Object to(byte[] bytes, boolean removePadding) throws TypeConverterException {
-        return this.to(bytes, 0, bytes.length, removePadding);
+    public Object to(byte[] bytes, int decimals, boolean removePadding) throws TypeConverterException {
+        return this.to(bytes, 0, bytes.length, decimals, removePadding);
     }
 
     protected byte[] padBytes(byte[] bytes, int length) {
@@ -66,5 +66,15 @@ public abstract class TypeConverterBase {
             }
             return minLength;
         }
+    }
+
+    protected String getString(byte[] bytes, int offset, int length, boolean removePadding, int minLength) throws TypeConverterException {
+        if(removePadding) {
+            length = decrementLengthWithPaddingLength(bytes, offset, length, minLength);
+            int newOffset = incrementOffsetWithPaddingLength(bytes, offset, length, minLength);
+            length -= newOffset - offset;
+            offset = newOffset;
+        }
+        return new String(bytes, offset, length, charset);
     }
 }

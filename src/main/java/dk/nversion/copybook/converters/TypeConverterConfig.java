@@ -10,8 +10,6 @@ public class TypeConverterConfig {
     private boolean rightPadding;
     private char paddingChar;
     private char nullFillerChar;
-    private int size;
-    private int decimals;
 
     public TypeConverterConfig() {
     }
@@ -54,21 +52,5 @@ public class TypeConverterConfig {
 
     public void setNullFillerChar(char nullFillerChar) {
         this.nullFillerChar = nullFillerChar;
-    }
-
-    public int getSize() {
-        return size;
-    }
-
-    public void setSize(int size) {
-        this.size = size;
-    }
-
-    public int getDecimals() {
-        return decimals;
-    }
-
-    public void setDecimals(int decimals) {
-        this.decimals = decimals;
     }
 }
