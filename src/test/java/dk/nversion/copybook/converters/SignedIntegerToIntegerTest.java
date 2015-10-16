@@ -23,6 +23,7 @@ public class SignedIntegerToIntegerTest {
         typeConverter.setConfig(config);
     }
 
+    @Test
     public void testValidateSuccess() throws Exception {
         typeConverter.validate(Integer.TYPE, 2, -1);
     }
