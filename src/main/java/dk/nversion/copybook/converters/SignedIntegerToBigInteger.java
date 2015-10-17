@@ -19,8 +19,11 @@ public class SignedIntegerToBigInteger extends SignedIntegerToInteger {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
-        BigInteger i = (BigInteger)value;
-        byte[] strBytes = getSignedBytes(i.abs().toString(), i.signum() < 0 );
+        BigInteger i = value != null ? (BigInteger)value : new BigInteger("0");
+        byte[] strBytes = getSignedBytes(i.abs().toString(), i.signum() < 0);
+        if(strBytes.length > length) {
+            throw new TypeConverterException("Field to small for value: " + length + " < " + strBytes.length);
+        }
         if(addPadding) {
             strBytes = padBytes(strBytes, length);
         }

@@ -4,6 +4,7 @@ import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookLine;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 public class CopyBookParserMappingExceptionTest {
@@ -75,70 +76,70 @@ public class CopyBookParserMappingExceptionTest {
     }
 
 
-    @org.junit.Test
+    @Test
     public void testIntegerToString() throws Exception {
         expectedEx.expect(CopyBookException.class);
         expectedEx.expectMessage("could not find field converter defined for Integer to String");
         CopyBookParser copyBookParser = new CopyBookParser(IntegerToString.class);
     }
 
-    @org.junit.Test
+    @Test
     public void testStringToInteger() throws Exception {
         expectedEx.expect(CopyBookException.class);
         expectedEx.expectMessage("could not find field converter defined for String to Integer");
         CopyBookParser copyBookParser = new CopyBookParser(StringToInteger.class);
     }
 
-    @org.junit.Test
+    @Test
     public void testSignedDecimalToString() throws Exception {
         expectedEx.expect(CopyBookException.class);
         expectedEx.expectMessage("could not find field converter defined for SignedDecimal to String");
         CopyBookParser copyBookParser = new CopyBookParser(SignedDecimalToString.class);
     }
 
-    @org.junit.Test
+    @Test
     public void testObjectToString() throws Exception {
         expectedEx.expect(CopyBookException.class);
         expectedEx.expectMessage("not defining a type in the copybook line");
         CopyBookParser copyBookParser = new CopyBookParser(ObjectToString.class);
     }
 
-    @org.junit.Test
+    @Test
     public void testIntegerArrayToStringArray() throws Exception {
         expectedEx.expect(CopyBookException.class);
         expectedEx.expectMessage("could not find field converter defined for Integer to String");
         CopyBookParser copyBookParser = new CopyBookParser(IntegerArrayToStringArray.class);
     }
 
-    @org.junit.Test
+    @Test
     public void testStringArrayToIntegerArray() throws Exception {
         expectedEx.expect(CopyBookException.class);
         expectedEx.expectMessage("could not find field converter defined for String to Integer");
         CopyBookParser copyBookParser = new CopyBookParser(StringArrayToIntegerArray.class);
     }
 
-    @org.junit.Test
+    @Test
     public void testArrayOfObjectToStringArray() throws Exception {
         expectedEx.expect(CopyBookException.class);
         expectedEx.expectMessage("not defining a type in the copybook line");
         CopyBookParser copyBookParser = new CopyBookParser(ArrayOfObjectToStringArray.class);
     }
 
-    @org.junit.Test
+    @Test
     public void testStringArrayToString() throws Exception {
         expectedEx.expect(CopyBookException.class);
         expectedEx.expectMessage("map array type to non array type");
         CopyBookParser copyBookParser = new CopyBookParser(StringArrayToString.class);
     }
 
-    @org.junit.Test
+    @Test
     public void testIntegerArrayToInteger() throws Exception {
         expectedEx.expect(CopyBookException.class);
         expectedEx.expectMessage("map array type to non array type");
         CopyBookParser copyBookParser = new CopyBookParser(IntegerArrayToInteger.class);
     }
 
-    @org.junit.Test
+    @Test
     public void testArrayOfObjectToString() throws Exception {
         expectedEx.expect(CopyBookException.class);
         expectedEx.expectMessage("map array type to non array type");

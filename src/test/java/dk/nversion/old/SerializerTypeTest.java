@@ -1,5 +1,7 @@
-package dk.nversion.copybook;
+package dk.nversion.old;
 
+import dk.nversion.copybook.CopyBookFieldSigningType;
+import dk.nversion.copybook.CopyBookSerializer;
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookFieldFormat;
 import dk.nversion.copybook.annotations.CopyBookLine;

@@ -1,9 +1,11 @@
 package dk.nversion.copybook.converters;
 
+import dk.nversion.copybook.CopyBookFieldSigningType;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
 
 public class SignedDecimalToBigDecimal extends SignedIntegerToInteger {
     @Override
@@ -20,12 +22,22 @@ public class SignedDecimalToBigDecimal extends SignedIntegerToInteger {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
-        BigDecimal i = ((BigDecimal)value);
-        if(i.signum() == 1) {
-            throw new TypeConverterException("Number can not be negative");
-        }
+        BigDecimal i = value != null ? ((BigDecimal)value) : new BigDecimal("0.0");
         // TODO: Validate loss of precision
-        byte[] strBytes = getSignedBytes(i.movePointRight(decimals).toBigInteger().abs().toString(), i.signum() < 0 );
+        BigInteger absValue = i.movePointRight(decimals).toBigInteger().abs();
+
+        String strValue = absValue.toString();
+        if(absValue.signum() == 0) { // Value is zero
+            // Make sure we add the number of decimals so the sign byte is in the right location
+            char[] chars = new char[decimals];
+            Arrays.fill(chars, '0');
+            strValue += new String(chars);
+        }
+
+        byte[] strBytes = getSignedBytes(strValue, i.signum() < 0);
+        if(strBytes.length > length) {
+            throw new TypeConverterException("Field to small for value: " + length + " < " + strBytes.length);
+        }
         if(addPadding) {
             strBytes = padBytes(strBytes, length);
         }

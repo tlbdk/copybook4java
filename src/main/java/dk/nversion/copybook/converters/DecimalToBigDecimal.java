@@ -20,12 +20,15 @@ public class DecimalToBigDecimal extends TypeConverterBase {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
-        BigDecimal i = ((BigDecimal)value);
-        if(i.signum() == 1) {
+        BigDecimal i = value != null ? ((BigDecimal)value) : new BigDecimal("0.0");
+        if(i.signum() == -1) {
             throw new TypeConverterException("Number can not be negative");
         }
         // TODO: Validate loss of precision
         byte[] strBytes = i.movePointRight(decimals).toBigInteger().abs().toString().getBytes(this.charset);
+        if(strBytes.length > length) {
+            throw new TypeConverterException("Field to small for value: " + length + " < " + strBytes.length);
+        }
         if(addPadding) {
             strBytes = padBytes(strBytes, length);
         }

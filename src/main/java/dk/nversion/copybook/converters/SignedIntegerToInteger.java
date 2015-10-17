@@ -31,6 +31,9 @@ public class SignedIntegerToInteger extends TypeConverterBase {
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
         int i = (int)value;
         byte[] strBytes = getSignedBytes(Integer.toString(Math.abs(i)), i < 0);
+        if(strBytes.length > length) {
+            throw new TypeConverterException("Field to small for value: " + length + " < " + strBytes.length);
+        }
         if(addPadding) {
             strBytes = padBytes(strBytes, length);
         }
@@ -41,10 +44,10 @@ public class SignedIntegerToInteger extends TypeConverterBase {
         String strValue;
 
         if(this.signingType == CopyBookFieldSigningType.POSTFIX) {
-            strValue = normalizeNumericSigning(getString(bytes, offset, length, removePadding,1), true);
+            strValue = normalizeNumericSigning(getString(bytes, offset, length, removePadding, 2), true);
 
         } else if(this.signingType == CopyBookFieldSigningType.PREFIX) {
-            strValue = normalizeNumericSigning(getString(bytes, offset, length, removePadding, 1), false);
+            strValue = normalizeNumericSigning(getString(bytes, offset, length, removePadding, 2), false);
 
         } else if (signingType == CopyBookFieldSigningType.LAST_BYTE_BIT8) {
             if ((bytes[bytes.length - 1] & 128) != 0) { // Check if bit 8 is set
@@ -108,16 +111,27 @@ public class SignedIntegerToInteger extends TypeConverterBase {
     }
 
     private String normalizeNumericSigning(String str, boolean signingPostfix) throws TypeConverterException {
-        if (signingPostfix && str.endsWith("-")) {
-            str = '-' + str.substring(0, str.length() - 1);
-        } else if (signingPostfix && str.endsWith("+")) {
-            str = str.substring(0, str.length() - 1);
-        } else if (str.startsWith("+")) {
-            str = str.substring(1, str.length());
-        } else if (str.startsWith("-")) {
-            // DO nothing
+        if (signingPostfix) {
+            if (str.endsWith("-")) {
+                str = '-' + str.substring(0, str.length() - 1);
+
+            } else if (str.endsWith("+")) {
+                str = str.substring(0, str.length() - 1);
+
+            } else {
+                throw new TypeConverterException("Missing sign char for value '" + str + "'");
+            }
+
         } else {
-            throw new TypeConverterException("Missing signed chars for value '" + str + "'");
+            if (str.startsWith("+")) {
+                str = str.substring(1, str.length());
+
+            } else if (str.startsWith("-")) {
+                // DO nothing
+
+            } else {
+                throw new TypeConverterException("Missing sign char for value '" + str + "'");
+            }
         }
         return str;
     }

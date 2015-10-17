@@ -23,6 +23,9 @@ public class IntegerToInteger extends TypeConverterBase {
             throw new TypeConverterException("Number can not be negative");
         }
         byte[] strBytes = Integer.toString(i).getBytes(this.charset);
+        if(strBytes.length > length) {
+            throw new TypeConverterException("Field to small for value: " + length + " < " + strBytes.length);
+        }
         if(addPadding) {
             strBytes = padBytes(strBytes, length);
         }

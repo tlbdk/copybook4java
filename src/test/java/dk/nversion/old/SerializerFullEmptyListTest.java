@@ -1,5 +1,6 @@
-package dk.nversion.copybook;
+package dk.nversion.old;
 
+import dk.nversion.copybook.CopyBookSerializer;
 import dk.nversion.copybook.full.RequestMessage;
 import dk.nversion.copybook.full.RequestTest;
 

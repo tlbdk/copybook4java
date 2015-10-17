@@ -40,40 +40,24 @@ public abstract class TypeConverterBase {
         return paddedStrBytes;
     }
 
-    protected int decrementLengthWithPaddingLength(byte[] bytes, int offset, int length, int minLength) {
-        if(this.rightPadding) {
-            for (int i = offset + length - 1; i > offset + minLength; i--) {
-                if (bytes[i] != (byte)this.paddingChar) {
-                    return i;
-                }
-            }
-            return offset + minLength;
-
-        } else {
-            return length;
-        }
-    }
-
-    protected int incrementOffsetWithPaddingLength(byte[] bytes, int offset, int length, int minLength) {
-        if(this.rightPadding) {
-            return offset;
-
-        } else {
-            for (int i = offset; i < length; i++) {
-                if (bytes[i] != (byte)this.paddingChar) {
-                    return  i;
-                }
-            }
-            return minLength;
-        }
-    }
-
     protected String getString(byte[] bytes, int offset, int length, boolean removePadding, int minLength) throws TypeConverterException {
         if(removePadding) {
-            length = decrementLengthWithPaddingLength(bytes, offset, length, minLength);
-            int newOffset = incrementOffsetWithPaddingLength(bytes, offset, length, minLength);
-            length -= newOffset - offset;
-            offset = newOffset;
+            if(this.rightPadding) {
+                for (;length > minLength; length--) {
+                    if (bytes[offset + length -1] != (byte)this.paddingChar) {
+                        break;
+                    }
+                }
+
+            } else {
+                int orgOffset = offset;
+                for (; offset < length - minLength; offset++) {
+                    if (bytes[offset] != (byte)this.paddingChar) {
+                        break;
+                    }
+                }
+                length -= offset - orgOffset;
+            }
         }
         return new String(bytes, offset, length, charset);
     }

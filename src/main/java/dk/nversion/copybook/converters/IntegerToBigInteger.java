@@ -4,6 +4,7 @@ import dk.nversion.ByteUtils;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 public class IntegerToBigInteger extends IntegerToInteger {
     @Override
@@ -20,11 +21,25 @@ public class IntegerToBigInteger extends IntegerToInteger {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
-        BigInteger i = (BigInteger)value;
-        if(i.signum() == 1) {
+        BigInteger i = value != null ? (BigInteger)value : new BigInteger("0");
+        if(i.signum() == -1) {
             throw new TypeConverterException("Number can not be negative");
         }
-        byte[] strBytes = i.abs().toString().getBytes(this.charset);
+
+        byte[] strBytes;
+        BigInteger absValue = i.abs();
+        if(absValue.signum() == 0) {
+            // Make sure we fill the strBytes with the number of decimals plus one extra zero
+            strBytes = new byte[decimals + 1];
+            Arrays.fill(strBytes, ("0".getBytes(this.charset))[0]);
+
+        } else {
+            strBytes = absValue.toString().getBytes(this.charset);
+        }
+
+        if(strBytes.length > length) {
+            throw new TypeConverterException("Field to small for value: " + length + " < " + strBytes.length);
+        }
 
         if(addPadding) {
             strBytes = padBytes(strBytes, length);

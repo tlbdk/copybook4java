@@ -1,60 +1,61 @@
 package dk.nversion.copybook.converters;
 
 import dk.nversion.copybook.exceptions.TypeConverterException;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
-public class IntegerToIntegerTest {
-
+public class IntegerToLongTest {
     private TypeConverterBase typeConverter;
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    public IntegerToIntegerTest() {
+    public IntegerToLongTest() {
         TypeConverterConfig config = new TypeConverterConfig();
         config.setCharset(StandardCharsets.UTF_8);
         config.setPaddingChar('0');
-        typeConverter = new IntegerToInteger();
+        typeConverter = new IntegerToLong();
         typeConverter.setConfig(config);
     }
 
     @Test
     public void testValidateSuccess() throws Exception {
-        typeConverter.validate(Integer.TYPE, 2, -1);
+        typeConverter.validate(Long.TYPE, 10, -1);
     }
 
     @Test(expected = TypeConverterException.class)
     public void testValidateFail() throws Exception {
-        typeConverter.validate(Long.TYPE, 2, -1);
+        typeConverter.validate(Integer.TYPE, 2, -1);
+
     }
 
     @Test
     public void testTo() throws Exception {
-        assertEquals(12, (int)typeConverter.to("0012".getBytes(StandardCharsets.UTF_8), 0, 4, -1, true));
+        long result = (long)typeConverter.to("12147483648".getBytes(StandardCharsets.UTF_8), 0, 11, -1, true);
+        assertEquals(12147483648L, result);
     }
 
     @Test
     public void testToZeroValue() throws Exception {
-        assertEquals(0, (int)typeConverter.to("00000000".getBytes(StandardCharsets.UTF_8), 0, 8, -1, true));
+        assertEquals(0, (long)typeConverter.to("0000000000".getBytes(StandardCharsets.UTF_8), 0, 10, -1, true));
     }
 
     @Test
     public void testFrom() throws Exception {
-        byte[] bytes = typeConverter.from(12, 4, -1, true);
-        assertArrayEquals("0012".getBytes(StandardCharsets.UTF_8), bytes);
+        byte[] bytes = typeConverter.from(12147483648L, 11, -1, true);
+        assertArrayEquals("12147483648".getBytes(StandardCharsets.UTF_8), bytes);
     }
 
     @Test
     public void testFromOverflow() throws Exception {
         expectedEx.expect(TypeConverterException.class);
         expectedEx.expectMessage("Field to small for value");
-        byte[] bytes = typeConverter.from(12147, 4, -1, true);
+        byte[] bytes = typeConverter.from(12147483648L, 4, -1, true);
     }
 }
