@@ -1,11 +1,13 @@
 package dk.nversion.copybook.serializers;
 
+import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.converters.TypeConverterBase;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 public class CopyBookField {
@@ -44,6 +46,12 @@ public class CopyBookField {
         this.maxOccurs = maxOccurs;
     }
 
+    public void setBytes(Object obj, ByteBuffer buffer, boolean removePadding) throws CopyBookException {
+        byte[] bytes = new byte[this.size];
+        buffer.get(bytes);
+        setBytes(obj, bytes, 0, bytes.length, removePadding);
+    }
+
     public void setBytes(Object obj, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
         try {
             Object value = converter.to(bytes, offset, length, this.decimals, removePadding);
@@ -58,18 +66,22 @@ public class CopyBookField {
 
     }
 
-    public void setBytes(Object obj, int index, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
+    public void setBytes(Object obj, int index, ByteBuffer buffer, boolean removePadding) throws CopyBookException {
+        byte[] bytes = new byte[this.size];
+        buffer.get(bytes);
+        setBytes(obj, index, bytes, 0, bytes.length, removePadding);
+    }
+
+    public void setBytes(Object arrayObj, int index, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
         try {
             Object value = converter.to(bytes, offset, length, this.decimals, removePadding);
-            Object array = field.get(obj);
-            Array.set(array, index, value);
-            field.set(obj, value);
-
-        } catch (IllegalAccessException ex) {
-            // We already set it to accessible so this should not happen
+            Array.set(arrayObj, index, value);
 
         } catch (TypeConverterException ex) {
             throw new CopyBookException(getFieldName() + ": ", ex);
+
+        } catch (Exception ex) {
+            throw ex;
         }
 
     }
@@ -84,13 +96,15 @@ public class CopyBookField {
 
         } catch (TypeConverterException ex) {
             throw new CopyBookException(getFieldName() + ": ", ex);
+        } catch (Exception ex) {
+            throw ex;
         }
     }
 
     public byte[] getBytes(Object obj, int index, boolean addPadding) throws CopyBookException {
         try {
             Object array = field.get(obj);
-            return converter.from(Array.get(array, index), this.size, this.decimals, addPadding);
+            return converter.from(index < Array.getLength(array) ? Array.get(array, index) : null, this.size, this.decimals, addPadding);
 
         } catch (IllegalAccessException ex) {
             // We already set it to accessible so this should not happen
@@ -99,6 +113,73 @@ public class CopyBookField {
         } catch (TypeConverterException ex) {
             throw new CopyBookException(getFieldName() + ": ", ex);
         }
+    }
+
+    public Object getObject(Object obj) throws CopyBookException {
+        try {
+            return field.get(obj);
+
+        } catch (IllegalAccessException e) {
+            // We already set it to accessible so this should not happen
+            return null;
+        }
+    }
+
+    public Object getObject(Object obj, int index) throws CopyBookException {
+        try {
+            Object array = field.get(obj);
+            return index < Array.getLength(array) ? Array.get(array, index) : null;
+
+        } catch (IllegalAccessException e) {
+            // We already set it to accessible so this should not happen
+            return null;
+        }
+    }
+
+    public Object createArrayObject(Object obj, int size) throws CopyBookException {
+        try {
+            Object array = Array.newInstance(this.field.getType().getComponentType(), size);
+            this.field.set(obj, array);
+            return array;
+
+        } catch (IllegalAccessException e) {
+            // We already set it to accessible so this should not happen
+            return null;
+        }
+    }
+
+    public Object createObject(Object obj) throws CopyBookException {
+        try {
+            Object value = field.getType().newInstance();
+            this.field.set(obj, value);
+            return value;
+
+        } catch (IllegalAccessException e) {
+            // We already set it to accessible so this should not happen
+            return null;
+
+        } catch (InstantiationException e) {
+            throw new CopyBookException("Failed to create new object", e);
+        }
+    }
+
+    public Object createObject(Object obj, int index) throws CopyBookException {
+        try {
+            Object value = field.getType().getComponentType().newInstance();
+            Array.set(obj, index, value);
+            return value;
+
+        } catch (IllegalAccessException e) {
+            // We already set it to accessible so this should not happen
+            return null;
+
+        } catch (InstantiationException e) {
+            throw new CopyBookException("Failed to create new object", e);
+        }
+    }
+
+    public boolean hasSubCopyBookFields() {
+        return this.subCopyBookFields != null && this.subCopyBookFields.size() > 0;
     }
 
     public List<CopyBookField> getSubCopyBookFields() {

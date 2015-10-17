@@ -9,6 +9,7 @@ public class CopyBookSerializerConfig {
     private Charset charset;
     private byte separatorByte;
     private int bitmapBlockSize;
+    private boolean debug;
 
     public Charset getCharset() {
         return charset;
@@ -40,5 +41,13 @@ public class CopyBookSerializerConfig {
 
     public void setFields(List<CopyBookField> fields) {
         this.fields = fields;
+    }
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 }

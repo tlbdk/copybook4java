@@ -6,8 +6,8 @@ import java.util.List;
 
 public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
 
-    public PackedFirstLevelSerializer(CopyBookSerializerConfig config, List<CopyBookField> fields) {
-        super(config, fields);
+    public PackedFirstLevelSerializer(CopyBookSerializerConfig config) {
+        super(config);
     }
 
     @Override

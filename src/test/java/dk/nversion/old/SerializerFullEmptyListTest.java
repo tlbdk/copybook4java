@@ -1,8 +1,8 @@
 package dk.nversion.old;
 
 import dk.nversion.copybook.CopyBookSerializer;
-import dk.nversion.copybook.full.RequestMessage;
-import dk.nversion.copybook.full.RequestTest;
+import dk.nversion.old.full.RequestMessage;
+import dk.nversion.old.full.RequestTest;
 
 import static org.junit.Assert.assertEquals;
 

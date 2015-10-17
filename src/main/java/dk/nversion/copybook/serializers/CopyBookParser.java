@@ -23,7 +23,12 @@ public class CopyBookParser {
     private Class<? extends CopyBookSerializerBase> serializerClass = null;
     private CopyBookSerializerConfig config = new CopyBookSerializerConfig();
 
+
     public CopyBookParser(Class type) throws CopyBookException {
+        this(type, false);
+    }
+
+    public CopyBookParser(Class type, boolean debug) throws CopyBookException {
         // Read copybook annotations and defaults
         List<CopyBook> copybookAnnotations = getAnnotationsRecursively(CopyBookDefaults.class, CopyBook.class);
         copybookAnnotations.addAll(getAnnotationsRecursively(type, CopyBook.class));
@@ -45,6 +50,8 @@ public class CopyBookParser {
         if(serializerClass == null) {
             throw new CopyBookException("Serialization class missing");
         }
+
+        config.setDebug(debug);
 
         Map<String,TypeConverterBase> defaultTypeConverterMap = getTypeConvertersRecursively(CopyBookDefaults.class, config.getCharset());
         config.setFields(walkClass(type, null, defaultTypeConverterMap, config.getCharset(), new HashMap<>()));

@@ -8,10 +8,12 @@ import java.util.List;
 public abstract class CopyBookSerializerBase {
     protected CopyBookSerializerConfig config;
     protected List<CopyBookField> fields;
+    protected boolean debug;
 
-    public CopyBookSerializerBase(CopyBookSerializerConfig config, List<CopyBookField> fields) {
+    public CopyBookSerializerBase(CopyBookSerializerConfig config) {
         this.config = config;
-        this.fields = fields;
+        this.fields = config.getFields();
+        this.debug = config.isDebug();
     }
 
     public abstract <T> byte[] serialize(T obj) throws CopyBookException;

@@ -5,8 +5,8 @@ public class CopyBookException extends Exception {
         super(message);
     }
 
-    public CopyBookException(String message, TypeConverterException ex) {
-        super(message + ": " + ex.getMessage());
+    public CopyBookException(String message, Exception ex) {
+        super(message + ": " + ex.getClass().getSimpleName() + " :" + ex.getMessage());
     }
 
 }

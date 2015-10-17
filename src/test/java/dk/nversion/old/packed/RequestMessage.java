@@ -1,4 +1,4 @@
-package dk.nversion.copybook.full;
+package dk.nversion.old.packed;
 
 import dk.nversion.copybook.*;
 import dk.nversion.copybook.annotations.CopyBook;
@@ -11,10 +11,10 @@ import dk.nversion.copybook.converters.StringToString;
 @CopyBookFieldFormat(type = IntegerToInteger.class, rightPadding = true, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 @CopyBookFieldFormat(type = StringToString.class, rightPadding = true, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 public class RequestMessage {
-    @CopyBookLine("02 TITLE PIC X(5).")
+    @CopyBookLine("02 TITLE PIC X(10).")
     public String title;
     @CopyBookFieldFormat(type = StringToString.class, rightPadding = false, paddingChar = '_', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
-    @CopyBookLine("02 BODY PIC X(10).")
+    @CopyBookLine("02 BODY PIC X(20).")
     public String body;
 
     public RequestMessage() {

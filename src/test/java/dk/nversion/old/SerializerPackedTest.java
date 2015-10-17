@@ -2,8 +2,8 @@ package dk.nversion.old;
 
 import dk.nversion.copybook.CopyBookSerializer;
 import dk.nversion.copybook.exceptions.CopyBookException;
-import dk.nversion.copybook.packed.RequestMessage;
-import dk.nversion.copybook.packed.RequestTest;
+import dk.nversion.old.packed.RequestMessage;
+import dk.nversion.old.packed.RequestTest;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 

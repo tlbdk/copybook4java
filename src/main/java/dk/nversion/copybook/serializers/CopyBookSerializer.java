@@ -8,13 +8,16 @@ public class CopyBookSerializer {
     private CopyBookSerializerBase serializer;
 
     public CopyBookSerializer(Class type) throws CopyBookException {
-        CopyBookParser parser = new CopyBookParser(type);
+        this(type, false);
+    }
 
+    public CopyBookSerializer(Class type, boolean debug) throws CopyBookException {
+        CopyBookParser parser = new CopyBookParser(type, debug);
         try {
             serializer = (CopyBookSerializerBase)parser.getSerializerClass().getDeclaredConstructor(CopyBookSerializerConfig.class).newInstance(parser.getConfig());
 
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new CopyBookException("Failed to load Serialization class");
+            throw new CopyBookException("Failed to load Serialization class("+ parser.getSerializerClass().getSimpleName() +")", e);
         }
     }
 
