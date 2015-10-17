@@ -85,7 +85,7 @@ public class FullSerializer extends CopyBookSerializerBase {
         try {
             T obj = type.newInstance();
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
-            readFieldsFromBuffer(this.fields, buffer, obj, new HashMap<>());
+            readFieldsFromBuffer(this.fields, buffer, obj, "", new HashMap<>());
             return obj;
 
         } catch (IllegalAccessException | InstantiationException e) {
@@ -93,22 +93,29 @@ public class FullSerializer extends CopyBookSerializerBase {
         }
     }
 
-    private void readFieldsFromBuffer(List<CopyBookField> fields, ByteBuffer buffer, Object obj, Map<String, Integer> counters) throws CopyBookException {
+    private void readFieldsFromBuffer(List<CopyBookField> fields, ByteBuffer buffer, Object obj, String name, Map<String, Integer> counters) throws CopyBookException {
         for(CopyBookField field : fields) {
+            String fieldName = name + "." + field.getFieldName();
             if(field.isArray()) {
+                // Support field naming as counter keys
                 int arraySize = field.getMaxOccurs();
-                if(counters.containsKey(field.getFieldName() + "_count")) {
-                    arraySize = counters.get(field.getFieldName() + "_count");
+                if(counters.containsKey(fieldName + "_count")) {
+                    arraySize = counters.get(fieldName + "_count");
+
+                // Support depending on cobol syntax for counters
+                } else if(counters.containsKey(field.getName())) {
+                    arraySize = counters.get(field.getName());
                 }
+
                 Object array = field.createArrayObject(obj, arraySize);
                 if(field.hasSubCopyBookFields()) {
                     // Complex array types fx. Request[]
                     for (int i = 0; i < arraySize; i++) {
-                        readFieldsFromBuffer(field.getSubCopyBookFields(), buffer, field.createObject(array, i), counters);
+                        readFieldsFromBuffer(field.getSubCopyBookFields(), buffer, field.createObject(array, i), fieldName, counters);
                     }
 
                     // Move position in buffer to next location with data
-                    if(field.getMaxOccurs() > arraySize) {
+                    if(field.getMinOccurs() > arraySize) {
                         int skipSize = (field.getMaxOccurs() - arraySize) * this.fieldRecursiveSizes.get(field) / field.getMaxOccurs();
                         buffer.position(buffer.position() + skipSize);
                     }
@@ -120,22 +127,26 @@ public class FullSerializer extends CopyBookSerializerBase {
                     }
 
                     // Move position in buffer to next location with data
-                    if(field.getMaxOccurs() > arraySize) {
+                    if(field.getMinOccurs() > arraySize) {
                         buffer.position(buffer.position() + (field.getMaxOccurs() - arraySize) * field.getSize());
                     }
                 }
 
             } else if(field.hasSubCopyBookFields()) {
                 // Complex type fx, Request
-                readFieldsFromBuffer(field.getSubCopyBookFields(), buffer, field.createObject(obj), counters);
+                readFieldsFromBuffer(field.getSubCopyBookFields(), buffer, field.createObject(obj), fieldName, counters);
 
             } else {
                 // Simple type fx. int, String or types we support with TypeConverters
                 Object value = field.setBytes(obj, buffer, true);
 
-                // Save counter value for later use
-                if(field.getField().getType().equals(Integer.TYPE) && field.getFieldName().endsWith("_count")) {
-                    counters.put(field.getFieldName(), (int)value);
+                // Save field name and counter value for later use
+                if(field.getField().getType().equals(Integer.TYPE) && fieldName.endsWith("_count")) {
+                    counters.put(fieldName, (int)value);
+                }
+
+                if(field.isCounter()) {
+                    counters.put(field.getName(), (int)value);
                 }
             }
         }
