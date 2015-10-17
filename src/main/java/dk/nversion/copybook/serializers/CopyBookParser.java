@@ -143,6 +143,7 @@ public class CopyBookParser {
                                 throw new CopyBookException("Could not parse occurs section in copybook line for field '" + fieldName + "'");
                             }
                         }
+
                         if (copyBookLineMatcher.group(5) != null) {
                             Matcher dependingOnMatcher = re_DependingOn.matcher(copyBookLineMatcher.group(5));
                             if (dependingOnMatcher.find()) {

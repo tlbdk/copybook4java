@@ -46,54 +46,48 @@ public class CopyBookField {
         this.maxOccurs = maxOccurs;
     }
 
-    public void setBytes(Object obj, ByteBuffer buffer, boolean removePadding) throws CopyBookException {
+    public Object setBytes(Object obj, ByteBuffer buffer, boolean removePadding) throws CopyBookException {
         byte[] bytes = new byte[this.size];
         buffer.get(bytes);
-        setBytes(obj, bytes, 0, bytes.length, removePadding);
+        return setBytes(obj, bytes, 0, bytes.length, removePadding);
     }
 
-    public void setBytes(Object obj, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
+    public Object setBytes(Object obj, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
         try {
             Object value = converter.to(bytes, offset, length, this.decimals, removePadding);
             field.set(obj, value);
+            return value;
 
-        } catch (IllegalAccessException ex) {
-            // We already set it to accessible so this should not happen
-
-        } catch (TypeConverterException ex) {
-            throw new CopyBookException(getFieldName() + ": ", ex);
-        }
-
-    }
-
-    public void setBytes(Object obj, int index, ByteBuffer buffer, boolean removePadding) throws CopyBookException {
-        byte[] bytes = new byte[this.size];
-        buffer.get(bytes);
-        setBytes(obj, index, bytes, 0, bytes.length, removePadding);
-    }
-
-    public void setBytes(Object arrayObj, int index, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
-        try {
-            Object value = converter.to(bytes, offset, length, this.decimals, removePadding);
-            Array.set(arrayObj, index, value);
-
-        } catch (TypeConverterException ex) {
-            throw new CopyBookException(getFieldName() + ": ", ex);
-
-        } catch (Exception ex) {
-            throw ex;
-        }
-
-    }
-
-    public byte[] getBytes(Object obj, boolean addPadding) throws CopyBookException {
-        try {
-            return converter.from(field.get(obj), this.size, this.decimals, addPadding);
-            
         } catch (IllegalAccessException ex) {
             // We already set it to accessible so this should not happen
             return null;
 
+        } catch (TypeConverterException ex) {
+            throw new CopyBookException(getFieldName() + ": ", ex);
+        }
+    }
+
+    public Object setBytes(Object obj, int index, ByteBuffer buffer, boolean removePadding) throws CopyBookException {
+        byte[] bytes = new byte[this.size];
+        buffer.get(bytes);
+        return setBytes(obj, index, bytes, 0, bytes.length, removePadding);
+    }
+
+    public Object setBytes(Object arrayObj, int index, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
+        try {
+            Object value = converter.to(bytes, offset, length, this.decimals, removePadding);
+            Array.set(arrayObj, index, value);
+            return value;
+
+        } catch (TypeConverterException ex) {
+            throw new CopyBookException(getFieldName() + ": ", ex);
+        }
+    }
+
+    public byte[] getBytes(Object obj, boolean addPadding) throws CopyBookException {
+        try {
+            return converter.from(getObject(obj), this.size, this.decimals, addPadding);
+            
         } catch (TypeConverterException ex) {
             throw new CopyBookException(getFieldName() + ": ", ex);
         } catch (Exception ex) {
@@ -103,12 +97,7 @@ public class CopyBookField {
 
     public byte[] getBytes(Object obj, int index, boolean addPadding) throws CopyBookException {
         try {
-            Object array = field.get(obj);
-            return converter.from(index < Array.getLength(array) ? Array.get(array, index) : null, this.size, this.decimals, addPadding);
-
-        } catch (IllegalAccessException ex) {
-            // We already set it to accessible so this should not happen
-            return null;
+           return converter.from(getObject(obj, index), this.size, this.decimals, addPadding);
 
         } catch (TypeConverterException ex) {
             throw new CopyBookException(getFieldName() + ": ", ex);
@@ -117,7 +106,7 @@ public class CopyBookField {
 
     public Object getObject(Object obj) throws CopyBookException {
         try {
-            return field.get(obj);
+            return obj != null ? field.get(obj) : null;
 
         } catch (IllegalAccessException e) {
             // We already set it to accessible so this should not happen
@@ -126,14 +115,8 @@ public class CopyBookField {
     }
 
     public Object getObject(Object obj, int index) throws CopyBookException {
-        try {
-            Object array = field.get(obj);
-            return index < Array.getLength(array) ? Array.get(array, index) : null;
-
-        } catch (IllegalAccessException e) {
-            // We already set it to accessible so this should not happen
-            return null;
-        }
+        Object array = getObject(obj);
+        return array != null && index < Array.getLength(array) ? Array.get(array, index) : null;
     }
 
     public Object createArrayObject(Object obj, int size) throws CopyBookException {

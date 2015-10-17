@@ -21,10 +21,14 @@ public class CopyBookSerializerFullTest {
         public String command;
         @CopyBookLine("01 HELLO.")
         public RequestMessage hello;
+        @CopyBookLine("01 HELLOCNT PIC 9(2).")
+        public int hellos_count;
         @CopyBookLine("01 ARGCNT PIC 9(2).")
         public int args_count;
         @CopyBookLine("01 MSGCNT PIC 9(2).")
         public int messages_count;
+        @CopyBookLine("01 HELLOS OCCURS 3 TIMES.")
+        public RequestMessage[] hellos;
         @CopyBookLine("01 ARGS OCCURS 10 TIMES.")
         @CopyBookLine("02 ARG PIC X(8).")
         public String[] args;
@@ -56,10 +60,12 @@ public class CopyBookSerializerFullTest {
         requestTest.id = 1;
         requestTest.command = "cmd1234()";
         requestTest.hello = new RequestMessage("Hello", "Body1234");
+        requestTest.hellos = new RequestMessage[] { new RequestMessage("abc", "1234ydob") };
+        requestTest.hellos_count = requestTest.hellos.length;
         requestTest.messages = new RequestMessage[] { new RequestMessage("msg1", "stuff123"), new RequestMessage("msg2", "stuff12345") };
-        requestTest.messages_count = 2;
+        requestTest.messages_count = requestTest.messages.length;
         requestTest.args = new String[]{ "do", "stuff" };
-        requestTest.args_count = 2;
+        requestTest.args_count = requestTest.args.length;
 
         // Serializer and Deserializer object to and from bytes
         CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class, true);
@@ -71,12 +77,29 @@ public class CopyBookSerializerFullTest {
         assertEquals(requestTest.hello.title, requestTest1.hello.title);
         assertEquals(requestTest.hello.body, requestTest1.hello.body);
         assertEquals(requestTest.messages_count, requestTest1.messages_count);
+        assertEquals(requestTest.messages.length, requestTest1.messages.length);
         assertEquals(requestTest.messages[0].title, requestTest1.messages[0].title);
         assertEquals(requestTest.messages[0].body, requestTest1.messages[0].body);
         assertEquals(requestTest.messages[1].title, requestTest1.messages[1].title);
         assertEquals(requestTest.messages[1].body, requestTest1.messages[1].body);
         assertEquals(requestTest.args_count, requestTest1.args_count);
-        assertEquals(requestTest.args[0], requestTest.args[0]);
-        assertEquals(requestTest.args[1], requestTest.args[1]);
+        assertEquals(requestTest.args.length, requestTest1.args.length);
+        assertEquals(requestTest.args[0], requestTest1.args[0]);
+        assertEquals(requestTest.args[1], requestTest1.args[1]);
     }
+
+    @Test
+    public void testSerializeDeserializeNullValues() throws Exception {
+        // Build test object
+        RequestTest requestTest = new RequestTest();
+        requestTest.hellos = new RequestMessage[] { null };
+        requestTest.hellos_count = requestTest.hellos.length;
+
+        // Serializer and Deserializer object to and from bytes
+        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
+        byte[] bytes = requestTestSerializer.serialize(requestTest);
+        RequestTest requestTest1 = requestTestSerializer.deserialize(bytes, RequestTest.class);
+    }
+
+
 }

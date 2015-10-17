@@ -4,10 +4,13 @@ import dk.nversion.copybook.exceptions.CopyBookException;
 
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FullSerializer extends CopyBookSerializerBase {
     private int maxRecordSize;
+    private Map<CopyBookField, Integer> fieldRecursiveSizes = new HashMap<>();
 
     public FullSerializer(CopyBookSerializerConfig config) {
         super(config);
@@ -15,30 +18,32 @@ public class FullSerializer extends CopyBookSerializerBase {
     }
 
     private int calculateMaxSize(List<CopyBookField> fields, int level, boolean debug) {
-        int size = 0;
+        int result = 0;
         for(CopyBookField field : fields) {
+            if(debug) {
+                for (String line : field.getLines()) {
+                    System.out.println(new String(new char[level * 2]).replace("\0", " ") + line);
+                }
+            }
+            int size;
             if(field.isArray()) {
                 if(field.hasSubCopyBookFields()) {
-                    size += calculateMaxSize(field.getSubCopyBookFields(), level + 1, debug) * field.getMaxOccurs();
+                    size = calculateMaxSize(field.getSubCopyBookFields(), level + 1, debug) * field.getMaxOccurs();
 
                 } else {
-                    size += field.getSize() * field.getMaxOccurs();
+                    size = field.getSize() * field.getMaxOccurs();
                 }
 
             } else if(field.hasSubCopyBookFields()) {
-                size += calculateMaxSize(field.getSubCopyBookFields(), level + 1, debug);
+                size = calculateMaxSize(field.getSubCopyBookFields(), level + 1, debug);
 
             } else {
-                size += field.getSize();
+                size = field.getSize();
             }
-
-            if(debug) {
-                for (String line : field.getLines()) {
-                    System.out.println(new String(new char[level * 2]).replace("\0", " ") + line + " ( " + size + ")");
-                }
-            }
+            this.fieldRecursiveSizes.put(field, size);
+            result += size;
         }
-        return size;
+        return result;
     }
 
 
@@ -80,7 +85,7 @@ public class FullSerializer extends CopyBookSerializerBase {
         try {
             T obj = type.newInstance();
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
-            readFieldsFromBuffer(this.fields, buffer, obj);
+            readFieldsFromBuffer(this.fields, buffer, obj, new HashMap<>());
             return obj;
 
         } catch (IllegalAccessException | InstantiationException e) {
@@ -88,31 +93,50 @@ public class FullSerializer extends CopyBookSerializerBase {
         }
     }
 
-    private void readFieldsFromBuffer(List<CopyBookField> fields, ByteBuffer buffer, Object obj) throws CopyBookException {
+    private void readFieldsFromBuffer(List<CopyBookField> fields, ByteBuffer buffer, Object obj, Map<String, Integer> counters) throws CopyBookException {
         for(CopyBookField field : fields) {
             if(field.isArray()) {
+                int arraySize = field.getMaxOccurs();
+                if(counters.containsKey(field.getFieldName() + "_count")) {
+                    arraySize = counters.get(field.getFieldName() + "_count");
+                }
+                Object array = field.createArrayObject(obj, arraySize);
                 if(field.hasSubCopyBookFields()) {
                     // Complex array types fx. Request[]
-                    Object array = field.createArrayObject(obj, field.getMaxOccurs()); // TODO: Calculate size hint
-                    for (int i = 0; i < field.getMaxOccurs(); i++) {
-                        readFieldsFromBuffer(field.getSubCopyBookFields(), buffer, field.createObject(array, i));
+                    for (int i = 0; i < arraySize; i++) {
+                        readFieldsFromBuffer(field.getSubCopyBookFields(), buffer, field.createObject(array, i), counters);
+                    }
+
+                    // Move position in buffer to next location with data
+                    if(field.getMaxOccurs() > arraySize) {
+                        int skipSize = (field.getMaxOccurs() - arraySize) * this.fieldRecursiveSizes.get(field) / field.getMaxOccurs();
+                        buffer.position(buffer.position() + skipSize);
                     }
 
                 } else {
                     // Simple array types, fx. int[]
-                    Object array = field.createArrayObject(obj, field.getMaxOccurs()); // TODO: Calculate size hint
-                    for (int i = 0; i < field.getMaxOccurs(); i++) {
+                    for (int i = 0; i < arraySize; i++) {
                         field.setBytes(array, i, buffer, true);
+                    }
+
+                    // Move position in buffer to next location with data
+                    if(field.getMaxOccurs() > arraySize) {
+                        buffer.position(buffer.position() + (field.getMaxOccurs() - arraySize) * field.getSize());
                     }
                 }
 
             } else if(field.hasSubCopyBookFields()) {
                 // Complex type fx, Request
-                readFieldsFromBuffer(field.getSubCopyBookFields(), buffer, field.createObject(obj));
+                readFieldsFromBuffer(field.getSubCopyBookFields(), buffer, field.createObject(obj), counters);
 
             } else {
-                // Simple type fx. int, String or types we support with TypeConverts
-                field.setBytes(obj, buffer, true);
+                // Simple type fx. int, String or types we support with TypeConverters
+                Object value = field.setBytes(obj, buffer, true);
+
+                // Save counter value for later use
+                if(field.getField().getType().equals(Integer.TYPE) && field.getFieldName().endsWith("_count")) {
+                    counters.put(field.getFieldName(), (int)value);
+                }
             }
         }
     }
