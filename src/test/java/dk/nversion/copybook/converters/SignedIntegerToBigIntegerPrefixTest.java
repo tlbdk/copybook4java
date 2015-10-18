@@ -1,6 +1,7 @@
 package dk.nversion.copybook.converters;
 
 import dk.nversion.copybook.CopyBookFieldSigningType;
+import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,7 +19,7 @@ public class SignedIntegerToBigIntegerPrefixTest {
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    public SignedIntegerToBigIntegerPrefixTest() {
+    public SignedIntegerToBigIntegerPrefixTest() throws CopyBookException {
         TypeConverterConfig config = new TypeConverterConfig();
         config.setCharset(StandardCharsets.UTF_8);
         config.setPaddingChar('0');

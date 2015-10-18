@@ -15,7 +15,7 @@ public class StringToString extends TypeConverterBase {
 
     @Override
     public String to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
-        if(ByteUtils.allEquals(bytes, (byte)this.nullFillerChar, 0, bytes.length)) { // All of value is null filler
+        if(ByteUtils.allEquals(bytes, this.nullFillerByte, 0, bytes.length)) { // All of value is null filler
             return null;
 
         } else {
@@ -27,7 +27,7 @@ public class StringToString extends TypeConverterBase {
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
         byte[] strBytes;
         if(value != null) {
-            strBytes = ((String) value).getBytes();
+            strBytes = ((String) value).getBytes(this.charset);
             if (strBytes.length > length) {
                 throw new TypeConverterException("Field to small for value: " + length + " < " + strBytes.length);
             }
@@ -37,7 +37,7 @@ public class StringToString extends TypeConverterBase {
 
         } else {
             strBytes = new byte[length];
-            Arrays.fill(strBytes, (byte)this.nullFillerChar);
+            Arrays.fill(strBytes, this.nullFillerByte);
         }
         return strBytes;
     }

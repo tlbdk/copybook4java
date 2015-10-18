@@ -1,6 +1,7 @@
 package dk.nversion.copybook.converters;
 
 import dk.nversion.copybook.CopyBookFieldSigningType;
+import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.nio.charset.Charset;
@@ -10,15 +11,25 @@ public abstract class TypeConverterBase {
     protected Charset charset;
     protected CopyBookFieldSigningType signingType;
     protected boolean rightPadding;
-    protected char paddingChar;
-    protected char nullFillerChar;
+    protected byte paddingByte;
+    protected byte nullFillerByte;
 
-    public void setConfig(TypeConverterConfig config) {
+    public void setConfig(TypeConverterConfig config) throws CopyBookException {
         this.charset = config.getCharset();
         this.signingType = config.getSigningType();
         this.rightPadding = config.isRightPadding();
-        this.paddingChar = config.getPaddingChar();
-        this.nullFillerChar = config.getNullFillerChar();
+
+        byte[] paddingBytes = ( config.getPaddingChar() + "").getBytes(this.charset);
+        if(paddingBytes.length > 1) {
+            throw new CopyBookException("Selected charset and padding char is more than 1 byte long");
+        }
+        this.paddingByte = paddingBytes[0];
+
+        byte[] nullFillerBytes = (config.getNullFillerChar() + "").getBytes(charset);
+        if(nullFillerBytes.length > 1) {
+            throw new CopyBookException("Selected charset and null filler char is more than 1 byte long");
+        }
+        this.nullFillerByte = nullFillerBytes[0];
     }
 
     public abstract void validate(Class type, int size, int decimals) throws TypeConverterException;
@@ -31,7 +42,7 @@ public abstract class TypeConverterBase {
 
     protected byte[] padBytes(byte[] bytes, int length) {
         byte[] paddedStrBytes = new byte[length];
-        Arrays.fill(paddedStrBytes, (byte)this.paddingChar);
+        Arrays.fill(paddedStrBytes, this.paddingByte);
         if (this.rightPadding) {
             System.arraycopy(bytes, 0, paddedStrBytes, 0, bytes.length);
         } else {
@@ -44,7 +55,7 @@ public abstract class TypeConverterBase {
         if(removePadding) {
             if(this.rightPadding) {
                 for (;length > minLength; length--) {
-                    if (bytes[offset + length -1] != (byte)this.paddingChar) {
+                    if (bytes[offset + length -1] != this.paddingByte) {
                         break;
                     }
                 }
@@ -52,7 +63,7 @@ public abstract class TypeConverterBase {
             } else {
                 int orgOffset = offset;
                 for (; offset < length - minLength; offset++) {
-                    if (bytes[offset] != (byte)this.paddingChar) {
+                    if (bytes[offset] != this.paddingByte) {
                         break;
                     }
                 }

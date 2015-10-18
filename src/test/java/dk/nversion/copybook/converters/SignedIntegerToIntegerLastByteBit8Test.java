@@ -1,6 +1,7 @@
 package dk.nversion.copybook.converters;
 
 import dk.nversion.copybook.CopyBookFieldSigningType;
+import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,15 +18,14 @@ public class SignedIntegerToIntegerLastByteBit8Test {
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    public SignedIntegerToIntegerLastByteBit8Test() {
+    public SignedIntegerToIntegerLastByteBit8Test() throws CopyBookException {
         TypeConverterConfig config = new TypeConverterConfig();
         config.setCharset(StandardCharsets.UTF_8);
         config.setPaddingChar('0');
-        config.setSigningType(CopyBookFieldSigningType.PREFIX);
+        config.setSigningType(CopyBookFieldSigningType.LAST_BYTE_BIT8);
         typeConverter = new SignedIntegerToInteger();
         typeConverter.setConfig(config);
     }
-
 
     @Test
     public void testValidateSuccess() throws Exception {
@@ -40,44 +40,58 @@ public class SignedIntegerToIntegerLastByteBit8Test {
 
     @Test
     public void testTo() throws Exception {
-        assertEquals(-2, (int)typeConverter.to("-2".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
-        assertEquals(-12, (int)typeConverter.to("-12".getBytes(StandardCharsets.UTF_8), 0, 3, -1, true));
-        assertEquals(10, (int)typeConverter.to("+10".getBytes(StandardCharsets.UTF_8), 0, 3, -1, true));
-        assertEquals(-12, (int)typeConverter.to("0-12".getBytes(StandardCharsets.UTF_8), 0, 4, -1, true));
-        assertEquals(12, (int)typeConverter.to("0+12".getBytes(StandardCharsets.UTF_8), 0, 4, -1, true));
-        assertEquals(12, (int)typeConverter.to("000000+12".getBytes(StandardCharsets.UTF_8), 0, 9, -1, true));
+        assertEquals(0, (int)typeConverter.to("0".getBytes(StandardCharsets.UTF_8), 0, 1, -1, true));
+        assertEquals(1, (int)typeConverter.to("1".getBytes(StandardCharsets.UTF_8), 0, 1, -1, true));
+        assertEquals(5, (int)typeConverter.to("5".getBytes(StandardCharsets.UTF_8), 0, 1, -1, true));
+        assertEquals(12, (int)typeConverter.to("12".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
+        assertEquals(-1, (int)typeConverter.to(new byte[] { (byte)177 }, 0, 1, -1, true));
+        assertEquals(-5, (int)typeConverter.to(new byte[] { (byte)181 }, 0, 1, -1, true));
+        assertEquals(-12, (int)typeConverter.to(new byte[] { (byte)49, (byte)178 }, 0, 2, -1, true));
+    }
+
+    @Test
+    public void testToPadding() throws Exception {
+        assertEquals(0, (int)typeConverter.to("00".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
+        assertEquals(1, (int)typeConverter.to("01".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
+        assertEquals(5, (int)typeConverter.to("05".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
+        assertEquals(12, (int)typeConverter.to("012".getBytes(StandardCharsets.UTF_8), 0, 3, -1, true));
+        assertEquals(-1, (int)typeConverter.to(new byte[] { (byte)48, (byte)177 }, 0, 2, -1, true));
+        assertEquals(-5, (int)typeConverter.to(new byte[] { (byte)48, (byte)181 }, 0, 2, -1, true));
+        assertEquals(-12, (int)typeConverter.to(new byte[] { (byte)48, (byte)49, (byte)178 }, 0, 3, -1, true));
     }
 
     @Test
     public void testToZeroValue() throws Exception {
-        assertEquals(0, (int)typeConverter.to("+00000000".getBytes(StandardCharsets.UTF_8), 0, 9, -1, true));
+        assertEquals(0, (int)typeConverter.to("00000000".getBytes(StandardCharsets.UTF_8), 0, 8, -1, true));
     }
 
     @Test
     public void testFrom() throws Exception {
-        assertArrayEquals("0-12".getBytes(StandardCharsets.UTF_8), typeConverter.from(-12, 4, -1, true));
-        assertArrayEquals("0+12".getBytes(StandardCharsets.UTF_8), typeConverter.from(12, 4, -1, true));
+        assertArrayEquals("0".getBytes(StandardCharsets.UTF_8), typeConverter.from(0, 1, -1, true));
+        assertArrayEquals("1".getBytes(StandardCharsets.UTF_8), typeConverter.from(1, 1, -1, true));
+        assertArrayEquals("5".getBytes(StandardCharsets.UTF_8), typeConverter.from(5, 1, -1, true));
+        assertArrayEquals("12".getBytes(StandardCharsets.UTF_8), typeConverter.from(12, 2, -1, true));
+        assertArrayEquals(new byte[] { (byte)177 }, typeConverter.from(-1, 1, -1, true));
+        assertArrayEquals(new byte[] { (byte)181 }, typeConverter.from(-5, 1, -1, true));
+        assertArrayEquals(new byte[] { (byte)49, (byte)178 }, typeConverter.from(-12, 2, -1, true));
     }
 
     @Test
-    public void testToFailMissing() throws Exception {
-        expectedEx.expect(TypeConverterException.class);
-        expectedEx.expectMessage("Missing sign char for value");
-        typeConverter.to("0012".getBytes(StandardCharsets.UTF_8), 0, 4, -1, true);
-    }
-
-    @Test
-    public void testToFailWrongEnd() throws Exception {
-        expectedEx.expect(TypeConverterException.class);
-        expectedEx.expectMessage("Missing sign char for value");
-        typeConverter.to("012-".getBytes(StandardCharsets.UTF_8), 0, 4, -1, true);
+    public void testFromPadding() throws Exception {
+        assertArrayEquals("00".getBytes(StandardCharsets.UTF_8), typeConverter.from(0, 2, -1, true));
+        assertArrayEquals("01".getBytes(StandardCharsets.UTF_8), typeConverter.from(1, 2, -1, true));
+        assertArrayEquals("05".getBytes(StandardCharsets.UTF_8), typeConverter.from(5, 2, -1, true));
+        assertArrayEquals("012".getBytes(StandardCharsets.UTF_8), typeConverter.from(12, 3, -1, true));
+        assertArrayEquals(new byte[] { (byte)48, (byte)177 }, typeConverter.from(-1, 2, -1, true));
+        assertArrayEquals(new byte[] { (byte)48, (byte)181 }, typeConverter.from(-5, 2, -1, true));
+        assertArrayEquals(new byte[] { (byte)48, (byte)49, (byte)178 }, typeConverter.from(-12, 3, -1, true));
     }
 
     @Test
     public void testFromOverflow() throws Exception {
         expectedEx.expect(TypeConverterException.class);
         expectedEx.expectMessage("Field to small for value");
-        byte[] bytes = typeConverter.from(1214, 4, -1, true);
+        byte[] bytes = typeConverter.from(1214, 3, -1, true);
     }
 
 }

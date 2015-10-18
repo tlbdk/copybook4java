@@ -1,5 +1,6 @@
 package dk.nversion.copybook.converters;
 
+import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,7 +19,7 @@ public class StringToStringTest {
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    public StringToStringTest() {
+    public StringToStringTest() throws CopyBookException {
         TypeConverterConfig config = new TypeConverterConfig();
         config.setCharset(StandardCharsets.UTF_8);
         config.setPaddingChar(' ');
@@ -39,6 +40,8 @@ public class StringToStringTest {
 
     @Test
     public void testTo() throws Exception {
+        assertEquals("k", typeConverter.to("k".getBytes(StandardCharsets.UTF_8), 0, 1, -1, true));
+        assertEquals("ok", typeConverter.to("ok".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
         assertEquals("ab12", typeConverter.to("ab12".getBytes(StandardCharsets.UTF_8), 0, 4, -1, true));
         assertEquals("12", typeConverter.to("  12".getBytes(StandardCharsets.UTF_8), 0, 4, -1, true));
     }

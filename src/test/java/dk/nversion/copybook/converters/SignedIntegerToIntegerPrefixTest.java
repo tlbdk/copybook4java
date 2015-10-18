@@ -1,6 +1,7 @@
 package dk.nversion.copybook.converters;
 
 import dk.nversion.copybook.CopyBookFieldSigningType;
+import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,7 +18,7 @@ public class SignedIntegerToIntegerPrefixTest {
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    public SignedIntegerToIntegerPrefixTest() {
+    public SignedIntegerToIntegerPrefixTest() throws CopyBookException {
         TypeConverterConfig config = new TypeConverterConfig();
         config.setCharset(StandardCharsets.UTF_8);
         config.setPaddingChar('0');
@@ -40,6 +41,9 @@ public class SignedIntegerToIntegerPrefixTest {
 
     @Test
     public void testTo() throws Exception {
+        assertEquals(-2, (int)typeConverter.to("-2".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
+        assertEquals(-12, (int)typeConverter.to("-12".getBytes(StandardCharsets.UTF_8), 0, 3, -1, true));
+        assertEquals(10, (int)typeConverter.to("+10".getBytes(StandardCharsets.UTF_8), 0, 3, -1, true));
         assertEquals(-12, (int)typeConverter.to("0-12".getBytes(StandardCharsets.UTF_8), 0, 4, -1, true));
         assertEquals(12, (int)typeConverter.to("0+12".getBytes(StandardCharsets.UTF_8), 0, 4, -1, true));
         assertEquals(12, (int)typeConverter.to("000000+12".getBytes(StandardCharsets.UTF_8), 0, 9, -1, true));

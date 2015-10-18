@@ -1,5 +1,6 @@
 package dk.nversion.copybook.converters;
 
+import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,7 +19,7 @@ public class DecimalToBigDecimalTest {
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    public DecimalToBigDecimalTest() {
+    public DecimalToBigDecimalTest() throws CopyBookException {
         TypeConverterConfig config = new TypeConverterConfig();
         config.setCharset(StandardCharsets.UTF_8);
         config.setPaddingChar('0');
@@ -32,15 +33,22 @@ public class DecimalToBigDecimalTest {
     }
 
     @Test
-    public void testValidateFail() throws Exception {
+    public void testValidateTyopeFail() throws Exception {
         expectedEx.expect(TypeConverterException.class);
         expectedEx.expectMessage("Only supports converting to and from BigDecimal");
         typeConverter.validate(Integer.TYPE, 2, -1);
+    }
 
+    @Test
+    public void testValidateFail() throws Exception {
+        expectedEx.expect(TypeConverterException.class);
+        expectedEx.expectMessage("Field to small to hold a decimal number");
+        typeConverter.validate(BigDecimal.class, 1, -1);
     }
 
     @Test
     public void testTo() throws Exception {
+        assertEquals(new BigDecimal("1.1"), typeConverter.to("11".getBytes(StandardCharsets.UTF_8), 0, 2, 1, true));
         assertEquals(new BigDecimal("10.01"), typeConverter.to("1001".getBytes(StandardCharsets.UTF_8), 0, 4, 2, true));
         assertEquals(new BigDecimal("10.00001"), typeConverter.to("1000001".getBytes(StandardCharsets.UTF_8), 0, 7, 5, true));
         assertEquals(new BigDecimal("10.10000"), typeConverter.to("1010000".getBytes(StandardCharsets.UTF_8), 0, 7, 5, true));

@@ -99,6 +99,24 @@ public class CopyBookSerializerFullTest {
         CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
         byte[] bytes = requestTestSerializer.serialize(requestTest);
         RequestTest requestTest1 = requestTestSerializer.deserialize(bytes, RequestTest.class);
+
+        assertEquals(0, requestTest1.args.length);
+    }
+
+    @Test
+    public void testSerializeDeserializeEmptyList() throws Exception {
+        // Build test object
+        RequestTest requestTest = new RequestTest();
+        requestTest.args = new String[]{};
+        requestTest.messages = new RequestMessage[] {};
+
+        // Serializer and Deserializer object to and from bytes
+        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
+        byte[] bytes = requestTestSerializer.serialize(requestTest);
+        RequestTest requestTest1 = requestTestSerializer.deserialize(bytes, RequestTest.class);
+
+        assertEquals(0, requestTest1.args.length);
+        assertEquals(0, requestTest1.messages.length);
     }
 
 

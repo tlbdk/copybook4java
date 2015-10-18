@@ -63,9 +63,9 @@ public class SignedIntegerToInteger extends TypeConverterBase {
             byte res = (byte)(bytes[bytes.length -1] & 240); // Read last byte and zero first 4 bits of the result, 11110000
             byte[] bytesCopy = Arrays.copyOf(bytes, bytes.length - 1);
             if((byte)(res ^ 208) == 0 ||(byte)(res ^ 176) == 0) { // 208 = 11010000, 176 = 10110000
-                strValue = "-" + getString(bytesCopy, offset, length, removePadding, 1) + String.valueOf(bytes[bytes.length -1] & 15);
+                strValue = "-" + getString(bytesCopy, offset, length -1, removePadding, 1) + String.valueOf(bytes[bytes.length -1] & 15);
             } else {
-                strValue = getString(bytesCopy, offset, length, removePadding, 1) + String.valueOf(bytes[bytes.length -1] & 15);
+                strValue = getString(bytesCopy, offset, bytesCopy.length, removePadding, 1) + String.valueOf(bytes[bytes.length -1] & 15);
             }
 
         } else {
@@ -90,7 +90,7 @@ public class SignedIntegerToInteger extends TypeConverterBase {
                 strBytes[strBytes.length -1] = (byte)(strBytes[strBytes.length -1] | 128); // Set bit 8
 
             } else {
-                strBytes[strBytes.length -1] = (byte)(strBytes[strBytes.length -1] | 127); // Unset bit 8
+                strBytes[strBytes.length -1] = (byte)(strBytes[strBytes.length -1] & 127); // Unset bit 8
             }
 
         } else if (signingType == CopyBookFieldSigningType.LAST_BYTE_EBCDIC_BIT5) {
@@ -106,6 +106,9 @@ public class SignedIntegerToInteger extends TypeConverterBase {
         } else {
             throw new TypeConverterException("Unknown signing type");
         }
+
+        String test = debugBitmap(strBytes, strBytes.length -1, 1);
+
 
         return strBytes;
     }
@@ -134,6 +137,14 @@ public class SignedIntegerToInteger extends TypeConverterBase {
             }
         }
         return str;
+    }
+
+    private String debugBitmap(byte[] bytes, int index, int length) {
+        String result = "";
+        for(int i = index; i < length; i++) {
+            result += ("0000000" + Integer.toBinaryString(bytes[i] & 0xFF)).replaceAll(".*(.{8})$", "$1");
+        }
+        return result;
     }
 
 }

@@ -1,6 +1,7 @@
 package dk.nversion.copybook.converters;
 
 import dk.nversion.copybook.CopyBookFieldSigningType;
+import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,7 +18,7 @@ public class SignedIntegerToLongPostfixTest {
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    public SignedIntegerToLongPostfixTest() {
+    public SignedIntegerToLongPostfixTest() throws CopyBookException {
         TypeConverterConfig config = new TypeConverterConfig();
         config.setCharset(StandardCharsets.UTF_8);
         config.setPaddingChar('0');

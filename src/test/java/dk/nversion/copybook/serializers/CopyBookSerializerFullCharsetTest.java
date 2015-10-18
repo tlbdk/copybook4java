@@ -1,7 +1,7 @@
-package dk.nversion.old;
+package dk.nversion.copybook.serializers;
 
 import dk.nversion.copybook.CopyBookFieldSigningType;
-import dk.nversion.copybook.CopyBookSerializer;
+import dk.nversion.copybook.serializers.CopyBookSerializer;
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookFieldFormat;
 import dk.nversion.copybook.annotations.CopyBookLine;
@@ -10,9 +10,9 @@ import dk.nversion.copybook.converters.StringToString;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-public class SerializerCharsetTest {
+public class CopyBookSerializerFullCharsetTest {
 
-    @CopyBook(charset = "cp037")
+    @CopyBook(charset = "cp037", type = FullSerializer.class)
     @CopyBookFieldFormat(type = StringToString.class, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX, rightPadding = false)
     static public class fieldTypeStringCp037 {
         @CopyBookLine("01 FIELD PIC X(4).")
@@ -25,7 +25,7 @@ public class SerializerCharsetTest {
         fieldTypeStringCp037 test = new fieldTypeStringCp037();
         test.field = "ok";
         byte[] testBytes = serializer.serialize(test);
-        assertArrayEquals(testBytes, new String("  ok").getBytes("cp037"));
+        assertArrayEquals(testBytes, "  ok".getBytes("cp037"));
         fieldTypeStringCp037 test2 = serializer.deserialize(testBytes, fieldTypeStringCp037.class);
         assertEquals("ok", test2.field);
     }
