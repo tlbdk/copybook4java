@@ -12,7 +12,7 @@ public class CopyBookSerializerPackedFirstLevelTest {
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    @CopyBook(charset = "UTF-8", type = FullSerializer.class)
+    @CopyBook(charset = "UTF-8", type = PackedFirstLevelSerializer.class)
     public static class RequestTest {
         @CopyBookLine("01 ID PIC 9(8).")
         public int id;

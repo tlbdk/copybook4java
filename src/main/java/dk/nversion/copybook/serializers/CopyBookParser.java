@@ -23,7 +23,6 @@ public class CopyBookParser {
     private Class<? extends CopyBookSerializerBase> serializerClass = null;
     private CopyBookSerializerConfig config = new CopyBookSerializerConfig();
 
-
     public CopyBookParser(Class type) throws CopyBookException {
         this(type, false);
     }

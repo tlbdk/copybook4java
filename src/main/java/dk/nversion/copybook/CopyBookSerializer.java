@@ -307,7 +307,7 @@ public class CopyBookSerializer {
 
             String cbline = cbfield.line;
 
-            if (cbfield.fields.length == 1) { // Simple and Array of Simple
+            if (cbfield.fields.length == 1) { // Simple and Array of Simple at root level
                 strBytes = cbfield.getBytes(cbfield.get(obj), false);
                 if(strBytes != null) {
                     if(ByteUtils.indexOf(strBytes, separatorByte, 0, strBytes.length) < 0) {

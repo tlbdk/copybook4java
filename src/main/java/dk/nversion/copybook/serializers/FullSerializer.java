@@ -17,42 +17,11 @@ public class FullSerializer extends CopyBookSerializerBase {
         this.maxRecordSize = calculateMaxSize(config.getFields(), 0, this.debug);
     }
 
-    private int calculateMaxSize(List<CopyBookField> fields, int level, boolean debug) {
-        int result = 0;
-        for(CopyBookField field : fields) {
-            if(debug) {
-                for (String line : field.getLines()) {
-                    System.out.println(new String(new char[level * 2]).replace("\0", " ") + line);
-                }
-            }
-            int size;
-            if(field.isArray()) {
-                if(field.hasSubCopyBookFields()) {
-                    size = calculateMaxSize(field.getSubCopyBookFields(), level + 1, debug) * field.getMaxOccurs();
-
-                } else {
-                    size = field.getSize() * field.getMaxOccurs();
-                }
-
-            } else if(field.hasSubCopyBookFields()) {
-                size = calculateMaxSize(field.getSubCopyBookFields(), level + 1, debug);
-
-            } else {
-                size = field.getSize();
-            }
-            this.fieldRecursiveSizes.put(field, size);
-            result += size;
-        }
-        return result;
-    }
-
-
     public <T> byte[] serialize(T obj) throws CopyBookException {
         ByteBuffer buffer = ByteBuffer.wrap(new byte[this.maxRecordSize]);
         writeFieldsToBuffer(this.fields, buffer, obj);
         return buffer.array();
     }
-
 
     private <T> void writeFieldsToBuffer(List<CopyBookField> fields, ByteBuffer buffer, T obj) throws CopyBookException {
         for(CopyBookField field : fields) {
