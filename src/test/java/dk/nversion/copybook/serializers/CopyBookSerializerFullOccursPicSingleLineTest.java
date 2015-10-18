@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-public class SerializerOccursPicSingleLineTest {
+public class CopyBookSerializerFullOccursPicSingleLineTest {
 
     @CopyBook(type = FullSerializer.class)
     static public class StringFieldOccursTwoTimes {

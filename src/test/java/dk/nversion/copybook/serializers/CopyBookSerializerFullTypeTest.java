@@ -1,4 +1,4 @@
-package dk.nversion.old;
+package dk.nversion.copybook.serializers;
 
 import dk.nversion.copybook.CopyBookFieldSigningType;
 import dk.nversion.copybook.CopyBookSerializer;
@@ -14,7 +14,7 @@ import java.math.BigInteger;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-public class SerializerTypeTest {
+public class CopyBookSerializerFullTypeTest {
 
     @CopyBook()
     static public class fieldTypeUnsignedIntegerToInt {
