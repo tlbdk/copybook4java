@@ -49,11 +49,12 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
             if(field.isArray()) {
                 if(field.hasSubCopyBookFields()) {
                     // Complex array types fx. Request[]
+                    Object array = field.getObject(rootObj);
                     if(field.getLevel() == 0) {
                         for(int j = 0; j < field.getMaxOccurs(); j++) {
-                            Object item = field.getObject(rootObj, j);
+                            Object item = array != null ? field.getObject(rootObj, array, j) : null;
                             if(item != null) {
-                                writeFields(buffer, field.getSubCopyBookFields(), item, field.getMaxOccurs() - 1 == j);
+                                writeFields(buffer, field.getSubCopyBookFields(), item, true);
 
                             } else {
                                 buffer.put(null, true); // write separator
@@ -62,7 +63,8 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
 
                     } else {
                         for(int j = 0; j < field.getMaxOccurs(); j++) {
-                            writeFields(buffer, field.getSubCopyBookFields(), field.getObject(rootObj, j), last && field.getMaxOccurs() - 1 == j);
+                            Object item = array != null ? field.getObject(rootObj, array, j) : null;
+                            writeFields(buffer, field.getSubCopyBookFields(), item, last && field.getMaxOccurs() - 1 == j);
                         }
                     }
 
@@ -70,20 +72,7 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
                     // Simple array types, fx. int[]
                     Object array = field.getObject(rootObj);
                     for(int j = 0; j < field.getMaxOccurs(); j++) {
-                        // Simple type fx. int, String or types we support with TypeConverters
-                        if(field.getLevel() == 0) {
-                            buffer.put(field.getBytes(rootObj, array, j, false), true); // No padding with separator
-
-                        } else if(last) {
-                            byte[] valueBytes = field.getBytes(rootObj, array, j, false); // Don't pad if it's the last field
-                            if(valueBytes == null) {
-                                valueBytes = field.getBytes(rootObj, array, j, true); // Except if it's null
-                            }
-                            buffer.put(valueBytes, true); // With separator
-
-                        } else {
-                            buffer.put(field.getBytes(rootObj, array, j, true), false); // With padding without separator
-                        }
+                        writeField(buffer, field, field.getObject(rootObj, array, j), last && field.getMaxOccurs() - 1 == j);
                     }
                 }
 
@@ -103,24 +92,27 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
                 }
 
             } else {
-                // Simple type fx. int, String or types we support with TypeConverters
-                if(field.getLevel() == 0) {
-                    buffer.put(field.getBytes(rootObj, false), true); // No padding with separator
-
-                } else if(last) {
-                    byte[] valueBytes = field.getBytes(rootObj, false); // Don't pad if it's the last field
-                    if(valueBytes == null) {
-                        valueBytes = field.getBytes(rootObj, true); // Except if it's null
-                    }
-                    buffer.put(valueBytes, true); // With separator
-
-                } else {
-                    buffer.put(field.getBytes(rootObj, true), false); // With padding without separator
-                }
+                writeField(buffer, field, field.getObject(rootObj), last);
             }
         }
     }
 
+    private void writeField(PackedBuffer buffer, CopyBookField field, Object valueObj, boolean last) throws CopyBookException {
+        // Simple type fx. int, String or types we support with TypeConverters
+        if(field.getLevel() == 0) {
+            buffer.put(field.getBytes(null, valueObj, false), true); // No padding with separator
+
+        } else if(last) {
+            byte[] valueBytes = field.getBytes(null, valueObj, false); // Don't pad if it's the last field
+            if(valueBytes == null) {
+                valueBytes = field.getBytes(null, valueObj, true); // Except if it's null
+            }
+            buffer.put(valueBytes, true); // With separator
+
+        } else {
+            buffer.put(field.getBytes(null, valueObj, true), false); // With padding without separator
+        }
+    }
 
 
     private class PackedBuffer {
@@ -152,16 +144,17 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
                     throw new CopyBookException("Bytes contains the separator char");
                 }
                 buffer.put(bytes);
-                System.out.println("'" + new String(bytes) +"'");
+                System.out.print("'" + new String(bytes) +"'");
 
                 if(separator) {
+                    System.out.println("[]");
                     setBitInBitmap();
                     this.maxUsedBit = bitmapIndex;
                     buffer.put(this.separatorByte);
                 }
             }
             if(separator) {
-                System.out.println("-----------");
+                System.out.println("((");
                 this.bitmapIndex++;
             }
         }

@@ -89,8 +89,15 @@ public class CopyBookField {
     }
 
     public byte[] getBytes(Object rootObj, boolean addPadding) throws CopyBookException {
+        return getBytes(rootObj, null, addPadding);
+    }
+
+    public byte[] getBytes(Object rootObj, Object valueObj, boolean addPadding) throws CopyBookException {
         try {
-            return converter.from(getObject(rootObj), this.size, this.decimals, addPadding);
+            if(valueObj == null) {
+                valueObj = getObject(rootObj);
+            }
+            return converter.from(valueObj, this.size, this.decimals, addPadding);
             
         } catch (TypeConverterException ex) {
             throw new CopyBookException(getFieldName() + ": ", ex);
