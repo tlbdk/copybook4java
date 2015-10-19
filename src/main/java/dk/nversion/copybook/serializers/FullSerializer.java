@@ -10,12 +10,10 @@ import java.util.Map;
 
 public class FullSerializer extends CopyBookSerializerBase {
 
-    private Map<CopyBookField, Integer> fieldRecursiveSizes = new HashMap<>();
+    private Map<CopyBookField, Integer> fieldRecursiveSizes = new HashMap<>(); // Removed
 
     public FullSerializer(CopyBookSerializerConfig config) {
         super(config);
-
-
     }
 
     public <T> byte[] serialize(T obj) throws CopyBookException {
