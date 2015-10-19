@@ -22,9 +22,11 @@ public class CopyBookField {
     private int maxOccurs;
     private String counterKey;
     private boolean isCounter;
+
     private int recursiveMinSize;
     private int recursiveMaxSize;
     private boolean last;
+    private int level;
 
     public boolean isArray() {
         return field.getType().isArray();
@@ -281,5 +283,13 @@ public class CopyBookField {
 
     public void setRecursiveMaxSize(int recursiveMaxSize) {
         this.recursiveMaxSize = recursiveMaxSize;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
     }
 }

@@ -25,6 +25,7 @@ public abstract class CopyBookSerializerBase {
     protected int calculateMaxSize(List<CopyBookField> fields, int level, boolean debug) {
         int result = 0;
         // TODO: set as part of this field.setLast();
+        // TODO: set level on field.setLevel();
         for(CopyBookField field : fields) {
 
             if(debug) {
