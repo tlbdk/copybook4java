@@ -25,7 +25,7 @@ public class StringToString extends TypeConverterBase {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
-        byte[] strBytes;
+        byte[] strBytes = null;
         if(value != null) {
             strBytes = ((String) value).getBytes(this.charset);
             if (strBytes.length > length) {
@@ -35,7 +35,7 @@ public class StringToString extends TypeConverterBase {
                 strBytes = padBytes(strBytes, length);
             }
 
-        } else {
+        } else if(addPadding) {
             strBytes = new byte[length];
             Arrays.fill(strBytes, this.nullFillerByte);
         }

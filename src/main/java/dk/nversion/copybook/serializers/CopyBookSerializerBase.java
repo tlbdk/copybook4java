@@ -11,49 +11,69 @@ public abstract class CopyBookSerializerBase {
     protected CopyBookSerializerConfig config;
     protected List<CopyBookField> fields;
     protected boolean debug;
-    private Map<CopyBookField, Integer> fieldRecursiveSizes = new HashMap<>();
+    protected int maxRecordSize;
+    protected int minRecordSize;
 
     public CopyBookSerializerBase(CopyBookSerializerConfig config) {
         this.config = config;
         this.fields = config.getFields();
         this.debug = config.isDebug();
+        int[] totalSizes = calculateSizes(config.getFields(), 0, this.debug);
+        this.minRecordSize = totalSizes[0];
+        this.maxRecordSize = totalSizes[1];
     }
 
     public abstract <T> byte[] serialize(T obj) throws CopyBookException;
     public abstract <T> T deserialize(byte[] bytes, Class<T> type) throws CopyBookException, InstantiationException;
 
-    protected int calculateMaxSize(List<CopyBookField> fields, int level, boolean debug) {
-        int result = 0;
+    protected int[] calculateSizes(List<CopyBookField> fields, int level, boolean debug) {
+        int minTotal = 0;
+        int maxTotal = 0;
         // TODO: set as part of this field.setLast();
-        // TODO: set level on field.setLevel();
-        for(CopyBookField field : fields) {
+        for(int i = 0; i < fields.size(); i++) {
+            CopyBookField field = fields.get(i);
 
             if(debug) {
                 for (String line : field.getLines()) {
                     System.out.println(new String(new char[level * 2]).replace("\0", " ") + line);
                 }
             }
-            int size;
+
+            int minSize;
+            int maxSize;
             if(field.isArray()) {
                 if(field.hasSubCopyBookFields()) {
-                    size = calculateMaxSize(field.getSubCopyBookFields(), level + 1, debug) * field.getMaxOccurs();
+                    // Complex array types fx. Request[]
+                    int[] sizes = calculateSizes(field.getSubCopyBookFields(), level + 1, debug);
+                    minSize = sizes[0] * field.getMinOccurs();
+                    maxSize = sizes[1] * field.getMaxOccurs();
 
                 } else {
-                    size = field.getSize() * field.getMaxOccurs();
+                    // Simple array types, fx. int[]
+                    minSize = field.getSize() * field.getMinOccurs();
+                    maxSize = field.getSize() * field.getMaxOccurs();
                 }
 
             } else if(field.hasSubCopyBookFields()) {
-                size = calculateMaxSize(field.getSubCopyBookFields(), level + 1, debug);
+                // Complex type fx, Request
+                int[] sizes = calculateSizes(field.getSubCopyBookFields(), level + 1, debug);
+                minSize = sizes[0];
+                maxSize = sizes[1];
 
             } else {
-                size = field.getSize();
+                // Simple type fx. int, String or types we support with TypeConverters
+                minSize = field.getSize();
+                maxSize = minSize;
             }
+            minTotal += minSize;
+            maxTotal += maxSize;
 
-            // TODO: Use field.setRecursiveMinSize() instead of hashmap
-            // TODO: Also do a field.setRecursiveMaxSize()
-            this.fieldRecursiveSizes.put(field, size);
-            result += size;
+            field.setRecursiveMinSize(minSize);
+            field.setRecursiveMaxSize(maxSize);
+            field.setLevel(level);
+            field.setLast(fields.size() - 1 == i);
         }
-        return result;
+
+        return new int[] { minTotal, maxTotal };
     }
 }

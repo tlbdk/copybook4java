@@ -57,11 +57,11 @@ public class CopyBookSerializerPackedFirstLevelTest {
         // Build test object
         RequestTest requestTest = new RequestTest();
         requestTest.id = 1;
-        requestTest.command = "cmd1234()";
-        requestTest.hello = new RequestMessage("Hello", "Body1234");
+        requestTest.command = "cmd1234";
+        requestTest.hello = new RequestMessage("Helo", "Body1234");
         requestTest.hellos = new RequestMessage[] { new RequestMessage("abc", "1234ydob") };
         requestTest.hellos_count = requestTest.hellos.length;
-        requestTest.messages = new RequestMessage[] { new RequestMessage("msg1", "stuff123"), new RequestMessage("msg2", "stuff12345") };
+        requestTest.messages = new RequestMessage[] { new RequestMessage("msg1", "stuff123"), new RequestMessage("msg2", "stuff1234") };
         requestTest.messages_count = requestTest.messages.length;
         requestTest.args = new String[]{ "do", "stuff" };
         requestTest.args_count = requestTest.args.length;

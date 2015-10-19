@@ -9,12 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 public class FullSerializer extends CopyBookSerializerBase {
-    private int maxRecordSize;
+
     private Map<CopyBookField, Integer> fieldRecursiveSizes = new HashMap<>();
 
     public FullSerializer(CopyBookSerializerConfig config) {
         super(config);
-        this.maxRecordSize = calculateMaxSize(config.getFields(), 0, this.debug);
+
+
     }
 
     public <T> byte[] serialize(T obj) throws CopyBookException {

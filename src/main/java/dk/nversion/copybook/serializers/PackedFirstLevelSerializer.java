@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
-    private int maxRecordSize;
     private int maxBitmapSize;
     private byte separatorByte;
     private int bitmapBlockSize;
@@ -19,7 +18,7 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
         int packingItemsCount = countPackingItems(config.getFields());
         int maxBitmapBlocks = packingItemsCount / (bitmapBlockSize * 8 - 1) + 1;
         this.maxBitmapSize = bitmapBlockSize * maxBitmapBlocks;
-        this.maxRecordSize = calculateMaxSize(config.getFields(), 0, this.debug) + packingItemsCount; // Separator bytes to count
+
         this.separatorByte = '\u000b';//config.getSeparatorByte();
     }
 
@@ -39,46 +38,90 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
     @Override
     public <T> byte[] serialize(T obj) throws CopyBookException {
         PackedBuffer buffer = new PackedBuffer(this.maxRecordSize, this.maxBitmapSize, this.bitmapBlockSize, this.separatorByte);
+        writeFields(buffer, this.fields, obj, true);
+        return buffer.array();
+    }
 
-        for(int i = 0; i < fields.size(); i++) {
-            CopyBookField field = fields.get(i);
-            boolean lastField = fields.size() - 1 == i;
+    private void writeFields(PackedBuffer buffer, List<CopyBookField> fields, Object rootObj, boolean rootLast) throws CopyBookException {
+        for(CopyBookField field : fields) {
+            boolean last = rootLast && field.isLast();
+
             if(field.isArray()) {
                 if(field.hasSubCopyBookFields()) {
                     // Complex array types fx. Request[]
-                    for(int j = 0; j < field.getMaxOccurs(); j++) {
-                        Object item = field.getObject(obj, j);
-                        if(item != null) {
-                            buffer.put(field.getSubCopyBookFields(), item, 0, lastField);
+                    if(field.getLevel() == 0) {
+                        for(int j = 0; j < field.getMaxOccurs(); j++) {
+                            Object item = field.getObject(rootObj, j);
+                            if(item != null) {
+                                writeFields(buffer, field.getSubCopyBookFields(), item, field.getMaxOccurs() - 1 == j);
 
-                        } else {
-                            buffer.put();
+                            } else {
+                                buffer.put(null, true); // write separator
+                            }
+                        }
+
+                    } else {
+                        for(int j = 0; j < field.getMaxOccurs(); j++) {
+                            writeFields(buffer, field.getSubCopyBookFields(), field.getObject(rootObj, j), last && field.getMaxOccurs() - 1 == j);
                         }
                     }
 
                 } else {
                     // Simple array types, fx. int[]
+                    Object array = field.getObject(rootObj);
                     for(int j = 0; j < field.getMaxOccurs(); j++) {
-                        buffer.put(field.getBytes(obj, j, false));
+                        // Simple type fx. int, String or types we support with TypeConverters
+                        if(field.getLevel() == 0) {
+                            buffer.put(field.getBytes(rootObj, array, j, false), true); // No padding with separator
+
+                        } else if(last) {
+                            byte[] valueBytes = field.getBytes(rootObj, array, j, false); // Don't pad if it's the last field
+                            if(valueBytes == null) {
+                                valueBytes = field.getBytes(rootObj, array, j, true); // Except if it's null
+                            }
+                            buffer.put(valueBytes, true); // With separator
+
+                        } else {
+                            buffer.put(field.getBytes(rootObj, array, j, true), false); // With padding without separator
+                        }
                     }
                 }
 
             } else if(field.hasSubCopyBookFields()) {
-                Object item = field.getObject(obj);
-                if(item != null) {
-                    buffer.put(field.getSubCopyBookFields(), item, 0, lastField);
+                // Complex type fx, Request
+                Object item = field.getObject(rootObj);
+                if(field.getLevel() == 0) {
+                    if(item != null) {
+                        writeFields(buffer, field.getSubCopyBookFields(), item, true);
+
+                    } else {
+                        buffer.put(null, true); // write separator
+                    }
 
                 } else {
-                    buffer.put();
+                    writeFields(buffer, fields, item, last);
                 }
 
             } else {
-                buffer.put(field.getBytes(obj, false));
+                // Simple type fx. int, String or types we support with TypeConverters
+                if(field.getLevel() == 0) {
+                    buffer.put(field.getBytes(rootObj, false), true); // No padding with separator
+
+                } else if(last) {
+                    byte[] valueBytes = field.getBytes(rootObj, false); // Don't pad if it's the last field
+                    if(valueBytes == null) {
+                        valueBytes = field.getBytes(rootObj, true); // Except if it's null
+                    }
+                    buffer.put(valueBytes, true); // With separator
+
+                } else {
+                    buffer.put(field.getBytes(rootObj, true), false); // With padding without separator
+                }
             }
         }
-
-        return buffer.array();
     }
+
+
 
     private class PackedBuffer {
         private ByteBuffer buffer;
@@ -109,6 +152,7 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
                     throw new CopyBookException("Bytes contains the separator char");
                 }
                 buffer.put(bytes);
+                System.out.println("'" + new String(bytes) +"'");
 
                 if(separator) {
                     setBitInBitmap();
@@ -117,52 +161,10 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
                 }
             }
             if(separator) {
+                System.out.println("-----------");
                 this.bitmapIndex++;
             }
         }
-
-        public void put(List<CopyBookField> fields, Object obj) throws CopyBookException {
-            put(fields, obj, 0, false);
-        }
-
-        public void put(List<CopyBookField> fields, Object obj, int level, boolean last) throws CopyBookException {
-            for (int i = 0; i < fields.size(); i++) {
-                CopyBookField field = fields.get(i);
-                boolean lastField = fields.size() - 1 == i;
-                if (field.isArray()) {
-                    if (field.hasSubCopyBookFields()) {
-                        // Complex array types fx. Request[]
-                        for (int j = 0; j < field.getMaxOccurs(); j++) {
-                            put(field.getSubCopyBookFields(), field.getObject(obj, j), level + 1, last && lastField && field.getMaxOccurs() -1 == j);
-                        }
-
-                    } else {
-                        // Simple array types, fx. int[]
-                        for (int j = 0; j < field.getMaxOccurs(); j++) {
-                            if(last && lastField && field.getMaxOccurs() - 1 == j) { // Last field in root object
-                                byte[] valueBytes = field.getBytes(obj, i, false); // Don't pad if it's the last field
-                                if(valueBytes == null) {
-                                    valueBytes = field.getBytes(obj, i, true); // Except if it's null
-                                }
-                                put(valueBytes);
-
-                            } else {
-                                put(field.getBytes(obj, i, true), false);
-                            }
-                        }
-                    }
-
-                } else if(field.hasSubCopyBookFields()) {
-                    // Complex type fx, Request
-                    put(field.getSubCopyBookFields(), field.getObject(obj), level + 1, lastField && last);
-
-                } else {
-                    // Simple type fx. int, String or types we support with TypeConverters
-                    put(field.getBytes(obj, true), false);
-                }
-            }
-        }
-
 
         public byte[] array() {
             // Trim unused bytes before returning the array
@@ -192,8 +194,6 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
     public <T> T deserialize(byte[] bytes, Class<T> type) throws CopyBookException, InstantiationException {
         return null;
     }
-
-
 
     private boolean getBitInBitmap(byte[] bytes, int bitIndex, int bitmapSize) {
         bitIndex += bitIndex / 63;

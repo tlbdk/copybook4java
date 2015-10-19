@@ -21,10 +21,10 @@ public class CopyBookField {
     private int minOccurs;
     private int maxOccurs;
     private String counterKey;
-    private boolean isCounter;
+    private boolean counter;
 
-    private int recursiveMinSize;
     private int recursiveMaxSize;
+    private int recursiveMinSize;
     private boolean last;
     private int level;
 
@@ -88,9 +88,9 @@ public class CopyBookField {
         }
     }
 
-    public byte[] getBytes(Object obj, boolean addPadding) throws CopyBookException {
+    public byte[] getBytes(Object rootObj, boolean addPadding) throws CopyBookException {
         try {
-            return converter.from(getObject(obj), this.size, this.decimals, addPadding);
+            return converter.from(getObject(rootObj), this.size, this.decimals, addPadding);
             
         } catch (TypeConverterException ex) {
             throw new CopyBookException(getFieldName() + ": ", ex);
@@ -99,18 +99,22 @@ public class CopyBookField {
         }
     }
 
-    public byte[] getBytes(Object obj, int index, boolean addPadding) throws CopyBookException {
+    public byte[] getBytes(Object rootObj, int index, boolean addPadding) throws CopyBookException {
+       return getBytes(rootObj, null, index, addPadding);
+    }
+
+    public byte[] getBytes(Object rootObj, Object arrayObj, int index, boolean addPadding) throws CopyBookException {
         try {
-           return converter.from(getObject(obj, index), this.size, this.decimals, addPadding);
+            return converter.from(getObject(rootObj, arrayObj, index), this.size, this.decimals, addPadding);
 
         } catch (TypeConverterException ex) {
             throw new CopyBookException(getFieldName() + ": ", ex);
         }
     }
 
-    public Object getObject(Object obj) throws CopyBookException {
+    public Object getObject(Object rootObj) throws CopyBookException {
         try {
-            return obj != null ? field.get(obj) : null;
+            return rootObj != null ? field.get(rootObj) : null;
 
         } catch (IllegalAccessException e) {
             // We already set it to accessible so this should not happen
@@ -118,15 +122,22 @@ public class CopyBookField {
         }
     }
 
-    public Object getObject(Object obj, int index) throws CopyBookException {
-        Object array = getObject(obj);
+    public Object getObject(Object rootObj, int index) throws CopyBookException {
+        Object array = getObject(rootObj);
         return array != null && index < Array.getLength(array) ? Array.get(array, index) : null;
     }
 
-    public Object createArrayObject(Object obj, int size) throws CopyBookException {
+    public Object getObject(Object rootObj, Object arrayObj, int index) throws CopyBookException {
+        if(arrayObj == null) {
+            arrayObj = getObject(rootObj);
+        }
+        return arrayObj != null && index < Array.getLength(arrayObj) ? Array.get(arrayObj, index) : null;
+    }
+
+    public Object createArrayObject(Object rootObj, int size) throws CopyBookException {
         try {
             Object array = Array.newInstance(this.field.getType().getComponentType(), size);
-            this.field.set(obj, array);
+            this.field.set(rootObj, array);
             return array;
 
         } catch (IllegalAccessException e) {
@@ -135,10 +146,10 @@ public class CopyBookField {
         }
     }
 
-    public Object createObject(Object obj) throws CopyBookException {
+    public Object createObject(Object rootObj) throws CopyBookException {
         try {
             Object value = field.getType().newInstance();
-            this.field.set(obj, value);
+            this.field.set(rootObj, value);
             return value;
 
         } catch (IllegalAccessException e) {
@@ -254,11 +265,11 @@ public class CopyBookField {
     }
 
     public boolean isCounter() {
-        return isCounter;
+        return counter;
     }
 
-    public void setIsCounter(boolean isCounter) {
-        this.isCounter = isCounter;
+    public void setCounter(boolean counter) {
+        this.counter = counter;
     }
 
     public int getRecursiveMinSize() {

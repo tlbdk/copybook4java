@@ -166,7 +166,7 @@ public class CopyBookParser {
                                 counterKey = counterKeyNames.stream().collect(Collectors.joining("."));
 
                                 if(copyBookFieldNames.containsKey(counterKey)) {
-                                    copyBookFieldNames.get(counterKey).setIsCounter(true);
+                                    copyBookFieldNames.get(counterKey).setCounter(true);
 
                                 } else {
                                     throw new CopyBookException("Could not find referenced counter " + counterKey +  "for field '" + fieldName + "'");
