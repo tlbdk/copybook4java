@@ -24,7 +24,9 @@ public abstract class CopyBookSerializerBase {
 
     protected int calculateMaxSize(List<CopyBookField> fields, int level, boolean debug) {
         int result = 0;
+        // TODO: set as part of this field.setLast();
         for(CopyBookField field : fields) {
+
             if(debug) {
                 for (String line : field.getLines()) {
                     System.out.println(new String(new char[level * 2]).replace("\0", " ") + line);
@@ -45,6 +47,9 @@ public abstract class CopyBookSerializerBase {
             } else {
                 size = field.getSize();
             }
+
+            // TODO: Use field.setRecursiveMinSize() instead of hashmap
+            // TODO: Also do a field.setRecursiveMaxSize()
             this.fieldRecursiveSizes.put(field, size);
             result += size;
         }

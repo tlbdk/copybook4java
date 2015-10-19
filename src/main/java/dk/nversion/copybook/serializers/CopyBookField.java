@@ -1,6 +1,5 @@
 package dk.nversion.copybook.serializers;
 
-import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.converters.TypeConverterBase;
 import dk.nversion.copybook.exceptions.TypeConverterException;
@@ -23,6 +22,9 @@ public class CopyBookField {
     private int maxOccurs;
     private String counterKey;
     private boolean isCounter;
+    private int recursiveMinSize;
+    private int recursiveMaxSize;
+    private boolean last;
 
     public boolean isArray() {
         return field.getType().isArray();
@@ -255,5 +257,29 @@ public class CopyBookField {
 
     public void setIsCounter(boolean isCounter) {
         this.isCounter = isCounter;
+    }
+
+    public int getRecursiveMinSize() {
+        return recursiveMinSize;
+    }
+
+    public void setRecursiveMinSize(int recursiveMinSize) {
+        this.recursiveMinSize = recursiveMinSize;
+    }
+
+    public boolean isLast() {
+        return last;
+    }
+
+    public void setLast(boolean last) {
+        this.last = last;
+    }
+
+    public int getRecursiveMaxSize() {
+        return recursiveMaxSize;
+    }
+
+    public void setRecursiveMaxSize(int recursiveMaxSize) {
+        this.recursiveMaxSize = recursiveMaxSize;
     }
 }
