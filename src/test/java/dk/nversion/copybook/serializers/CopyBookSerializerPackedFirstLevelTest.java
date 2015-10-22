@@ -61,13 +61,13 @@ public class CopyBookSerializerPackedFirstLevelTest {
         requestTest.hello = new RequestMessage("Helo", "Body1234");
         requestTest.hellos = new RequestMessage[] { new RequestMessage("abc", "1234ydob") };
         requestTest.hellos_count = requestTest.hellos.length;
-        requestTest.messages = new RequestMessage[] { new RequestMessage("msg1", "stuff123"), new RequestMessage("msg2", "stuff1234") };
-        requestTest.messages_count = requestTest.messages.length;
         requestTest.args = new String[]{ "do", "stuff" };
         requestTest.args_count = requestTest.args.length;
+        requestTest.messages = new RequestMessage[] { new RequestMessage("msg1", "stuff123"), new RequestMessage("msg2", "stuff1234") };
+        requestTest.messages_count = requestTest.messages.length;
 
         // Serializer and Deserializer object to and from bytes
-        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class, true);
+        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class, false);
         byte[] bytes = requestTestSerializer.serialize(requestTest);
         RequestTest requestTest1 = requestTestSerializer.deserialize(bytes, RequestTest.class);
 

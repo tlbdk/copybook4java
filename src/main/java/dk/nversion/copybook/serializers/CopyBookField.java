@@ -56,6 +56,10 @@ public class CopyBookField {
         return setBytes(obj, bytes, 0, bytes.length, removePadding);
     }
 
+    public Object setBytes(Object obj, byte[] bytes, boolean removePadding) throws CopyBookException {
+        return setBytes(obj, bytes, 0, bytes.length, removePadding);
+    }
+
     public Object setBytes(Object obj, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
         try {
             Object value = converter.to(bytes, offset, length, this.decimals, removePadding);
@@ -75,6 +79,17 @@ public class CopyBookField {
         byte[] bytes = new byte[this.size];
         buffer.get(bytes);
         return setBytes(obj, index, bytes, 0, bytes.length, removePadding);
+    }
+
+    public Object setBytes(Object arrayObj, int index, byte[] bytes, boolean removePadding) throws CopyBookException {
+        try {
+            Object value = converter.to(bytes, 0, bytes.length, this.decimals, removePadding);
+            Array.set(arrayObj, index, value);
+            return value;
+
+        } catch (TypeConverterException ex) {
+            throw new CopyBookException(getFieldName() + ": ", ex);
+        }
     }
 
     public Object setBytes(Object arrayObj, int index, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
