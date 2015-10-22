@@ -224,14 +224,22 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
 
             /* TODO: Calculate the number of set bits with bit masking and Long.numberOfTrailingZeros as this should be quicker
             String befor = debugBitmap(this.bitmapBytes, 0, 8);
-            long mask = (Long.MAX_VALUE >> bitmapIndex - 1) & (Long.MAX_VALUE << (bitmapSize * 8 - bitmapIndex - maxOccurs));
+
             ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
             buffer.put(this.bitmapBytes);
             buffer.flip();//need flip
-            long num2 =buffer.getLong() & mask;
+            long stuff = buffer.getLong();
+
+            long mask = (Long.MAX_VALUE >> bitmapIndex - 1) & (Long.MAX_VALUE << (bitmapSize * 8 - bitmapIndex - maxOccurs));
+            long num2 =  stuff & mask;
             long size2 = num2 > 0 ? 8 * 8 - Long.numberOfTrailingZeros(num2) - bitmapIndex : 0;
+
+            long num3 = (stuff >> (8*8 - (bitmapIndex + maxOccurs))) & (Long.MAX_VALUE >> (8*8 - (bitmapIndex + maxOccurs)));
+            long size3 = maxOccurs - Long.numberOfTrailingZeros(num3);
+
+
             ByteBuffer buffer2 = ByteBuffer.allocate(Long.BYTES);
-            buffer2.putLong(num2);
+            buffer2.putLong(num3);
             byte[] testbytes = buffer2.array();
             String after = debugBitmap(testbytes, 0, 8);
             */
