@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 public class FullSerializer extends CopyBookSerializerBase {
-
-    private Map<CopyBookField, Integer> fieldRecursiveSizes = new HashMap<>(); // Removed
-
     public FullSerializer(CopyBookSerializerConfig config) {
         super(config);
     }
@@ -84,7 +81,7 @@ public class FullSerializer extends CopyBookSerializerBase {
 
                     // Move position in buffer to next location with data
                     if(field.getMinOccurs() > arraySize) {
-                        int skipSize = (field.getMaxOccurs() - arraySize) * this.fieldRecursiveSizes.get(field) / field.getMaxOccurs();
+                        int skipSize = (field.getMinOccurs() - arraySize) * field.getRecursiveMinSize() / field.getMinOccurs();
                         buffer.position(buffer.position() + skipSize);
                     }
 
@@ -96,7 +93,7 @@ public class FullSerializer extends CopyBookSerializerBase {
 
                     // Move position in buffer to next location with data
                     if(field.getMinOccurs() > arraySize) {
-                        buffer.position(buffer.position() + (field.getMaxOccurs() - arraySize) * field.getSize());
+                        buffer.position(buffer.position() + (field.getMinOccurs() - arraySize) * field.getSize());
                     }
                 }
 

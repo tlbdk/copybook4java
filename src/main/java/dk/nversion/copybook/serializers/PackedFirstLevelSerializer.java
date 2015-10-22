@@ -11,11 +11,12 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
     private int maxBitmapSize;
     private byte separatorByte;
     private int bitmapBlockSize;
+    private int packingItemsCount;
 
     public PackedFirstLevelSerializer(CopyBookSerializerConfig config) {
         super(config);
         this.bitmapBlockSize =  8;//config.getBitmapBlockSize();
-        int packingItemsCount = countPackingItems(config.getFields());
+        this.packingItemsCount = countPackingItems(config.getFields());
         int maxBitmapBlocks = packingItemsCount / (bitmapBlockSize * 8 - 1) + 1;
         this.maxBitmapSize = bitmapBlockSize * maxBitmapBlocks;
         this.separatorByte = '\u000b';//config.getSeparatorByte();
@@ -36,7 +37,7 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
 
     @Override
     public <T> byte[] serialize(T obj) throws CopyBookException {
-        PackedBuffer buffer = new PackedBuffer(this.maxRecordSize, this.maxBitmapSize, this.bitmapBlockSize, this.separatorByte);
+        PackedBuffer buffer = new PackedBuffer(this.maxRecordSize + packingItemsCount, this.maxBitmapSize, this.bitmapBlockSize, this.separatorByte);
         writeFields(buffer, this.fields, obj, true);
         return buffer.array();
     }
@@ -130,7 +131,7 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
 
             if(debug) { System.out.println("read " + field.getFieldName()); }
             if(field.isArray()) {
-                int arraySize = buffer.getArraySize(field.getMinOccurs());
+                int arraySize = field.getLevel() == 0 ? buffer.getArraySize(field.getMinOccurs()) : field.getMinOccurs();
                 Object array = field.createArrayObject(obj, arraySize);
                 if(field.hasSubCopyBookFields()) {
                     // Complex array types fx. Request[]
@@ -138,9 +139,11 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
                         for(int j = 0; j < arraySize; j++) {
                             readFields(field.getSubCopyBookFields(), buffer, field.createObject(array, j), true);
                         }
+                        // Move bitmap index to the end of the array
+                        buffer.incBitmapIndex(field.getMinOccurs() - arraySize);
 
                     } else {
-                        for(int j = 0; j < field.getMinOccurs(); j++) {
+                        for(int j = 0; j < arraySize; j++) {
                             readFields(field.getSubCopyBookFields(), buffer, field.createObject(array, j), last && field.getMinOccurs() - 1 == j);
                         }
                     }
@@ -150,16 +153,16 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
                         for(int i = 0; i < arraySize; i++) {
                             field.setBytes(array, i, buffer.get(field.getSize(), true), false);
                         }
+                        // Move bitmap index to the end of the array
+                        buffer.incBitmapIndex(field.getMinOccurs() - arraySize);
 
                     } else {
-                        for(int i = 0; i < field.getMinOccurs(); i++) {
+                        for(int i = 0; i < arraySize; i++) {
                             boolean isLast = last && field.getMinOccurs() - 1 == i;
-                            field.setBytes(array, i, buffer.get(field.getSize(), !isLast), isLast);
+                            field.setBytes(array, i, buffer.get(field.getSize(), isLast), !isLast);
                         }
                     }
                 }
-                // Move bitmap index to the end of the array
-                buffer.incBitmapIndex(field.getMinOccurs() - arraySize);
 
             } else {
                 if(field.hasSubCopyBookFields()) {
@@ -222,8 +225,9 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
 
         public byte[] get(int maxLength, boolean separator) throws CopyBookException {
             byte[] byteValue = null;
-            if(separator) {
-                if (getBitInBitmap(this.buffer.array(), this.bitmapIndex, this.bitmapSize)) {
+            if (getBitInBitmap(this.bitmapBytes, this.bitmapIndex, this.bitmapSize)) {
+                if (separator) {
+
                     int index = ByteUtils.indexOf(this.buffer.array(), this.separatorByte, this.buffer.position() + 1, maxLength);
                     if (index > 0) {
                         byteValue = new byte[index - this.buffer.position()];
@@ -233,12 +237,15 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
                     } else {
                         throw new CopyBookException("Could not find expected separator in response at index " + buffer.position());
                     }
-                }
-                bitmapIndex++;
 
-            } else {
-                byteValue = new byte[maxLength];
-                this.buffer.get(byteValue);
+                } else {
+                    byteValue = new byte[maxLength];
+                    this.buffer.get(byteValue);
+                }
+            }
+
+            if(separator) {
+                bitmapIndex++;
             }
 
             return byteValue;

@@ -53,16 +53,16 @@ public class CopyBookField {
     public Object setBytes(Object obj, ByteBuffer buffer, boolean removePadding) throws CopyBookException {
         byte[] bytes = new byte[this.size];
         buffer.get(bytes);
-        return setBytes(obj, bytes, 0, bytes.length, removePadding);
+        return setBytes(obj, bytes, 0, bytes != null ? bytes.length : 0, removePadding);
     }
 
     public Object setBytes(Object obj, byte[] bytes, boolean removePadding) throws CopyBookException {
-        return setBytes(obj, bytes, 0, bytes.length, removePadding);
+        return setBytes(obj, bytes, 0, bytes != null ? bytes.length : 0, removePadding);
     }
 
     public Object setBytes(Object obj, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
         try {
-            Object value = converter.to(bytes, offset, length, this.decimals, removePadding);
+            Object value = bytes != null ? converter.to(bytes, offset, length, this.decimals, removePadding) : null;
             field.set(obj, value);
             return value;
 
@@ -82,19 +82,12 @@ public class CopyBookField {
     }
 
     public Object setBytes(Object arrayObj, int index, byte[] bytes, boolean removePadding) throws CopyBookException {
-        try {
-            Object value = converter.to(bytes, 0, bytes.length, this.decimals, removePadding);
-            Array.set(arrayObj, index, value);
-            return value;
-
-        } catch (TypeConverterException ex) {
-            throw new CopyBookException(getFieldName() + ": ", ex);
-        }
+        return setBytes(arrayObj, index, bytes, 0, bytes != null ? bytes.length : 0, removePadding);
     }
 
     public Object setBytes(Object arrayObj, int index, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
         try {
-            Object value = converter.to(bytes, offset, length, this.decimals, removePadding);
+            Object value = bytes != null ? converter.to(bytes, offset, length, this.decimals, removePadding) : null;
             Array.set(arrayObj, index, value);
             return value;
 

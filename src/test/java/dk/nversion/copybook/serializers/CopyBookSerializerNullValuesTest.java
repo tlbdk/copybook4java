@@ -1,7 +1,7 @@
-package dk.nversion.old;
+package dk.nversion.copybook.serializers;
 
 import dk.nversion.copybook.CopyBookFieldSigningType;
-import dk.nversion.copybook.CopyBookSerializer;
+import dk.nversion.copybook.serializers.CopyBookSerializer;
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookFieldFormat;
 import dk.nversion.copybook.annotations.CopyBookLine;
@@ -11,8 +11,7 @@ import dk.nversion.copybook.serializers.PackedFirstLevelSerializer;
 
 import static org.junit.Assert.*;
 
-public class SerializerNullValuesTest {
-
+public class CopyBookSerializerNullValuesTest {
     @CopyBook(type = FullSerializer.class)
     @CopyBookFieldFormat(type = StringToString.class, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX, rightPadding = false)
     static public class fieldTypeStringSetToNullFull {
@@ -20,11 +19,33 @@ public class SerializerNullValuesTest {
         public String field;
     }
 
+    @org.junit.Test
+    public void testFieldTypeStringSetToNullFull() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeStringSetToNullFull.class);
+        fieldTypeStringSetToNullFull test = new fieldTypeStringSetToNullFull();
+        test.field = null;
+        byte[] testBytes = serializer.serialize(test);
+        assertArrayEquals(testBytes, new byte[]{ 0, 0, 0, 0 });
+        fieldTypeStringSetToNullFull test2 = serializer.deserialize(testBytes, fieldTypeStringSetToNullFull.class);
+        assertNull(test2.field);
+    }
+
     @CopyBook(type = PackedFirstLevelSerializer.class)
     @CopyBookFieldFormat(type = StringToString.class, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX, rightPadding = false)
     static public class fieldTypeStringSetToNullPacked {
         @CopyBookLine("01 FIELD PIC X(4).")
         public String field;
+    }
+
+    @org.junit.Test
+    public void testFieldTypeStringSetToNullPacked() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeStringSetToNullPacked.class);
+        fieldTypeStringSetToNullPacked test = new fieldTypeStringSetToNullPacked();
+        test.field = null;
+        byte[] testBytes = serializer.serialize(test);
+        assertArrayEquals(testBytes, new byte[]{ 0, 0, 0, 0, 0, 0, 0, 0 });
+        fieldTypeStringSetToNullPacked test2 = serializer.deserialize(testBytes, fieldTypeStringSetToNullPacked.class);
+        assertNull(test2.field);
     }
 
     @CopyBook()
@@ -38,6 +59,20 @@ public class SerializerNullValuesTest {
     static public class fieldTypeNestedNullPacked {
         @CopyBookLine("01 FIELD.")
         public objectField field;
+    }
+
+
+    @org.junit.Test
+    public void testFieldTypeNestedNullPacked() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeNestedNullPacked.class);
+        fieldTypeNestedNullPacked test = new fieldTypeNestedNullPacked();
+        test.field = new objectField();
+        test.field.field = null;
+        byte[] testBytes = serializer.serialize(test);
+        assertArrayEquals(testBytes, new byte[] { -128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11 });
+        fieldTypeNestedNullPacked test2 = serializer.deserialize(testBytes, fieldTypeNestedNullPacked.class);
+        assertNotNull(test2.field);
+        assertNull(test2.field.field);
     }
 
     @CopyBook()
@@ -55,43 +90,8 @@ public class SerializerNullValuesTest {
     }
 
     @org.junit.Test
-    public void testFieldTypeStringSetToNullFull() throws Exception {
-        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeStringSetToNullFull.class);
-        fieldTypeStringSetToNullFull test = new fieldTypeStringSetToNullFull();
-        test.field = null;
-        byte[] testBytes = serializer.serialize(test);
-        assertArrayEquals(testBytes, new byte[]{ 0, 0, 0, 0 });
-        fieldTypeStringSetToNullFull test2 = serializer.deserialize(testBytes, fieldTypeStringSetToNullFull.class);
-        assertNull(test2.field);
-    }
-
-    @org.junit.Test
-    public void testFieldTypeStringSetToNullPacked() throws Exception {
-        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeStringSetToNullPacked.class);
-        fieldTypeStringSetToNullPacked test = new fieldTypeStringSetToNullPacked();
-        test.field = null;
-        byte[] testBytes = serializer.serialize(test);
-        assertArrayEquals(testBytes, new byte[]{ 0, 0, 0, 0, 0, 0, 0, 0 });
-        fieldTypeStringSetToNullPacked test2 = serializer.deserialize(testBytes, fieldTypeStringSetToNullPacked.class);
-        assertNull(test2.field);
-    }
-
-    @org.junit.Test
-    public void testFieldTypeNestedNullPacked() throws Exception {
-        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeNestedNullPacked.class);
-        fieldTypeNestedNullPacked test = new fieldTypeNestedNullPacked();
-        test.field = new objectField();
-        test.field.field = null;
-        byte[] testBytes = serializer.serialize(test);
-        assertArrayEquals(testBytes, new byte[]{-128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11});
-        fieldTypeNestedNullPacked test2 = serializer.deserialize(testBytes, fieldTypeNestedNullPacked.class);
-        assertNotNull(test2.field);
-        assertNull(test2.field.field);
-    }
-
-    @org.junit.Test
     public void testFieldTypeNestedArrayNullPacked() throws Exception {
-        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeNestedArrayNullPacked.class);
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeNestedArrayNullPacked.class, true);
         fieldTypeNestedArrayNullPacked test = new fieldTypeNestedArrayNullPacked();
         test.field = new objectFieldArray();
         test.field.fields = new String[] { "do", null };

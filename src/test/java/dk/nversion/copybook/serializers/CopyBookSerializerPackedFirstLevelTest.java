@@ -2,6 +2,8 @@ package dk.nversion.copybook.serializers;
 
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookLine;
+import dk.nversion.copybook.exceptions.CopyBookException;
+import dk.nversion.old.packed.RequestTest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -106,16 +108,26 @@ public class CopyBookSerializerPackedFirstLevelTest {
     public void testSerializeDeserializeEmptyList() throws Exception {
         // Build test object
         RequestTest requestTest = new RequestTest();
-        requestTest.args = new String[]{};
         requestTest.messages = new RequestMessage[] {};
+        requestTest.args = new String[]{};
 
         // Serializer and Deserializer object to and from bytes
-        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
+        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class, true);
         byte[] bytes = requestTestSerializer.serialize(requestTest);
         RequestTest requestTest1 = requestTestSerializer.deserialize(bytes, RequestTest.class);
 
         assertEquals(0, requestTest1.args.length);
         assertEquals(0, requestTest1.messages.length);
+    }
+
+    @org.junit.Test
+    public void testSerializeDeserializeSeparatorByteException() throws Exception {
+        expectedEx.expect(CopyBookException.class);
+        expectedEx.expectMessage("contains the separator char");
+        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
+        RequestTest test1 = new RequestTest();
+        test1.command = "c" + '\u000b' + "extra";
+        byte[] test1data = requestTestSerializer.serialize(test1);
     }
 
 
