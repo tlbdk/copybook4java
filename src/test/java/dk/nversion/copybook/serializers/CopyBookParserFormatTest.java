@@ -2,6 +2,7 @@ package dk.nversion.copybook.serializers;
 
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookLine;
+import dk.nversion.copybook.annotations.CopyBookRedefine;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -555,4 +556,103 @@ public class CopyBookParserFormatTest {
         assertEquals(10, field.getMaxOccurs());
         assertEquals(field.getCounterKey(), "SUBFIELD.COUNT");
     }
+
+    @CopyBook()
+    @CopyBookRedefine(RedefinedFieldString.class)
+    @CopyBookRedefine(RedefinedFieldInt.class)
+    @CopyBookRedefine(RedefinedFieldBigDecimal.class)
+    public abstract class RedefinedField {
+        @CopyBookLine("04 FIELD_ON PIC 9.")
+        public int field_redefine;
+        @CopyBookLine("04 FIELD PIC XX.")
+        @CopyBookLine("04 FIELD1 REDEFINES FIELD PIC 99.")
+        @CopyBookLine("04 FIELD2 REDEFINES FIELD PIC 9V9.")
+        public Object field;
+    }
+    public class RedefinedFieldString extends RedefinedField {
+        public String field;
+    }
+    public class RedefinedFieldInt extends RedefinedField {
+        public int field;
+    }
+    public class RedefinedFieldBigDecimal extends RedefinedField {
+        public BigDecimal field;
+    }
+
+    @Test
+    public void redefinedFieldTest() throws Exception {
+        // TODO: Implement parsing of redefines
+    }
+
+    @CopyBook()
+    public class RedefinedSubFieldMain {
+        @CopyBookLine("04 FIELD_ON PIC 9.")
+        public int field_redefine;
+        @CopyBookLine("04 FIELD.")
+        @CopyBookLine("04 FIELD1 REDEFINES FIELD.")
+        @CopyBookLine("04 FIELD2 REDEFINES FIELD.")
+        public RedefinedSubField field;
+    }
+
+    @CopyBook()
+    @CopyBookRedefine(RedefinedSubFieldString.class)
+    @CopyBookRedefine(RedefinedSubFieldInt.class)
+    @CopyBookRedefine(RedefinedSubFieldBigDecimal.class)
+    public abstract class RedefinedSubField {}
+    public class RedefinedSubFieldString extends RedefinedSubField {
+        @CopyBookLine("04 VALUE PIC XX.")
+        public String value;
+    }
+    public class RedefinedSubFieldInt extends RedefinedSubField {
+        @CopyBookLine("04 VALUE PIC 99.")
+        public int value;
+    }
+    public class RedefinedSubFieldBigDecimal extends RedefinedSubField {
+        @CopyBookLine("04 VALUE PIC 9V9.")
+        public BigDecimal value;
+    }
+
+    @Test
+    public void redefinedSubFieldTest() throws Exception {
+        RedefinedSubFieldMain test = new RedefinedSubFieldMain();
+        test.field_redefine = 0;
+        test.field = new RedefinedSubFieldInt();
+        ((RedefinedSubFieldInt)test.field).value = 1;
+
+        // TODO: Implement parsing of redefines
+
+        if(test.field instanceof RedefinedSubFieldInt) {
+            assertEquals(1, ((RedefinedSubFieldInt) test.field).value);
+        }
+    }
+
+    @CopyBook()
+    public abstract class RedefinedFieldAsObject {
+        @CopyBookLine("04 FIELD_ON PIC 9.")
+        public int field_redefine;
+
+        @CopyBookLine("04 FIELD PIC XX.")
+        @CopyBookLine("04 FIELD1 REDEFINES FIELD PIC 99.")
+        @CopyBookLine("04 FIELD2 REDEFINES FIELD PIC 9V9.")
+        public Object field;
+
+        public String getFieldString() {
+            return this.field_redefine == 0 ? (String) this.field : null;
+        }
+
+        public int getFieldInt() {
+            return this.field_redefine == 1 ? (int) this.field : 0;
+        }
+
+        public BigDecimal getFieldBigDecimal() {
+            return this.field_redefine == 2 ? (BigDecimal) this.field : null;
+        }
+    }
+
+
+    @Test
+    public void redefinedFieldAsObjectTest() throws Exception {
+        // TODO: Implement parsing of redefines
+    }
+
 }
