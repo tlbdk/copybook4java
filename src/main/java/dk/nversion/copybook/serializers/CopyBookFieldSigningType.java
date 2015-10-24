@@ -1,4 +1,4 @@
-package dk.nversion.copybook;
+package dk.nversion.copybook.serializers;
 
 public enum CopyBookFieldSigningType {
     POSTFIX,

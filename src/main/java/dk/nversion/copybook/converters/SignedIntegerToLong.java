@@ -1,6 +1,6 @@
 package dk.nversion.copybook.converters;
 
-import dk.nversion.copybook.CopyBookFieldSigningType;
+import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 
 public class SignedIntegerToLong extends SignedIntegerToInteger {

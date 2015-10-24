@@ -1,9 +1,8 @@
 package dk.nversion.copybook.serializers;
 
-import dk.nversion.copybook.serializers.CopyBookSerializer;
+import dk.nversion.copybook.CopyBookSerializer;
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookLine;
-import dk.nversion.copybook.serializers.FullSerializer;
 
 import java.math.BigDecimal;
 

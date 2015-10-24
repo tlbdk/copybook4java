@@ -1,11 +1,10 @@
 package dk.nversion.copybook.serializers;
 
-import dk.nversion.copybook.serializers.CopyBookSerializer;
+import dk.nversion.copybook.CopyBookSerializer;
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookLine;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertArrayEquals;

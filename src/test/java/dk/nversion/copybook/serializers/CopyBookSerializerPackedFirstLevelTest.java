@@ -1,5 +1,6 @@
 package dk.nversion.copybook.serializers;
 
+import dk.nversion.copybook.CopyBookSerializer;
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookLine;
 import dk.nversion.copybook.exceptions.CopyBookException;

@@ -1,11 +1,8 @@
 package dk.nversion.copybook.annotations;
 
-import dk.nversion.copybook.CopyBookSerializationFormat;
 import dk.nversion.copybook.serializers.CopyBookSerializerBase;
 
 import java.lang.annotation.*;
-import java.nio.charset.Charset;
-import java.util.Optional;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

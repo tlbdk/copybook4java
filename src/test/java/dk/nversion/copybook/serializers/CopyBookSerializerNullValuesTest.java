@@ -1,13 +1,10 @@
 package dk.nversion.copybook.serializers;
 
-import dk.nversion.copybook.CopyBookFieldSigningType;
-import dk.nversion.copybook.serializers.CopyBookSerializer;
+import dk.nversion.copybook.CopyBookSerializer;
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookFieldFormat;
 import dk.nversion.copybook.annotations.CopyBookLine;
 import dk.nversion.copybook.converters.StringToString;
-import dk.nversion.copybook.serializers.FullSerializer;
-import dk.nversion.copybook.serializers.PackedFirstLevelSerializer;
 
 import static org.junit.Assert.*;
 
