@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 
-public class FullLastArrayShortTest {
+public class CopyBookFullLastArrayShortTest {
     @CopyBook(type = FullLastArrayShort.class)
     static public class StringFieldOccursTwoTimes {
         @CopyBookLine("01 COUNT PIC 9.")

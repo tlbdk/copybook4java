@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class CopyBookSerializerFullTest {
     @Rule
@@ -117,6 +118,33 @@ public class CopyBookSerializerFullTest {
 
         assertEquals(0, requestTest1.args.length);
         assertEquals(0, requestTest1.messages.length);
+    }
+
+    // Depending on fields in sub field
+    @CopyBook(type = FullSerializer.class)
+    public static class CounterDependingInOn {
+        @CopyBookLine("02 COUNT PIC 9(2).")
+        private int count;
+    }
+    @CopyBook(type = FullSerializer.class)
+    public static class StringArrayToStringArrayDependingInOn {
+        @CopyBookLine("01 SUBFIELD.")
+        private CounterDependingInOn subfield;
+        @CopyBookLine("01 RESULT.")
+        @CopyBookLine("02 FIELDS OCCURS 0 TO 10 TIMES PIC X(8) DEPENDING ON COUNT IN SUBFIELD.")
+        private String[] fields;
+    }
+
+    @org.junit.Test
+    public void testStringArrayToStringArrayDependingOnIn() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(StringArrayToStringArrayDependingInOn.class);
+        StringArrayToStringArrayDependingInOn test = new StringArrayToStringArrayDependingInOn();
+        test.fields = new String []{ "test", "test2" };
+        test.subfield = new CounterDependingInOn();
+        test.subfield.count = test.fields.length;
+        byte[] testBytes = serializer.serialize(test);
+        assertEquals(2 + 8 * test.fields.length, testBytes.length);
+        StringArrayToStringArrayDependingInOn test2 = serializer.deserialize(testBytes, StringArrayToStringArrayDependingInOn.class);
     }
 
 

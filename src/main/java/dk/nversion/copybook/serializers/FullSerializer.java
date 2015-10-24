@@ -73,8 +73,8 @@ public class FullSerializer extends CopyBookSerializerBase {
                     arraySize = counters.get(fieldName + "_count");
 
                 // Support depending on cobol syntax for counters
-                } else if(counters.containsKey(field.getName())) {
-                    arraySize = counters.get(field.getName());
+                } else if(counters.containsKey(field.getCounterKey())) {
+                    arraySize = counters.get(field.getCounterKey());
                 }
 
                 Object array = field.createArrayObject(obj, arraySize);
