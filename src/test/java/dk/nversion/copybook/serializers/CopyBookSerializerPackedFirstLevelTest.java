@@ -68,7 +68,7 @@ public class CopyBookSerializerPackedFirstLevelTest {
         requestTest.messages_count = requestTest.messages.length;
 
         // Serializer and Deserializer object to and from bytes
-        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class, false);
+        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
         byte[] bytes = requestTestSerializer.serialize(requestTest);
         RequestTest requestTest1 = requestTestSerializer.deserialize(bytes, RequestTest.class);
 
@@ -111,7 +111,7 @@ public class CopyBookSerializerPackedFirstLevelTest {
         requestTest.args = new String[]{};
 
         // Serializer and Deserializer object to and from bytes
-        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class, true);
+        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
         byte[] bytes = requestTestSerializer.serialize(requestTest);
         RequestTest requestTest1 = requestTestSerializer.deserialize(bytes, RequestTest.class);
 

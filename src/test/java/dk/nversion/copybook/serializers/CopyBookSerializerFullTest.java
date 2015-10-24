@@ -68,7 +68,7 @@ public class CopyBookSerializerFullTest {
         requestTest.args_count = requestTest.args.length;
 
         // Serializer and Deserializer object to and from bytes
-        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class, true);
+        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
         byte[] bytes = requestTestSerializer.serialize(requestTest);
         RequestTest requestTest1 = requestTestSerializer.deserialize(bytes, RequestTest.class);
 

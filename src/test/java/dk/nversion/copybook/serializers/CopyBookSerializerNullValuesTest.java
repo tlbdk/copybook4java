@@ -91,7 +91,7 @@ public class CopyBookSerializerNullValuesTest {
 
     @org.junit.Test
     public void testFieldTypeNestedArrayNullPacked() throws Exception {
-        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeNestedArrayNullPacked.class, true);
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeNestedArrayNullPacked.class);
         fieldTypeNestedArrayNullPacked test = new fieldTypeNestedArrayNullPacked();
         test.field = new objectFieldArray();
         test.field.fields = new String[] { "do", null };

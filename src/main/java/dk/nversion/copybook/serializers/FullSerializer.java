@@ -16,32 +16,36 @@ public class FullSerializer extends CopyBookSerializerBase {
     public <T> byte[] serialize(T obj) throws CopyBookException {
         ByteBuffer buffer = ByteBuffer.wrap(new byte[this.maxRecordSize]);
         writeFieldsToBuffer(this.fields, buffer, obj);
-        return buffer.array();
+        byte[] result = new byte[buffer.position()];
+        System.arraycopy(buffer.array(), 0, result, 0, buffer.position()); // Copy bytes to result array
+        return result;
     }
 
-    private <T> void writeFieldsToBuffer(List<CopyBookField> fields, ByteBuffer buffer, T obj) throws CopyBookException {
+    private <T> void writeFieldsToBuffer(List<CopyBookField> fields, ByteBuffer buffer, T rootObj) throws CopyBookException {
         for(CopyBookField field : fields) {
             if(field.isArray()) {
+                Object array = field.getObject(rootObj);
+                int arraySize = Math.max(array != null ? Array.getLength(array) : 0, field.getMinOccurs());
                 if(field.hasSubCopyBookFields()) {
                     // Complex array types fx. Request[]
-                    for (int i = 0; i < field.getMaxOccurs(); i++) {
-                        writeFieldsToBuffer(field.getSubCopyBookFields(), buffer, field.getObject(obj, i));
+                    for (int i = 0; i < arraySize; i++) {
+                        writeFieldsToBuffer(field.getSubCopyBookFields(), buffer, field.getObject(rootObj, i));
                     }
 
                 } else {
                     // Simple array types, fx. int[]
-                    for (int i = 0; i < field.getMaxOccurs(); i++) {
-                        buffer.put(field.getBytes(obj, i, true));
+                    for (int i = 0; i < arraySize; i++) {
+                        buffer.put(field.getBytes(rootObj, i, true));
                     }
                 }
 
             } else if(field.hasSubCopyBookFields()) {
                 // Complex type fx, Request
-                writeFieldsToBuffer(field.getSubCopyBookFields(), buffer, field.getObject(obj));
+                writeFieldsToBuffer(field.getSubCopyBookFields(), buffer, field.getObject(rootObj));
 
             } else {
                 // Simple type fx. int
-                buffer.put(field.getBytes(obj, true));
+                buffer.put(field.getBytes(rootObj, true));
             }
         }
     }
@@ -62,8 +66,9 @@ public class FullSerializer extends CopyBookSerializerBase {
         for(CopyBookField field : fields) {
             String fieldName = name + "." + field.getFieldName();
             if(field.isArray()) {
-                // Support field naming as counter keys
                 int arraySize = field.getMaxOccurs();
+
+                // Support field naming as counter keys
                 if(counters.containsKey(fieldName + "_count")) {
                     arraySize = counters.get(fieldName + "_count");
 
