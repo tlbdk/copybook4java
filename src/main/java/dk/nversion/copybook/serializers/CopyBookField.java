@@ -11,9 +11,11 @@ import java.util.List;
 
 public class CopyBookField {
     private List<CopyBookField> subCopyBookFields;
+    // TODO: Change to types and Class[]
     private Class type;
     private Field field;
     private String[] lines;
+    // TODO: Change to converters and TypeConverterBase[]
     private TypeConverterBase converter;
     private String name;
     private int size;

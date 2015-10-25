@@ -17,4 +17,5 @@ public @interface CopyBookFieldFormat {
     char paddingChar() default ' ';
     char nullFillerChar() default (byte)0;
     String defaultValue() default "";
+    // String format() default ""; // TODO: Implement
 }

@@ -660,4 +660,7 @@ public class CopyBookParserFormatTest {
         // TODO: Implement parsing of redefines
     }
 
+    // TODO - Implement date format: 05 EFFECTDATE  PIC X(8) DATE FORMAT YYYYXXXX.
+
+
 }
