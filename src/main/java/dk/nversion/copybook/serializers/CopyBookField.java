@@ -109,6 +109,7 @@ public class CopyBookField {
             
         } catch (TypeConverterException ex) {
             throw new CopyBookException(getFieldName() + ": ", ex);
+
         } catch (Exception ex) {
             throw ex;
         }

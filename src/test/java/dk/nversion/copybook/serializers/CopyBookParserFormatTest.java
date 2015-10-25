@@ -581,6 +581,7 @@ public class CopyBookParserFormatTest {
 
     @Test
     public void redefinedFieldTest() throws Exception {
+        //CopyBookParser copyBookParser = new CopyBookParser(RedefinedField.class);
         // TODO: Implement parsing of redefines
     }
 
@@ -614,6 +615,9 @@ public class CopyBookParserFormatTest {
 
     @Test
     public void redefinedSubFieldTest() throws Exception {
+        CopyBookParser copyBookParser = new CopyBookParser(RedefinedSubFieldMain.class);
+
+
         RedefinedSubFieldMain test = new RedefinedSubFieldMain();
         test.field_redefine = 0;
         test.field = new RedefinedSubFieldInt();
@@ -652,6 +656,7 @@ public class CopyBookParserFormatTest {
 
     @Test
     public void redefinedFieldAsObjectTest() throws Exception {
+        //CopyBookParser copyBookParser = new CopyBookParser(RedefinedFieldAsObject.class);
         // TODO: Implement parsing of redefines
     }
 

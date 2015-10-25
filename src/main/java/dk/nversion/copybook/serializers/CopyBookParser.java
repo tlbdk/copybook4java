@@ -15,10 +15,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class CopyBookParser {
-    private Pattern re_CopyBookLine = Pattern.compile("^\\s*(\\d+)\\s+([^\\s]+)(\\s+OCCURS\\s+\\d+(?:\\s+TO\\s+\\d+)?\\s+TIMES)?(\\s+PIC\\s+[^\\s]+)?(\\s+DEPENDING\\s+ON\\s+[^\\s]+(?:\\s+IN\\s+[^\\s+]+)?)?\\s*\\.\\s*$");
-    private Pattern re_Occurs = Pattern.compile("^\\s*OCCURS\\s+(?:(\\d+)\\s+TO\\s+)?(\\d+)\\s+TIMES\\s*$");
-    private Pattern re_Pic = Pattern.compile("^\\s*PIC\\s+(S)?(X+|9+)(?:\\((\\d+)\\))?(?:V(9+)(?:\\((\\d+)\\))?)?\\s*$");
-    private Pattern re_DependingOn = Pattern.compile("^\\s*DEPENDING\\s+ON\\s+([^\\s]+)(?:\\s+IN\\s+([^\\s]+))?\\s*$");
+    private static Pattern re_CopyBookLine = Pattern.compile("^\\s*(\\d+)\\s+([^\\s]+)((?:\\s+OCCURS\\s+\\d+(?:\\s+TO\\s+\\d+)?\\s+TIMES)|(?:\\s+REDEFINES\\s+[^\\s]+))?(\\s+PIC\\s+[^\\s]+)?(\\s+DEPENDING\\s+ON\\s+[^\\s]+(?:\\s+IN\\s+[^\\s+]+)?)?\\s*\\.\\s*$");
+    private static Pattern re_Occurs = Pattern.compile("^\\s*OCCURS\\s+(?:(\\d+)\\s+TO\\s+)?(\\d+)\\s+TIMES\\s*$");
+    private static Pattern re_Redefines = Pattern.compile("\\s*REDEFINES\\s+([^\\s]+)\\s*");
+    private static Pattern re_Pic = Pattern.compile("^\\s*PIC\\s+(S)?(X+|9+)(?:\\((\\d+)\\))?(?:V(9+)(?:\\((\\d+)\\))?)?\\s*$");
+    private static Pattern re_DependingOn = Pattern.compile("^\\s*DEPENDING\\s+ON\\s+([^\\s]+)(?:\\s+IN\\s+([^\\s]+))?\\s*$");
 
     private Class<? extends CopyBookSerializerBase> serializerClass = null;
     private CopyBookSerializerConfig config = new CopyBookSerializerConfig();
@@ -87,6 +88,7 @@ public class CopyBookParser {
                 int maxOccurs = -1;
                 String counterKey = null;
                 String copyBookType = null;
+                String redefines = null;
 
                 for(String copyBookLine : copyBookLines) {
                     Matcher copyBookLineMatcher = re_CopyBookLine.matcher(copyBookLine);
@@ -96,9 +98,14 @@ public class CopyBookParser {
 
                         if (copyBookLineMatcher.group(3) != null) {
                             Matcher occursMatcher = re_Occurs.matcher(copyBookLineMatcher.group(3));
+                            Matcher redefinesMatcher = re_Redefines.matcher(copyBookLineMatcher.group(3));
                             if (occursMatcher.find()) {
                                 maxOccurs = Integer.parseInt(occursMatcher.group(2));
                                 minOccurs = occursMatcher.group(1) != null ? Integer.parseInt(occursMatcher.group(1)) : maxOccurs;
+
+                            } else if(redefinesMatcher.find()) {
+                                //redefines = redefinesMatcher.group(1);
+                                // TODO: Implement
 
                             } else {
                                 throw new CopyBookException("Could not parse occurs section in copybook line for field '" + fieldName + "'");
