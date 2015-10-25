@@ -8,14 +8,13 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class DecimalToBigDecimalTest {
-    private TypeConverterBase typeConverter;
+    private TypeConverter typeConverter;
     private TypeConverterConfig config;
 
     @Rule
@@ -27,7 +26,7 @@ public class DecimalToBigDecimalTest {
         this.config.setCharset(StandardCharsets.UTF_8);
         this.config.setPaddingChar('0');
         typeConverter = new DecimalToBigDecimal();
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
     }
 
     @Test
@@ -75,7 +74,7 @@ public class DecimalToBigDecimalTest {
     public void testToNullDefaultValue() throws Exception {
         config.setNullFillerChar((char)0);
         config.setDefaultValue("42.00");
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
         assertEquals(new BigDecimal("42.00"), typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 
@@ -84,7 +83,7 @@ public class DecimalToBigDecimalTest {
         expectedEx.expect(NumberFormatException.class);
         expectedEx.expectMessage("For input string");
         config.setNullFillerChar((char)0);
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
         assertEquals(null, typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 

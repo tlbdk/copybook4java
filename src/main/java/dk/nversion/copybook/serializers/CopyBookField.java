@@ -1,7 +1,7 @@
 package dk.nversion.copybook.serializers;
 
+import dk.nversion.copybook.converters.TypeConverter;
 import dk.nversion.copybook.exceptions.CopyBookException;
-import dk.nversion.copybook.converters.TypeConverterBase;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.lang.reflect.Array;
@@ -16,7 +16,7 @@ public class CopyBookField {
     private Field field;
     private String[] lines;
     // TODO: Change to converters and TypeConverterBase[]
-    private TypeConverterBase converter;
+    private TypeConverter converter;
     private String name;
     private int size;
     private int decimals;
@@ -34,7 +34,7 @@ public class CopyBookField {
         return field.getType().isArray();
     }
 
-    public CopyBookField(Class type, Field field, String name, int size, int decimals, int minOccurs, int maxOccurs, String[] lines, String counterKey, TypeConverterBase converter) {
+    public CopyBookField(Class type, Field field, String name, int size, int decimals, int minOccurs, int maxOccurs, String[] lines, String counterKey, TypeConverter converter) {
         // Handle private fields
         if(!field.isAccessible()) {
             field.setAccessible(true);
@@ -226,11 +226,11 @@ public class CopyBookField {
         this.lines = lines;
     }
 
-    public TypeConverterBase getConverter() {
+    public TypeConverter getConverter() {
         return converter;
     }
 
-    public void setConverter(TypeConverterBase converter) {
+    public void setConverter(TypeConverter converter) {
         this.converter = converter;
     }
 

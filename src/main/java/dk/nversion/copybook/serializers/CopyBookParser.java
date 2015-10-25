@@ -1,8 +1,8 @@
 package dk.nversion.copybook.serializers;
 
+import dk.nversion.copybook.converters.TypeConverter;
 import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.annotations.*;
-import dk.nversion.copybook.converters.TypeConverterBase;
 import dk.nversion.copybook.converters.TypeConverterConfig;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 
@@ -53,11 +53,11 @@ public class CopyBookParser {
 
         config.setDebug(debug);
 
-        Map<String,TypeConverterBase> defaultTypeConverterMap = getTypeConvertersRecursively(CopyBookDefaults.class, config.getCharset());
+        Map<String,TypeConverter> defaultTypeConverterMap = getTypeConvertersRecursively(CopyBookDefaults.class, config.getCharset());
         config.setFields(walkClass(type, null, defaultTypeConverterMap, config.getCharset(), new HashMap<>()));
     }
 
-    private List<CopyBookField> walkClass(Class type, String copyBookName, Map<String,TypeConverterBase> inheritedTypeConverterMap, Charset charset, Map<String,CopyBookField> copyBookFieldNames) throws CopyBookException {
+    private List<CopyBookField> walkClass(Class type, String copyBookName, Map<String,TypeConverter> inheritedTypeConverterMap, Charset charset, Map<String,CopyBookField> copyBookFieldNames) throws CopyBookException {
         List<CopyBookField> results = new ArrayList<>();
 
         CopyBook copyBookAnnotation = (CopyBook)type.getAnnotation(CopyBook.class);
@@ -68,7 +68,7 @@ public class CopyBookParser {
         // TODO: Verify that values from CopyBook annotation matches the root copybook else throw exception
 
         // Overwrite type converts with what we find on the sub copybook
-        Map<String,TypeConverterBase> typeConverterMap = new HashMap<>(inheritedTypeConverterMap);
+        Map<String,TypeConverter> typeConverterMap = new HashMap<>(inheritedTypeConverterMap);
         typeConverterMap.putAll(getTypeConvertersRecursively(type, charset));
 
         // Iterate over the class fields with CopyBookLine annotation
@@ -194,11 +194,11 @@ public class CopyBookParser {
                 }
 
                 // Find type converts that have been set on the field
-                Map<String,TypeConverterBase> fieldTypeConverterMap = new HashMap<>(typeConverterMap);
+                Map<String,TypeConverter> fieldTypeConverterMap = new HashMap<>(typeConverterMap);
                 fieldTypeConverterMap.putAll(getTypeConvertersRecursively(fieldBaseType, charset));
 
                 // Resolve typeConverter
-                TypeConverterBase typeConverter = null;
+                TypeConverter typeConverter = null;
                 if(copyBookType != null) {
                     if (field.getType().isArray()) {
                         typeConverter = fieldTypeConverterMap.get(copyBookType + "ArrayTo" + fieldTypeName + "Array");
@@ -287,8 +287,8 @@ public class CopyBookParser {
         return (List<T>)results;
     }
 
-    private Map<String, TypeConverterBase> getTypeConvertersRecursively(Class type, Charset charset) throws CopyBookException {
-        Map<String,TypeConverterBase> results = new HashMap<>();
+    private Map<String, TypeConverter> getTypeConvertersRecursively(Class type, Charset charset) throws CopyBookException {
+        Map<String,TypeConverter> results = new HashMap<>();
         for (Annotation annotation : type.getAnnotations()) {
             if(CopyBookFieldFormats.class.isInstance(annotation)) {
                 for(CopyBookFieldFormat fieldFormat : ((CopyBookFieldFormats)annotation).value()) {
@@ -306,7 +306,7 @@ public class CopyBookParser {
         return results;
     }
 
-    private TypeConverterBase createTypeConverter(CopyBookFieldFormat copyBookFieldFormat, Charset charset) throws CopyBookException {
+    private TypeConverter createTypeConverter(CopyBookFieldFormat copyBookFieldFormat, Charset charset) throws CopyBookException {
         TypeConverterConfig config = new TypeConverterConfig();
         config.setCharset(charset);
         config.setRightPadding(copyBookFieldFormat.rightPadding());
@@ -316,8 +316,8 @@ public class CopyBookParser {
         config.setDefaultValue(copyBookFieldFormat.defaultValue().isEmpty() ? null : copyBookFieldFormat.defaultValue());
 
         try {
-            TypeConverterBase typeConverter = (TypeConverterBase)copyBookFieldFormat.type().newInstance();
-            typeConverter.setConfig(config);
+            TypeConverter typeConverter = (TypeConverter)copyBookFieldFormat.type().newInstance();
+            typeConverter.initialize(config);
             return typeConverter;
 
         } catch (InstantiationException | IllegalAccessException ex) {

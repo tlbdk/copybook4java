@@ -3,18 +3,16 @@ package dk.nversion.copybook.converters;
 import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.*;
 
 public class IntegerToIntegerTest {
-    private TypeConverterBase typeConverter;
+    private TypeConverter typeConverter;
     private TypeConverterConfig config;
 
     @Rule
@@ -26,7 +24,7 @@ public class IntegerToIntegerTest {
         this.config.setCharset(StandardCharsets.UTF_8);
         this.config.setPaddingChar('0');
         typeConverter = new IntegerToInteger();
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
     }
 
 
@@ -57,7 +55,7 @@ public class IntegerToIntegerTest {
     public void testToNullDefaultValue() throws Exception {
         config.setNullFillerChar((char)0);
         config.setDefaultValue("42");
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
         assertEquals(42, (int)typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 
@@ -66,7 +64,7 @@ public class IntegerToIntegerTest {
         expectedEx.expect(NumberFormatException.class);
         expectedEx.expectMessage("For input string");
         config.setNullFillerChar((char)0);
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
         assertEquals(null, typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 

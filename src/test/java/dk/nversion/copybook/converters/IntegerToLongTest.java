@@ -2,7 +2,6 @@ package dk.nversion.copybook.converters;
 
 import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
-import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -14,7 +13,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class IntegerToLongTest {
-    private TypeConverterBase typeConverter;
+    private TypeConverter typeConverter;
     private TypeConverterConfig config;
 
     @Rule
@@ -26,7 +25,7 @@ public class IntegerToLongTest {
         this.config.setCharset(StandardCharsets.UTF_8);
         this.config.setPaddingChar('0');
         typeConverter = new IntegerToLong();
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
     }
 
 
@@ -56,7 +55,7 @@ public class IntegerToLongTest {
     public void testToNullDefaultValue() throws Exception {
         config.setNullFillerChar((char)0);
         config.setDefaultValue("42");
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
         assertEquals(42, (long)typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 
@@ -65,7 +64,7 @@ public class IntegerToLongTest {
         expectedEx.expect(NumberFormatException.class);
         expectedEx.expectMessage("For input string");
         config.setNullFillerChar((char)0);
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
         assertEquals(null, typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 

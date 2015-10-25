@@ -7,7 +7,7 @@ import dk.nversion.copybook.exceptions.TypeConverterException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-public abstract class TypeConverterBase {
+public abstract class TypeConverterBase implements TypeConverter {
     protected Charset charset;
     protected CopyBookFieldSigningType signingType;
     protected boolean rightPadding;
@@ -15,7 +15,7 @@ public abstract class TypeConverterBase {
     protected byte nullFillerByte;
     protected String defaultValue;
 
-    public void setConfig(TypeConverterConfig config) throws CopyBookException {
+    public void initialize(TypeConverterConfig config) throws CopyBookException {
         this.charset = config.getCharset();
         this.signingType = config.getSigningType();
         this.rightPadding = config.isRightPadding();

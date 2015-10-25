@@ -14,7 +14,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class SignedIntegerToLongPostfixTest {
-    private TypeConverterBase typeConverter;
+    private TypeConverter typeConverter;
     private TypeConverterConfig config;
 
     @Rule
@@ -27,7 +27,7 @@ public class SignedIntegerToLongPostfixTest {
         this.config.setPaddingChar('0');
         config.setSigningType(CopyBookFieldSigningType.POSTFIX);
         typeConverter = new SignedIntegerToLong();
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
     }
 
     @Test
@@ -57,7 +57,7 @@ public class SignedIntegerToLongPostfixTest {
     public void testToNullDefaultValue() throws Exception {
         config.setNullFillerChar((char)0);
         config.setDefaultValue("42");
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
         assertEquals(42, (long)typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 
@@ -66,7 +66,7 @@ public class SignedIntegerToLongPostfixTest {
         expectedEx.expect(TypeConverterException.class);
         expectedEx.expectMessage("Missing sign char for value");
         config.setNullFillerChar((char)0);
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
         assertEquals(null, typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 

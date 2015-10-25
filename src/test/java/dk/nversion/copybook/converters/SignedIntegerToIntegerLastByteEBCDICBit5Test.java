@@ -9,13 +9,12 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class SignedIntegerToIntegerLastByteEBCDICBit5Test {
-    private TypeConverterBase typeConverter;
+    private TypeConverter typeConverter;
     private TypeConverterConfig config;
     private Charset charset;
 
@@ -30,7 +29,7 @@ public class SignedIntegerToIntegerLastByteEBCDICBit5Test {
         this.config.setPaddingChar('0');
         config.setSigningType(CopyBookFieldSigningType.LAST_BYTE_EBCDIC_BIT5);
         typeConverter = new SignedIntegerToInteger();
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
     }
 
 
@@ -76,7 +75,7 @@ public class SignedIntegerToIntegerLastByteEBCDICBit5Test {
     public void testToNullDefaultValue() throws Exception {
         config.setNullFillerChar((char)0);
         config.setDefaultValue("42");
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
         assertEquals(42, (int)typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 
@@ -85,7 +84,7 @@ public class SignedIntegerToIntegerLastByteEBCDICBit5Test {
         expectedEx.expect(NumberFormatException.class);
         expectedEx.expectMessage("For input string");
         config.setNullFillerChar((char)0);
-        typeConverter.setConfig(config);
+        typeConverter.initialize(config);
         assertEquals(null, typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 
