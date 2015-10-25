@@ -7,6 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -145,7 +146,34 @@ public class CopyBookSerializerFullTest {
         byte[] testBytes = serializer.serialize(test);
         assertEquals(2 + 8 * test.fields.length, testBytes.length);
         StringArrayToStringArrayDependingInOn test2 = serializer.deserialize(testBytes, StringArrayToStringArrayDependingInOn.class);
+        assertArrayEquals(test.fields, test2.fields);
     }
 
+    @CopyBook(type = FullSerializer.class)
+    public static class TwoStringArrayToStringArrayDependingOn {
+        @CopyBookLine("02 FIELDSCOUNT PIC 9(2).")
+        private int xfields1;
+        @CopyBookLine("02 FIELDSCOUNT PIC 9(2).")
+        private int xfields2;
+        @CopyBookLine("02 FIELDS OCCURS 0 TO 10 TIMES PIC X(8) DEPENDING ON FIELDSCOUNT.")
+        private String[] fields1;
+        @CopyBookLine("02 FIELDS OCCURS 0 TO 10 TIMES PIC X(8) DEPENDING ON FIELDSCOUNT.")
+        private String[] fields2;
+    }
+
+    @org.junit.Test
+    public void twoStringArrayToStringArrayDependingOnTest() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(TwoStringArrayToStringArrayDependingOn.class);
+        TwoStringArrayToStringArrayDependingOn test = new TwoStringArrayToStringArrayDependingOn();
+        test.fields1 = new String []{ "test", "test2" };
+        test.fields2 = new String []{ "tset", "2tset" };
+        test.xfields1 = test.fields1.length;
+        test.xfields2 = test.fields2.length;
+        byte[] testBytes = serializer.serialize(test);
+        assertEquals(2 + 2 + 8 * test.fields1.length + 8 * test.fields2.length, testBytes.length);
+        TwoStringArrayToStringArrayDependingOn test2 = serializer.deserialize(testBytes, TwoStringArrayToStringArrayDependingOn.class);
+        assertArrayEquals(test.fields1, test2.fields1);
+        assertArrayEquals(test.fields2, test2.fields2);
+    }
 
 }
