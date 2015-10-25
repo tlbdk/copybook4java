@@ -3,6 +3,7 @@ package dk.nversion.copybook.converters;
 import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
 import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -15,14 +16,16 @@ import static org.junit.Assert.assertEquals;
 
 public class SignedDecimalToBigDecimalPrefixTest {
     private TypeConverterBase typeConverter;
+    private TypeConverterConfig config;
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    public SignedDecimalToBigDecimalPrefixTest() throws CopyBookException {
-        TypeConverterConfig config = new TypeConverterConfig();
-        config.setCharset(StandardCharsets.UTF_8);
-        config.setPaddingChar('0');
+    @Before
+    public void runBeforeEveryTest() throws CopyBookException {
+        this.config = new TypeConverterConfig();
+        this.config.setCharset(StandardCharsets.UTF_8);
+        this.config.setPaddingChar('0');
         config.setSigningType(CopyBookFieldSigningType.PREFIX);
         typeConverter = new SignedDecimalToBigDecimal();
         typeConverter.setConfig(config);
@@ -56,6 +59,23 @@ public class SignedDecimalToBigDecimalPrefixTest {
     @Test
     public void testToZeroValue() throws Exception {
         assertEquals(new BigDecimal("0.00"), typeConverter.to("-000000000".getBytes(StandardCharsets.UTF_8), 0, 10, 2, true));
+    }
+
+    @Test
+    public void testToNullDefaultValue() throws Exception {
+        config.setNullFillerChar((char)0);
+        config.setDefaultValue("42.00");
+        typeConverter.setConfig(config);
+        assertEquals(new BigDecimal("42.00"), typeConverter.to(new byte[4], 0, 2, 2, true));
+    }
+
+    @Test
+    public void testToNullValue() throws Exception {
+        expectedEx.expect(TypeConverterException.class);
+        expectedEx.expectMessage("Missing sign char for value");
+        config.setNullFillerChar((char)0);
+        typeConverter.setConfig(config);
+        assertEquals(null, typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 
     @Test

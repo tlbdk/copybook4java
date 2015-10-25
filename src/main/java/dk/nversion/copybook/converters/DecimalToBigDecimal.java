@@ -1,5 +1,6 @@
 package dk.nversion.copybook.converters;
 
+import dk.nversion.ByteUtils;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.math.BigDecimal;
@@ -18,7 +19,11 @@ public class DecimalToBigDecimal extends TypeConverterBase {
 
     @Override
     public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
-        return new BigDecimal(new BigInteger(getString(bytes, offset, length, removePadding, 1)), decimals);
+        if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, 0, bytes.length)) { // All of value is null filler
+            return new BigDecimal(defaultValue);
+        } else {
+            return new BigDecimal(new BigInteger(getString(bytes, offset, length, removePadding, 1)), decimals);
+        }
     }
 
     @Override

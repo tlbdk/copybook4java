@@ -17,7 +17,11 @@ public class IntegerToLong extends IntegerToInteger {
 
     @Override
     public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
-        return Long.parseLong(getIntegerString(bytes, offset, length, removePadding));
+        if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, 0, bytes.length)) { // All of value is null filler
+            return Long.parseLong(defaultValue);
+        } else {
+            return Long.parseLong(getIntegerString(bytes, offset, length, removePadding));
+        }
     }
 
     @Override

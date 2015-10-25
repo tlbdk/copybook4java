@@ -16,7 +16,11 @@ public class IntegerToBigInteger extends IntegerToInteger {
 
     @Override
     public BigInteger to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
-        return new BigInteger(getIntegerString(bytes, offset, length, removePadding));
+        if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, 0, bytes.length)) { // All of value is null filler
+            return new BigInteger(defaultValue);
+        } else {
+            return new BigInteger(getIntegerString(bytes, offset, length, removePadding));
+        }
     }
 
     @Override

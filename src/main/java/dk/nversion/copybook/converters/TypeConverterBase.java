@@ -13,6 +13,7 @@ public abstract class TypeConverterBase {
     protected boolean rightPadding;
     protected byte paddingByte;
     protected byte nullFillerByte;
+    protected String defaultValue;
 
     public void setConfig(TypeConverterConfig config) throws CopyBookException {
         this.charset = config.getCharset();
@@ -30,6 +31,7 @@ public abstract class TypeConverterBase {
             throw new CopyBookException("Selected charset and null filler char is more than 1 byte long");
         }
         this.nullFillerByte = nullFillerBytes[0];
+        this.defaultValue = config.getDefaultValue();
     }
 
     public abstract void validate(Class type, int size, int decimals) throws TypeConverterException;

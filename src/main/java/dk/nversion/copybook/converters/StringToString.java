@@ -16,7 +16,12 @@ public class StringToString extends TypeConverterBase {
     @Override
     public String to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
         if(ByteUtils.allEquals(bytes, this.nullFillerByte, 0, bytes.length)) { // All of value is null filler
-            return null;
+            if(this.defaultValue != null) {
+                return this.defaultValue;
+
+            } else {
+                return null;
+            }
 
         } else {
             return getString(bytes, offset, length, removePadding, 0);

@@ -3,6 +3,7 @@ package dk.nversion.copybook.converters;
 import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
 import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -14,19 +15,20 @@ import static org.junit.Assert.assertEquals;
 
 public class SignedIntegerToIntegerPrefixTest {
     private TypeConverterBase typeConverter;
+    private TypeConverterConfig config;
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    public SignedIntegerToIntegerPrefixTest() throws CopyBookException {
-        TypeConverterConfig config = new TypeConverterConfig();
-        config.setCharset(StandardCharsets.UTF_8);
-        config.setPaddingChar('0');
+    @Before
+    public void runBeforeEveryTest() throws CopyBookException {
+        this.config = new TypeConverterConfig();
+        this.config.setCharset(StandardCharsets.UTF_8);
+        this.config.setPaddingChar('0');
         config.setSigningType(CopyBookFieldSigningType.PREFIX);
         typeConverter = new SignedIntegerToInteger();
         typeConverter.setConfig(config);
     }
-
 
     @Test
     public void testValidateSuccess() throws Exception {
@@ -47,6 +49,23 @@ public class SignedIntegerToIntegerPrefixTest {
         assertEquals(-12, (int)typeConverter.to("0-12".getBytes(StandardCharsets.UTF_8), 0, 4, -1, true));
         assertEquals(12, (int)typeConverter.to("0+12".getBytes(StandardCharsets.UTF_8), 0, 4, -1, true));
         assertEquals(12, (int)typeConverter.to("000000+12".getBytes(StandardCharsets.UTF_8), 0, 9, -1, true));
+    }
+
+    @Test
+    public void testToNullDefaultValue() throws Exception {
+        config.setNullFillerChar((char)0);
+        config.setDefaultValue("42");
+        typeConverter.setConfig(config);
+        assertEquals(42, (int)typeConverter.to(new byte[4], 0, 2, 2, true));
+    }
+
+    @Test
+    public void testToNullValue() throws Exception {
+        expectedEx.expect(TypeConverterException.class);
+        expectedEx.expectMessage("Missing sign char for value");
+        config.setNullFillerChar((char)0);
+        typeConverter.setConfig(config);
+        assertEquals(null, typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 
     @Test

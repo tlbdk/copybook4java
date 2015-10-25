@@ -3,31 +3,36 @@ package dk.nversion.copybook.converters;
 import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
 import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class SignedIntegerToIntegerLastByteEBCDICBit5Test {
     private TypeConverterBase typeConverter;
+    private TypeConverterConfig config;
     private Charset charset;
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    public SignedIntegerToIntegerLastByteEBCDICBit5Test() throws CopyBookException {
+    @Before
+    public void runBeforeEveryTest() throws CopyBookException {
         this.charset = Charset.forName("cp037");
-        TypeConverterConfig config = new TypeConverterConfig();
-        config.setCharset(this.charset);
-        config.setPaddingChar('0');
+        this.config = new TypeConverterConfig();
+        this.config.setCharset(this.charset);
+        this.config.setPaddingChar('0');
         config.setSigningType(CopyBookFieldSigningType.LAST_BYTE_EBCDIC_BIT5);
         typeConverter = new SignedIntegerToInteger();
         typeConverter.setConfig(config);
     }
+
 
     @Test
     public void testValidateSuccess() throws Exception {
@@ -65,6 +70,23 @@ public class SignedIntegerToIntegerLastByteEBCDICBit5Test {
     @Test
     public void testToZeroValue() throws Exception {
         assertEquals(0, (int)typeConverter.to("00000000".getBytes(this.charset), 0, 8, -1, true));
+    }
+
+    @Test
+    public void testToNullDefaultValue() throws Exception {
+        config.setNullFillerChar((char)0);
+        config.setDefaultValue("42");
+        typeConverter.setConfig(config);
+        assertEquals(42, (int)typeConverter.to(new byte[4], 0, 2, 2, true));
+    }
+
+    @Test
+    public void testToNullValue() throws Exception {
+        expectedEx.expect(NumberFormatException.class);
+        expectedEx.expectMessage("For input string");
+        config.setNullFillerChar((char)0);
+        typeConverter.setConfig(config);
+        assertEquals(null, typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 
     @Test

@@ -306,6 +306,7 @@ public class CopyBookParser {
         config.setNullFillerChar(copyBookFieldFormat.nullFillerChar());
         config.setPaddingChar(copyBookFieldFormat.paddingChar());
         config.setSigningType(copyBookFieldFormat.signingType());
+        config.setDefaultValue(copyBookFieldFormat.defaultValue().isEmpty() ? null : copyBookFieldFormat.defaultValue());
 
         try {
             TypeConverterBase typeConverter = (TypeConverterBase)copyBookFieldFormat.type().newInstance();

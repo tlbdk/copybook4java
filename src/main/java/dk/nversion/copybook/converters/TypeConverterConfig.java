@@ -10,6 +10,7 @@ public class TypeConverterConfig {
     private boolean rightPadding;
     private char paddingChar;
     private char nullFillerChar;
+    private String defaultValue;
 
     public TypeConverterConfig() {
     }
@@ -52,5 +53,13 @@ public class TypeConverterConfig {
 
     public void setNullFillerChar(char nullFillerChar) {
         this.nullFillerChar = nullFillerChar;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
     }
 }

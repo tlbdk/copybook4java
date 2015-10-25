@@ -1,9 +1,10 @@
 package dk.nversion.copybook.converters;
 
+import dk.nversion.ByteUtils;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 
 public class IntegerToInteger extends TypeConverterBase {
-
+    @Override
     public void validate(Class type, int size, int decimal) throws TypeConverterException {
         if(size > 9) {
             throw new TypeConverterException("int is not large enough to hold possible value");
@@ -13,10 +14,17 @@ public class IntegerToInteger extends TypeConverterBase {
         }
     }
 
+    @Override
     public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
-        return Integer.parseInt(getIntegerString(bytes, offset, length, removePadding));
+        if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, 0, bytes.length)) { // All of value is null filler
+            return Integer.parseInt(defaultValue);
+
+        } else {
+            return Integer.parseInt(getIntegerString(bytes, offset, length, removePadding));
+        }
     }
 
+    @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
         int i = (int)value;
         if(i < 0) {

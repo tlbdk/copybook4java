@@ -2,6 +2,8 @@ package dk.nversion.copybook.converters;
 
 import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
+import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -13,16 +15,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class StringToStringTest {
-
     private TypeConverterBase typeConverter;
+    private TypeConverterConfig config;
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    public StringToStringTest() throws CopyBookException {
-        TypeConverterConfig config = new TypeConverterConfig();
-        config.setCharset(StandardCharsets.UTF_8);
-        config.setPaddingChar(' ');
+    @Before
+    public void runBeforeEveryTest() throws CopyBookException {
+        this.config = new TypeConverterConfig();
+        this.config.setCharset(StandardCharsets.UTF_8);
+        this.config.setPaddingChar(' ');
         config.setNullFillerChar((char)0);
         typeConverter = new StringToString();
         typeConverter.setConfig(config);
@@ -54,6 +57,14 @@ public class StringToStringTest {
     @Test
     public void testToNullValue() throws Exception {
         assertNull(typeConverter.to(new byte[] { (byte)0, (byte)0 }, 0, 2, -1, true));
+    }
+
+    @Test
+    public void testToNullDefaultValue() throws Exception {
+        config.setNullFillerChar((char)0);
+        config.setDefaultValue("42");
+        typeConverter.setConfig(config);
+        assertEquals("42", typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 
     @Test
