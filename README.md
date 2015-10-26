@@ -64,22 +64,22 @@ Response response = responseSerializer.deserialize(responseBytes, Response.class
 ## Supported format annotations and their defaults
 
 ```java
-@CopyBook(format = CopyBookSerializationFormat.FULL, charset = "UTF-8")
+@CopyBook(type = FullMapper.class, charset = "UTF-8")
 ```
 
 The CopyBookFieldFormat annotation can be set on both class level on a individual field to overwrite the defaults:
 ```java
-@CopyBookFieldFormat(fieldType = CopyBookFieldType.INT, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
-@CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_INT, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
-@CopyBookFieldFormat(fieldType = CopyBookFieldType.DECIMAL, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
-@CopyBookFieldFormat(fieldType = CopyBookFieldType.SIGNED_DECIMAL, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
-@CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = true, paddingChar  = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+@CopyBookFieldFormat(type = IntegerToInteger.class, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+@CopyBookFieldFormat(type = SignedIntegerToInteger.class, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+@CopyBookFieldFormat(type = DecimalToBigDecimal.class, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+@CopyBookFieldFormat(type = SignedDecimalToBigDecimal.class, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+@CopyBookFieldFormat(type = StringToString.class, rightPadding = true, paddingChar  = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 ```
 
 It's also possible to create new CopyBook annotation to give common settings as custom name:
 ```java
-@CopyBook(format = CopyBookSerializationFormat.FULL, charset = "cp037")
-@CopyBookFieldFormat(fieldType = CopyBookFieldType.STRING, rightPadding = true, paddingChar  = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.LAST_BYTE_EBCDIC_BIT5)
+@CopyBook(type = FullMapper.class, charset = "cp037")
+@CopyBookFieldFormat(type = StringToString.class, rightPadding = true, paddingChar  = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.LAST_BYTE_EBCDIC_BIT5)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface DanishIMS { }
