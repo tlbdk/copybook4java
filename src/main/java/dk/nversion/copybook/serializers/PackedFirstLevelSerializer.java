@@ -147,6 +147,7 @@ public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
                             readFields(field.getSubCopyBookFields(), buffer, field.createObject(array, j), last && field.getMinOccurs() - 1 == j);
                         }
                     }
+
                 } else {
                     // Simple array types, fx. int[]
                     if(field.getLevel() == 0) {

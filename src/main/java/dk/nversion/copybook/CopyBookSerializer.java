@@ -1,10 +1,13 @@
 package dk.nversion.copybook;
 
+import dk.nversion.ByteUtils;
 import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.serializers.CopyBookParser;
 import dk.nversion.copybook.serializers.CopyBookSerializerBase;
 import dk.nversion.copybook.serializers.CopyBookSerializerConfig;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 
 public class CopyBookSerializer {
@@ -30,6 +33,18 @@ public class CopyBookSerializer {
 
     public  <T> T deserialize(byte[] bytes, Class<T> type) throws CopyBookException, InstantiationException {
         return serializer.deserialize(bytes, type);
+    }
+
+    public  <T> T deserialize(InputStream inputStream, Class<T> type) throws CopyBookException, InstantiationException, IOException {
+        return deserialize(ByteUtils.toByteArray(inputStream), type);
+    }
+
+    public int getMinRecordSize() {
+        return serializer.getMinRecordSize();
+    }
+
+    public int getMaxRecordSize() {
+        return serializer.getMaxRecordSize();
     }
 
 }

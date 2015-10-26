@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class CopyBookSerializerBase {
+public abstract class CopyBookSerializerBase implements CopyBookSerializer {
     protected CopyBookSerializerConfig config;
     protected List<CopyBookField> fields;
     protected boolean debug;
@@ -22,9 +22,6 @@ public abstract class CopyBookSerializerBase {
         this.minRecordSize = totalSizes[0];
         this.maxRecordSize = totalSizes[1];
     }
-
-    public abstract <T> byte[] serialize(T obj) throws CopyBookException;
-    public abstract <T> T deserialize(byte[] bytes, Class<T> type) throws CopyBookException, InstantiationException;
 
     protected int[] calculateSizes(List<CopyBookField> fields, int level, boolean debug) {
         int minTotal = 0;
@@ -74,5 +71,21 @@ public abstract class CopyBookSerializerBase {
         }
 
         return new int[] { minTotal, maxTotal };
+    }
+
+    public int getMinRecordSize() {
+        return minRecordSize;
+    }
+
+    public void setMinRecordSize(int minRecordSize) {
+        this.minRecordSize = minRecordSize;
+    }
+
+    public int getMaxRecordSize() {
+        return maxRecordSize;
+    }
+
+    public void setMaxRecordSize(int maxRecordSize) {
+        this.maxRecordSize = maxRecordSize;
     }
 }
