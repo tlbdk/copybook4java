@@ -8,6 +8,20 @@
     <artifactId>copybook4java</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <packaging>pom</packaging>
+    <name>CopyBook4Java Project</name>
+    <description>CopyBook serializer and deserializer for Java where CopyBook lines are used to annotate a normal Java class</description>
+
+    <ciManagement>
+        <system>travis-ci</system>
+        <url>https://travis-ci.org/tlbdk/copybook4java</url>
+    </ciManagement>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/tlbdk/copybook4java/issues</url>
+    </issueManagement>
+
     <licenses>
         <license>
             <name>The MIT License (MIT)</name>

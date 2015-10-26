@@ -23,7 +23,8 @@ env:
    - secure: "IJCSu150rHzWtv6o5+aoaG2l1jmWAzM3D/ngpfwmumGsS2aeD1SdzWMwrMl4MYzdDko/NBPMo7gfvphKhrY4buD2gWu7WLEs4aM1vcI9hA32QHG/PEVidxWWQdr5nwxlfdEgFqU/Nr5r1PGhvaqAbARPaAFexy4TJNxOvDDbM6jJo3cy26lwW8j7WQ26h966jGt7KzQ9XWfyRVT/+b8xVp4SSm6Lc60J4zs+Y4qNObjNExBJyKbw/J2bTANVULSobPiYE5QcsDDBxwT/9q82K9f7WqY3WTpszBnQLyw/nYow6vm7JjnRzdWmnA4Y/XeVvtCKk+nWfVgrXFYZqsM8MgvXx8TmWGJ+bQY+Y4cEfrmV9o5fHlzMPCGECluSYhwUkPun71SH+kAuRBNT1SWdOkRqyWSaShWriMDwAs6ZU0GqDeD38aOYp4pxD0G+lGGvQenayBfxPa4Ef6oKTVitdCtLRgLraRVzBIiKTMFK/ArUmeiPj3fTNvh0sKb7T0c7t0PrJjEKz5I4hWYjPp9noeU1peaxj8d9Ki+Epve4Gz5I9imryVVgXpy+JXgJaxltDKdojZKRsePA03d44NxMTShWMOeVvYFtjNbCYdf671BYmYZusUUc3Ldsvqv8+f7OP/j9PdJGeS4egXuKHbYyk9em+AqMPQh6PakosjiF+aI="
 
 after_success:
-  - "[[ ${TRAVIS_PULL_REQUEST} == 'false' ]] && [[ ${TRAVIS_TAG} == '' ]] && mvn deploy -DskipTests --settings deploy.xml"
+  - echo Done building
+  - "[[ ${TRAVIS_PULL_REQUEST} == 'false' ]] && mvn deploy -DskipTests --settings deploy.xml"
 
 addons:
   coverity_scan:
