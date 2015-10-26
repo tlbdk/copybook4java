@@ -32,7 +32,11 @@ public class SignedIntegerToInteger extends TypeConverterBase {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
-        int i = (int)value;
+        if(value == null && this.defaultValue == null) {
+            return null;
+        }
+
+        int i = value != null ? (int) value : Integer.parseInt(this.defaultValue);
         byte[] strBytes = getSignedBytes(Integer.toString(Math.abs(i)), i < 0);
         if(strBytes.length > length) {
             throw new TypeConverterException("Field to small for value: " + length + " < " + strBytes.length);

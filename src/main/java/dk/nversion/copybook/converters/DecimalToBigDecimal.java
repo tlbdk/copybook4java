@@ -27,7 +27,11 @@ public class DecimalToBigDecimal extends TypeConverterBase {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
-        BigDecimal i = value != null ? ((BigDecimal)value) : new BigDecimal("0.0");
+        if(value == null && this.defaultValue == null) {
+            return null;
+        }
+
+        BigDecimal i = value != null ? ((BigDecimal)value) : new BigDecimal(this.defaultValue);
         if(i.signum() == -1) {
             throw new TypeConverterException("Number can not be negative");
         }

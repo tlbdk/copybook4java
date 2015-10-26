@@ -30,8 +30,8 @@ public class StringToString extends TypeConverterBase {
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
         byte[] strBytes = null;
-        if(value != null) {
-            strBytes = ((String) value).getBytes(this.charset);
+        if(value != null || this.defaultValue != null) {
+            strBytes = (value != null ? (String)value : this.defaultValue).getBytes(this.charset);
             if (strBytes.length > length) {
                 throw new TypeConverterException("Field to small for value: " + length + " < " + strBytes.length);
             }
@@ -43,6 +43,7 @@ public class StringToString extends TypeConverterBase {
             strBytes = new byte[length];
             Arrays.fill(strBytes, this.nullFillerByte);
         }
+
         return strBytes;
     }
 }

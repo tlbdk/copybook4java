@@ -25,7 +25,11 @@ public class SignedDecimalToBigDecimal extends SignedIntegerToInteger {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
-        BigDecimal i = value != null ? ((BigDecimal)value) : new BigDecimal("0.0");
+        if(value == null && this.defaultValue == null) {
+            return null;
+        }
+
+        BigDecimal i = value != null ? ((BigDecimal)value) : new BigDecimal(this.defaultValue);
         // TODO: Validate loss of precision
         BigInteger absValue = i.movePointRight(decimals).toBigInteger().abs();
 

@@ -25,7 +25,11 @@ public class IntegerToLong extends IntegerToInteger {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
-        long i = (long)value;
+        if(value == null && this.defaultValue == null) {
+            return null;
+        }
+
+        long i = value != null ? (long)value : Long.parseLong(this.defaultValue);
         if(i < 0) {
             throw new TypeConverterException("Number can not be negative");
         }

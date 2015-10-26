@@ -29,7 +29,11 @@ public class SignedIntegerToLong extends SignedIntegerToInteger {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
-        long i = (long)value;
+        if(value == null && this.defaultValue == null) {
+            return null;
+        }
+
+        long i = value != null ? (long)value : Long.parseLong(this.defaultValue);
         byte[] strBytes = getSignedBytes(Long.toString(Math.abs(i)), i < 0L);
         if(strBytes.length > length) {
             throw new TypeConverterException("Field to small for value: " + length + " < " + strBytes.length);

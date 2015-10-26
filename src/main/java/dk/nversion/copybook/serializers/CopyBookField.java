@@ -55,7 +55,7 @@ public class CopyBookField {
     public Object setBytes(Object obj, ByteBuffer buffer, boolean removePadding) throws CopyBookException {
         byte[] bytes = new byte[this.size];
         buffer.get(bytes);
-        return setBytes(obj, bytes, 0, bytes != null ? bytes.length : 0, removePadding);
+        return setBytes(obj, bytes, 0,  bytes.length, removePadding);
     }
 
     public Object setBytes(Object obj, byte[] bytes, boolean removePadding) throws CopyBookException {

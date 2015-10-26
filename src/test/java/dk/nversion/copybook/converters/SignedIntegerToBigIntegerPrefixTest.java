@@ -80,6 +80,8 @@ public class SignedIntegerToBigIntegerPrefixTest {
     @Test
     public void testFromNullValue() throws Exception {
         // We default Null to 0 for big integer
+        config.setDefaultValue("0");
+        typeConverter.initialize(config);
         assertArrayEquals("+0".getBytes(StandardCharsets.UTF_8), typeConverter.from(null, 2, -1, true));
     }
 

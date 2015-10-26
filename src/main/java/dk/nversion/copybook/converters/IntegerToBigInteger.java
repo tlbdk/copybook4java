@@ -24,7 +24,11 @@ public class IntegerToBigInteger extends IntegerToInteger {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
-        BigInteger i = value != null ? (BigInteger)value : new BigInteger("0");
+        if(value == null && this.defaultValue == null) {
+            return null;
+        }
+
+        BigInteger i = value != null ? (BigInteger)value : new BigInteger(this.defaultValue);
         if(i.signum() == -1) {
             throw new TypeConverterException("Number can not be negative");
         }

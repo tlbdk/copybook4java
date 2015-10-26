@@ -23,7 +23,11 @@ public class SignedIntegerToBigInteger extends SignedIntegerToInteger {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
-        BigInteger i = value != null ? (BigInteger)value : new BigInteger("0");
+        if(value == null && this.defaultValue == null) {
+            return null;
+        }
+
+        BigInteger i = value != null ? (BigInteger)value : new BigInteger(this.defaultValue);
         byte[] strBytes = getSignedBytes(i.abs().toString(), i.signum() < 0);
         if(strBytes.length > length) {
             throw new TypeConverterException("Field to small for value: " + length + " < " + strBytes.length);
