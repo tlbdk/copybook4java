@@ -8,8 +8,8 @@ import dk.nversion.copybook.converters.StringToString;
 
 import static org.junit.Assert.*;
 
-public class CopyBookSerializerNullValuesTest {
-    @CopyBook(type = FullSerializer.class)
+public class CopyBookMapperNullValuesTest {
+    @CopyBook(type = FullMapper.class)
     @CopyBookFieldFormat(type = StringToString.class, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX, rightPadding = false)
     static public class fieldTypeStringSetToNullFull {
         @CopyBookLine("01 FIELD PIC X(4).")
@@ -27,7 +27,7 @@ public class CopyBookSerializerNullValuesTest {
         assertNull(test2.field);
     }
 
-    @CopyBook(type = PackedFirstLevelSerializer.class)
+    @CopyBook(type = PackedFirstLevelMapper.class)
     @CopyBookFieldFormat(type = StringToString.class, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX, rightPadding = false)
     static public class fieldTypeStringSetToNullPacked {
         @CopyBookLine("01 FIELD PIC X(4).")
@@ -51,7 +51,7 @@ public class CopyBookSerializerNullValuesTest {
         public String field;
     }
 
-    @CopyBook(type = PackedFirstLevelSerializer.class)
+    @CopyBook(type = PackedFirstLevelMapper.class)
     @CopyBookFieldFormat(type = StringToString.class, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX, rightPadding = false)
     static public class fieldTypeNestedNullPacked {
         @CopyBookLine("01 FIELD.")
@@ -79,7 +79,7 @@ public class CopyBookSerializerNullValuesTest {
         public String[] fields;
     }
 
-    @CopyBook(type = PackedFirstLevelSerializer.class)
+    @CopyBook(type = PackedFirstLevelMapper.class)
     @CopyBookFieldFormat(type = StringToString.class, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX, rightPadding = false)
     static public class fieldTypeNestedArrayNullPacked {
         @CopyBookLine("01 FIELD.")

@@ -3,18 +3,17 @@ package dk.nversion.copybook.serializers;
 
 import dk.nversion.copybook.exceptions.CopyBookException;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public abstract class CopyBookSerializerBase implements CopyBookSerializer {
+public abstract class CopyBookMapperBase implements CopyBookMapper {
     protected CopyBookSerializerConfig config;
     protected List<CopyBookField> fields;
     protected boolean debug;
     protected int maxRecordSize;
     protected int minRecordSize;
 
-    public CopyBookSerializerBase(CopyBookSerializerConfig config) {
+    @Override
+    public void initialize(CopyBookSerializerConfig config) throws CopyBookException {
         this.config = config;
         this.fields = config.getFields();
         this.debug = config.isDebug();

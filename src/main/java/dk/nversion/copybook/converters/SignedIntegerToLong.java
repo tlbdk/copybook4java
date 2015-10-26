@@ -2,7 +2,6 @@ package dk.nversion.copybook.converters;
 
 import dk.nversion.ByteUtils;
 import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
-import dk.nversion.copybook.exceptions.TypeConverterException;
 
 public class SignedIntegerToLong extends SignedIntegerToInteger {
     @Override
@@ -21,7 +20,7 @@ public class SignedIntegerToLong extends SignedIntegerToInteger {
 
     @Override
     public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
-        if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, 0, bytes.length)) { // All of value is null filler
+        if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, offset, bytes.length)) { // All of value is null filler
             return Long.parseLong(defaultValue);
         } else {
             return Long.parseLong(getSignedIntegerString(bytes, offset, length, removePadding));

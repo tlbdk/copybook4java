@@ -4,22 +4,21 @@ import dk.nversion.ByteUtils;
 import dk.nversion.copybook.exceptions.CopyBookException;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 import java.util.List;
 
-public class PackedFirstLevelSerializer extends CopyBookSerializerBase {
+public class PackedFirstLevelMapper extends CopyBookMapperBase {
     private int maxBitmapSize;
     private byte separatorByte;
     private int bitmapBlockSize;
     private int packingItemsCount;
 
-    public PackedFirstLevelSerializer(CopyBookSerializerConfig config) {
-        super(config);
-        this.bitmapBlockSize =  8;//config.getBitmapBlockSize();
+    public void initialize(CopyBookSerializerConfig config) throws CopyBookException {
+        super.initialize(config);
+        this.bitmapBlockSize =  8;//config.getBitmapBlockSize(); //TODO: Implement
         this.packingItemsCount = countPackingItems(config.getFields());
         int maxBitmapBlocks = packingItemsCount / (bitmapBlockSize * 8 - 1) + 1;
         this.maxBitmapSize = bitmapBlockSize * maxBitmapBlocks;
-        this.separatorByte = '\u000b';//config.getSeparatorByte();
+        this.separatorByte = '\u000b';//config.getSeparatorByte(); //TODO: Implement
     }
 
     private int countPackingItems(List<CopyBookField> fields) {

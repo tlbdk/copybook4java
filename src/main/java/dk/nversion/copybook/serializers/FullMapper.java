@@ -8,10 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FullSerializer extends CopyBookSerializerBase {
-    public FullSerializer(CopyBookSerializerConfig config) {
-        super(config);
-    }
+public class FullMapper extends CopyBookMapperBase {
 
     public <T> byte[] serialize(T obj) throws CopyBookException {
         ByteBuffer buffer = ByteBuffer.wrap(new byte[this.maxRecordSize]);
@@ -35,7 +32,7 @@ public class FullSerializer extends CopyBookSerializerBase {
                 } else {
                     // Simple array types, fx. int[]
                     for (int i = 0; i < arraySize; i++) {
-                        buffer.put(field.getBytes(rootObj, i, true));
+                        buffer.put(field.getBytes(rootObj, array, i, true));
                     }
                 }
 
@@ -68,7 +65,7 @@ public class FullSerializer extends CopyBookSerializerBase {
             if(field.isArray()) {
                 int arraySize = field.getMaxOccurs();
 
-                // Support field naming as counter keys
+                // Support field ending in _count as counter keys
                 if(counters.containsKey(fieldName + "_count")) {
                     arraySize = counters.get(fieldName + "_count");
 
@@ -121,5 +118,4 @@ public class FullSerializer extends CopyBookSerializerBase {
             }
         }
     }
-
 }

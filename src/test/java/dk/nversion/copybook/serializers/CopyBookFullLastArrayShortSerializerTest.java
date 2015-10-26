@@ -9,8 +9,8 @@ import java.math.BigDecimal;
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 
-public class CopyBookFullLastArrayShortTest {
-    @CopyBook(type = FullLastArrayShort.class)
+public class CopyBookFullLastArrayShortSerializerTest {
+    @CopyBook(type = FullLastArrayShortMapper.class)
     static public class StringFieldOccursTwoTimes {
         @CopyBookLine("01 COUNT PIC 9.")
         public int fields_count;
@@ -30,7 +30,7 @@ public class CopyBookFullLastArrayShortTest {
         assertArrayEquals(test.fields, test2.fields);
     }
 
-    @CopyBook(type = FullLastArrayShort.class)
+    @CopyBook(type = FullLastArrayShortMapper.class)
     static public class IntFieldOccursTwoTimes {
         @CopyBookLine("01 COUNT PIC 9.")
         public int fields_count;
@@ -50,7 +50,7 @@ public class CopyBookFullLastArrayShortTest {
         assertArrayEquals(test.fields, test2.fields);
     }
 
-    @CopyBook(type = FullLastArrayShort.class)
+    @CopyBook(type = FullLastArrayShortMapper.class)
     static public class SignedIntFieldOccursTwoTimes {
         @CopyBookLine("01 COUNT PIC 9.")
         public int fields_count;
@@ -70,7 +70,7 @@ public class CopyBookFullLastArrayShortTest {
         assertArrayEquals(test.fields, test2.fields);
     }
 
-    @CopyBook(type = FullLastArrayShort.class)
+    @CopyBook(type = FullLastArrayShortMapper.class)
     static public class DecimalFieldOccursTwoTimes {
         @CopyBookLine("01 COUNT PIC 9.")
         public int fields_count;
@@ -90,7 +90,7 @@ public class CopyBookFullLastArrayShortTest {
         assertArrayEquals(test.fields, test2.fields);
     }
 
-    @CopyBook(type = FullLastArrayShort.class)
+    @CopyBook(type = FullLastArrayShortMapper.class)
     static public class SignedDecimalFieldOccursTwoTimes {
         @CopyBookLine("01 COUNT PIC 9.")
         public int fields_count;

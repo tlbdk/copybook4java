@@ -3,19 +3,18 @@ package dk.nversion.copybook.serializers;
 import dk.nversion.copybook.CopyBookSerializer;
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookLine;
+import dk.nversion.copybook.exceptions.CopyBookException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-public class CopyBookSerializerFullTest {
+public class CopyBookMapperPackedFirstLevelTest {
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    @CopyBook(charset = "UTF-8", type = FullSerializer.class)
+    @CopyBook(charset = "UTF-8", type = PackedFirstLevelMapper.class)
     public static class RequestTest {
         @CopyBookLine("01 ID PIC 9(8).")
         public int id;
@@ -60,14 +59,14 @@ public class CopyBookSerializerFullTest {
         // Build test object
         RequestTest requestTest = new RequestTest();
         requestTest.id = 1;
-        requestTest.command = "cmd1234()";
-        requestTest.hello = new RequestMessage("Hello", "Body1234");
+        requestTest.command = "cmd1234";
+        requestTest.hello = new RequestMessage("Helo", "Body1234");
         requestTest.hellos = new RequestMessage[] { new RequestMessage("abc", "1234ydob") };
         requestTest.hellos_count = requestTest.hellos.length;
-        requestTest.messages = new RequestMessage[] { new RequestMessage("msg1", "stuff123"), new RequestMessage("msg2", "stuff12345") };
-        requestTest.messages_count = requestTest.messages.length;
         requestTest.args = new String[]{ "do", "stuff" };
         requestTest.args_count = requestTest.args.length;
+        requestTest.messages = new RequestMessage[] { new RequestMessage("msg1", "stuff123"), new RequestMessage("msg2", "stuff1234") };
+        requestTest.messages_count = requestTest.messages.length;
 
         // Serializer and Deserializer object to and from bytes
         CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
@@ -109,8 +108,8 @@ public class CopyBookSerializerFullTest {
     public void testSerializeDeserializeEmptyList() throws Exception {
         // Build test object
         RequestTest requestTest = new RequestTest();
-        requestTest.args = new String[]{};
         requestTest.messages = new RequestMessage[] {};
+        requestTest.args = new String[]{};
 
         // Serializer and Deserializer object to and from bytes
         CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
@@ -121,59 +120,15 @@ public class CopyBookSerializerFullTest {
         assertEquals(0, requestTest1.messages.length);
     }
 
-    // Depending on fields in sub field
-    @CopyBook(type = FullSerializer.class)
-    public static class CounterDependingInOn {
-        @CopyBookLine("02 COUNT PIC 9(2).")
-        private int count;
-    }
-    @CopyBook(type = FullSerializer.class)
-    public static class StringArrayToStringArrayDependingInOn {
-        @CopyBookLine("01 SUBFIELD.")
-        private CounterDependingInOn subfield;
-        @CopyBookLine("01 RESULT.")
-        @CopyBookLine("02 FIELDS OCCURS 0 TO 10 TIMES PIC X(8) DEPENDING ON COUNT IN SUBFIELD.")
-        private String[] fields;
-    }
-
     @org.junit.Test
-    public void testStringArrayToStringArrayDependingOnIn() throws Exception {
-        CopyBookSerializer serializer = new CopyBookSerializer(StringArrayToStringArrayDependingInOn.class);
-        StringArrayToStringArrayDependingInOn test = new StringArrayToStringArrayDependingInOn();
-        test.fields = new String []{ "test", "test2" };
-        test.subfield = new CounterDependingInOn();
-        test.subfield.count = test.fields.length;
-        byte[] testBytes = serializer.serialize(test);
-        assertEquals(2 + 8 * test.fields.length, testBytes.length);
-        StringArrayToStringArrayDependingInOn test2 = serializer.deserialize(testBytes, StringArrayToStringArrayDependingInOn.class);
-        assertArrayEquals(test.fields, test2.fields);
+    public void testSerializeDeserializeSeparatorByteException() throws Exception {
+        expectedEx.expect(CopyBookException.class);
+        expectedEx.expectMessage("contains the separator char");
+        CopyBookSerializer requestTestSerializer = new CopyBookSerializer(RequestTest.class);
+        RequestTest test1 = new RequestTest();
+        test1.command = "c" + '\u000b' + "extra";
+        byte[] test1data = requestTestSerializer.serialize(test1);
     }
 
-    @CopyBook(type = FullSerializer.class)
-    public static class TwoStringArrayToStringArrayDependingOn {
-        @CopyBookLine("02 FIELDSCOUNT PIC 9(2).")
-        private int xfields1;
-        @CopyBookLine("02 FIELDSCOUNT PIC 9(2).")
-        private int xfields2;
-        @CopyBookLine("02 FIELDS OCCURS 0 TO 10 TIMES PIC X(8) DEPENDING ON FIELDSCOUNT.")
-        private String[] fields1;
-        @CopyBookLine("02 FIELDS OCCURS 0 TO 10 TIMES PIC X(8) DEPENDING ON FIELDSCOUNT.")
-        private String[] fields2;
-    }
-
-    @org.junit.Test
-    public void twoStringArrayToStringArrayDependingOnTest() throws Exception {
-        CopyBookSerializer serializer = new CopyBookSerializer(TwoStringArrayToStringArrayDependingOn.class);
-        TwoStringArrayToStringArrayDependingOn test = new TwoStringArrayToStringArrayDependingOn();
-        test.fields1 = new String []{ "test", "test2" };
-        test.fields2 = new String []{ "tset", "2tset" };
-        test.xfields1 = test.fields1.length;
-        test.xfields2 = test.fields2.length;
-        byte[] testBytes = serializer.serialize(test);
-        assertEquals(2 + 2 + 8 * test.fields1.length + 8 * test.fields2.length, testBytes.length);
-        TwoStringArrayToStringArrayDependingOn test2 = serializer.deserialize(testBytes, TwoStringArrayToStringArrayDependingOn.class);
-        assertArrayEquals(test.fields1, test2.fields1);
-        assertArrayEquals(test.fields2, test2.fields2);
-    }
 
 }

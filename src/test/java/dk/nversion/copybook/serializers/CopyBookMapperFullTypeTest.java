@@ -13,84 +13,84 @@ import java.math.BigInteger;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-public class CopyBookSerializerFullTypeTest {
+public class CopyBookMapperFullTypeTest {
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class fieldTypeUnsignedIntegerToInt {
         @CopyBookLine("01 FIELD PIC 9(2).")
         public int field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class fieldTypeSignedIntegerToInt {
         @CopyBookLine("01 FIELD PIC S9(3).")
         public int field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class fieldTypeUnsignedIntegerToLong {
         @CopyBookLine("01 FIELD PIC 9(2).")
         public long field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class fieldTypeSignedIntegerToLong {
         @CopyBookLine("01 FIELD PIC S9(3).")
         public long field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class fieldTypeUnsignedIntegerToBigInteger {
         @CopyBookLine("01 FIELD PIC 9(2).")
         public BigInteger field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class fieldTypeSignedIntegerToBigInteger {
         @CopyBookLine("01 FIELD PIC S9(3).")
         public BigInteger field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class fieldTypeString {
         @CopyBookLine("01 FIELD PIC X(2).")
         public String field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class fieldTypeUnsignedDecimalToBigDecimal {
         @CopyBookLine("01 FIELD PIC 9(2)V9(2).")
         public BigDecimal field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class fieldTypeSignedDecimalToBigDecimal {
         @CopyBookLine("01 FIELD PIC S9(3)V9(2).")
         public BigDecimal field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     @CopyBookFieldFormat(type = SignedIntegerToInteger.class, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.POSTFIX, rightPadding = false)
     static public class fieldTypeSignedIntegerPostfix {
         @CopyBookLine("01 FIELD PIC S9(3).")
         public int field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     @CopyBookFieldFormat(type = SignedDecimalToBigDecimal.class, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.POSTFIX, rightPadding = false)
     static public class fieldTypeSignedDecimalPostfix {
         @CopyBookLine("01 FIELD PIC S9(3)V9(2).")
         public BigDecimal field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     @CopyBookFieldFormat(type = SignedIntegerToInteger.class, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.LAST_BYTE_BIT8, rightPadding = false)
     static public class fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteBit8 {
         @CopyBookLine("01 FIELD PIC S9(2).")
         public int field;
     }
 
-    @CopyBook(charset = "cp037", type = FullSerializer.class)
+    @CopyBook(charset = "cp037", type = FullMapper.class)
     @CopyBookFieldFormat(type = SignedIntegerToInteger.class, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.LAST_BYTE_EBCDIC_BIT5, rightPadding = false)
     static public class fieldTypeSignedIntegerToIntWithEmbeddedSigningLastByteEbcdicBit5 {
         @CopyBookLine("01 FIELD PIC S9(2).")

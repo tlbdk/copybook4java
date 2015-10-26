@@ -1,9 +1,7 @@
 package dk.nversion.copybook.converters;
 
 import dk.nversion.ByteUtils;
-import dk.nversion.copybook.exceptions.TypeConverterException;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 
 public class SignedIntegerToBigInteger extends SignedIntegerToInteger {
@@ -16,7 +14,7 @@ public class SignedIntegerToBigInteger extends SignedIntegerToInteger {
 
     @Override
     public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
-        if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, 0, bytes.length)) { // All of value is null filler
+        if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, offset, bytes.length)) { // All of value is null filler
             return new BigInteger(defaultValue);
         } else {
             return new BigInteger(getSignedIntegerString(bytes, offset, length, removePadding));

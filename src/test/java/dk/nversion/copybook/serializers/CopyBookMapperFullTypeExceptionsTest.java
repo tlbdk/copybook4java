@@ -12,24 +12,24 @@ import java.math.BigDecimal;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-public class CopyBookSerializerFullTypeExceptionsTest {
+public class CopyBookMapperFullTypeExceptionsTest {
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class fieldTypeInteger {
         @CopyBookLine("01 FIELD PIC 9(2).")
         public int field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class fieldTypeString {
         @CopyBookLine("01 FIELD PIC X(2).")
         public String field;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class fieldTypeDecimal {
         @CopyBookLine("01 FIELD PIC 9(2)V9(2).")
         public BigDecimal field;

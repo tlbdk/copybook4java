@@ -4,7 +4,7 @@ import dk.nversion.copybook.converters.TypeConverter;
 import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.annotations.*;
 import dk.nversion.copybook.converters.TypeConverterConfig;
-import dk.nversion.copybook.exceptions.TypeConverterException;
+import dk.nversion.copybook.converters.TypeConverterException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -21,7 +21,7 @@ public class CopyBookParser {
     private static Pattern re_Pic = Pattern.compile("^\\s*PIC\\s+(S)?(X+|9+)(?:\\((\\d+)\\))?(?:V(9+)(?:\\((\\d+)\\))?)?\\s*$");
     private static Pattern re_DependingOn = Pattern.compile("^\\s*DEPENDING\\s+ON\\s+([^\\s]+)(?:\\s+IN\\s+([^\\s]+))?\\s*$");
 
-    private Class<? extends CopyBookSerializerBase> serializerClass = null;
+    private Class<? extends CopyBookMapper> serializerClass = null;
     private CopyBookSerializerConfig config = new CopyBookSerializerConfig();
 
     public CopyBookParser(Class type) throws CopyBookException {
@@ -33,7 +33,7 @@ public class CopyBookParser {
         List<CopyBook> copybookAnnotations = getAnnotationsRecursively(CopyBookDefaults.class, CopyBook.class);
         copybookAnnotations.addAll(getAnnotationsRecursively(type, CopyBook.class));
         for(CopyBook annotation : copybookAnnotations) {
-            if (!annotation.type().equals(CopyBookSerializerBase.class)) {
+            if (!annotation.type().equals(CopyBookMapper.class)) {
                 this.serializerClass = annotation.type();
             }
             if (!annotation.charset().isEmpty()) {
@@ -64,8 +64,6 @@ public class CopyBookParser {
         if(copyBookAnnotation == null) {
             throw new CopyBookException("No copybook defined on this class");
         }
-
-        // TODO: Verify that values from CopyBook annotation matches the root copybook else throw exception
 
         // Overwrite type converts with what we find on the sub copybook
         Map<String,TypeConverter> typeConverterMap = new HashMap<>(inheritedTypeConverterMap);
@@ -201,6 +199,7 @@ public class CopyBookParser {
                 TypeConverter typeConverter = null;
                 if(copyBookType != null) {
                     if (field.getType().isArray()) {
+                        //TODO: Add ArrayTo example and test
                         typeConverter = fieldTypeConverterMap.get(copyBookType + "ArrayTo" + fieldTypeName + "Array");
                     }
                     if (typeConverter == null) {
@@ -209,6 +208,7 @@ public class CopyBookParser {
 
                 } else {
                     if (field.getType().isArray()) {
+                        //TODO: Add ArrayTo example and test
                         typeConverter = fieldTypeConverterMap.get("ArrayTo" + fieldTypeName + "Array");
                     }
                     if (typeConverter == null) {
@@ -316,7 +316,7 @@ public class CopyBookParser {
         config.setDefaultValue(copyBookFieldFormat.defaultValue().isEmpty() ? null : copyBookFieldFormat.defaultValue());
 
         try {
-            TypeConverter typeConverter = (TypeConverter)copyBookFieldFormat.type().newInstance();
+            TypeConverter typeConverter = copyBookFieldFormat.type().newInstance();
             typeConverter.initialize(config);
             return typeConverter;
 
@@ -333,11 +333,11 @@ public class CopyBookParser {
         this.config = config;
     }
 
-    public Class<? extends CopyBookSerializerBase> getSerializerClass() {
+    public Class<? extends CopyBookMapper> getSerializerClass() {
         return serializerClass;
     }
 
-    public void setSerializerClass(Class<? extends CopyBookSerializerBase> serializerClass) {
+    public void setSerializerClass(Class<? extends CopyBookMapper> serializerClass) {
         this.serializerClass = serializerClass;
     }
 

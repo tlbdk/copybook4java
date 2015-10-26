@@ -2,7 +2,6 @@ package dk.nversion.copybook.converters;
 
 import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
 import dk.nversion.copybook.exceptions.CopyBookException;
-import dk.nversion.copybook.exceptions.TypeConverterException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

@@ -9,9 +9,9 @@ import dk.nversion.copybook.converters.StringToString;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-public class CopyBookSerializerFullCharsetTest {
+public class CopyBookMapperFullCharsetTest {
 
-    @CopyBook(charset = "cp037", type = FullSerializer.class)
+    @CopyBook(charset = "cp037", type = FullMapper.class)
     @CopyBookFieldFormat(type = StringToString.class, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX, rightPadding = false)
     static public class fieldTypeStringCp037 {
         @CopyBookLine("01 FIELD PIC X(4).")

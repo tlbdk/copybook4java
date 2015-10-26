@@ -1,6 +1,5 @@
 package dk.nversion.copybook.converters;
 
-import dk.nversion.copybook.exceptions.TypeConverterException;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class IntegerToLocalDateTime extends TypeConverterBase {

@@ -9,33 +9,33 @@ import java.math.BigDecimal;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-public class CopyBookSerializerFullOccursPicSingleLineTest {
+public class CopyBookMapperFullOccursPicSingleLineTest {
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class StringFieldOccursTwoTimes {
         @CopyBookLine("01 FIELDS OCCURS 2 TIMES PIC X(4).")
         public String[] fields;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class IntFieldOccursTwoTimes {
         @CopyBookLine("01 FIELDS OCCURS 2 TIMES PIC 9(4).")
         public int[] fields;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class SignedIntFieldOccursTwoTimes {
         @CopyBookLine("01 FIELDS OCCURS 2 TIMES PIC S9(4).")
         public int[] fields;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class DecimalFieldOccursTwoTimes {
         @CopyBookLine("01 FIELDS OCCURS 2 TIMES PIC 9(3)V9(2).")
         public BigDecimal[] fields;
     }
 
-    @CopyBook(type = FullSerializer.class)
+    @CopyBook(type = FullMapper.class)
     static public class SignedDecimalFieldOccursTwoTimes {
         @CopyBookLine("01 FIELDS OCCURS 2 TIMES PIC S9(3)V9(2).")
         public BigDecimal[] fields;

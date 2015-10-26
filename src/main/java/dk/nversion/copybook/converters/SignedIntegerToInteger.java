@@ -2,7 +2,6 @@ package dk.nversion.copybook.converters;
 
 import dk.nversion.ByteUtils;
 import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
-import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.util.Arrays;
 
@@ -23,7 +22,7 @@ public class SignedIntegerToInteger extends TypeConverterBase {
 
     @Override
     public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
-        if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, 0, bytes.length)) { // All of value is null filler
+        if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, offset, bytes.length)) { // All of value is null filler
             return Integer.parseInt(defaultValue);
 
         } else {

@@ -2,7 +2,7 @@ package dk.nversion.copybook.serializers;
 
 import dk.nversion.copybook.converters.TypeConverter;
 import dk.nversion.copybook.exceptions.CopyBookException;
-import dk.nversion.copybook.exceptions.TypeConverterException;
+import dk.nversion.copybook.converters.TypeConverterException;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
