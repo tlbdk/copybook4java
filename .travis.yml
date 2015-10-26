@@ -15,9 +15,15 @@ notifications:
 
 env:
   global:
-   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
-   #   via the "travis encrypt" command using the project repo's public key
+   # COVERITY_SCAN_TOKEN
    - secure: "aRHy60GdoMJCWKzZI4bTW8qeJEKkt7XXy2Eo/ufONVXOYM+5lvMaWbwK3+UiphzdP6jK5ITq1+TPv02nTRQ6lF+LZ32StH1FLeYyzFiv317Tym0YHP9JFZKz0cWqdj/LIFKpXsCUJp0kayyCO/kHpktqLfJoqv8cltp9Ul2AazQfJRSDLcrwxgU2iPUufmy8ajonrnQKOY99QMMh0ONjgrueAa3WzY2anwrY1hKbWdNHiOFN7hqL8PfW+cQ5Aw+j8MC0KKsgeYjMWVYtWq87alc0rEZ+Hv0DbCheRrqi2rG4T+JL5lG0+ec+P+8uwbi4Pgtjq9YK4HqdoedFq8PoiIbqGkUetrJPoRLZRUeU1dql3tGHnRS1QEKTR6tZvtKmKawbdUi8F7pkxQxn11Bk4g31ZoafSh7h2tCGeIA53vdTtAkqArgE0U/yTe0Dmxr+lS4jIY8unoGGArWSPnWmg4s3o7HDgVLSzDSATUtd+gB0Ji8NK6IXKZ0u1sGQtbsMiB04KqlipRKpmU/yKxJC7ZHm3jllVEatjciVtGgniItOYci2V/i7DaY83DYdCq8GxcEXP2JkyBsCFivTToKnFa8a/7s3tyrmRhjGfHA5JM9OuK6bcoVESwI19H8svAZGXjowqH67PzWtUmPmIbzdFjZLBHSf+Mm06nTmGjD48mo="
+   # OSSRH_USER
+   - secure: "gld2tGJfjyykfKZHqBKzdDWvlsrf+67qrAY8CiGtk5yCiSatrrz0xnrBNDzbtLKv1ym5Ju1Tb99jikdtvR1w7cvKcXmV1HR+lzHJwygBJApjAu8tiyQAb9ZaT/0NtgLFh4m8DGz28ZnV9G7xPVR+hFV9My9hgEdcWnyLKAvQUdkfDhzGDeG5D3f4aqIhEqfhydBXkObl2/u8JARSV5EF59lASdGf4R2/yVmQUv5WaUVJOUm+S76+fu+4tgdKNAEG2F/lsIPxwf2R4GbobAwWsy+bBB62sVsTkQkKgVSq6bkpyVFvTvw5fzH/PaOpxG2P1zoYNMVk37tYAjmPzkdM+Yx6t37RP5iT4i24RnOhuFEsFmGyF8nQo5P7/UOKa8sy3J5OQvuABUpVNnNrx2qFkzKzyDspn2pZvq6t+CBAurWcid2PsDftrflg5JAhDw7iw/UoPl3ZNh2Ka/O7mTBcHCHHWhxSlXgSva1neHi/SgThiMa1QlTUFkKxt6C4ozQcu5zLLuW4G8KahGJhenmKu0L595oedvO1UGa+SD3M+u8wQ1IxZpw6vgdyj/pTWBSz+8QW38qsy6SxwnQgsAjFO3OEb2NRP6Y0LVpEhugmACRabWlxPQWGlxjPC3pch+HMThtVC+LSO/omGacS024YPWWrCRLl3L7vDlftqlfIeuM="
+   # OSSRH_PASS
+   - secure: "IJCSu150rHzWtv6o5+aoaG2l1jmWAzM3D/ngpfwmumGsS2aeD1SdzWMwrMl4MYzdDko/NBPMo7gfvphKhrY4buD2gWu7WLEs4aM1vcI9hA32QHG/PEVidxWWQdr5nwxlfdEgFqU/Nr5r1PGhvaqAbARPaAFexy4TJNxOvDDbM6jJo3cy26lwW8j7WQ26h966jGt7KzQ9XWfyRVT/+b8xVp4SSm6Lc60J4zs+Y4qNObjNExBJyKbw/J2bTANVULSobPiYE5QcsDDBxwT/9q82K9f7WqY3WTpszBnQLyw/nYow6vm7JjnRzdWmnA4Y/XeVvtCKk+nWfVgrXFYZqsM8MgvXx8TmWGJ+bQY+Y4cEfrmV9o5fHlzMPCGECluSYhwUkPun71SH+kAuRBNT1SWdOkRqyWSaShWriMDwAs6ZU0GqDeD38aOYp4pxD0G+lGGvQenayBfxPa4Ef6oKTVitdCtLRgLraRVzBIiKTMFK/ArUmeiPj3fTNvh0sKb7T0c7t0PrJjEKz5I4hWYjPp9noeU1peaxj8d9Ki+Epve4Gz5I9imryVVgXpy+JXgJaxltDKdojZKRsePA03d44NxMTShWMOeVvYFtjNbCYdf671BYmYZusUUc3Ldsvqv8+f7OP/j9PdJGeS4egXuKHbYyk9em+AqMPQh6PakosjiF+aI="
+
+after_success:
+  - "[[ ${TRAVIS_PULL_REQUEST} == 'false' ]] && [[ ${TRAVIS_TAG} == '' ]] && mvn deploy -DskipTests --settings deploy.xml"
 
 addons:
   coverity_scan:
