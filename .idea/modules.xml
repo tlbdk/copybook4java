@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CopyBookSerialization.iml" filepath="$PROJECT_DIR$/CopyBookSerialization.iml" />
+      <module fileurl="file://$PROJECT_DIR$/copybook4java.iml" filepath="$PROJECT_DIR$/copybook4java.iml" />
     </modules>
   </component>
 </project>

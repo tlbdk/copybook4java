@@ -1,6 +1,5 @@
 package dk.nversion;
 
-import dk.nversion.copybook.CopyBookException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
