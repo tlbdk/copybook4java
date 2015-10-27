@@ -11,6 +11,7 @@ public class TypeConverterConfig {
     private char paddingChar;
     private char nullFillerChar;
     private String defaultValue;
+    private String format;
 
     public TypeConverterConfig() {
     }
@@ -61,5 +62,13 @@ public class TypeConverterConfig {
 
     public void setDefaultValue(String defaultValue) {
         this.defaultValue = defaultValue;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
     }
 }
