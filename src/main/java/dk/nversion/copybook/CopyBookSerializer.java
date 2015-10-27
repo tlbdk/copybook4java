@@ -21,12 +21,11 @@ public class CopyBookSerializer {
         this(type, null, debug);
     }
 
-    public CopyBookSerializer(Class type, Class mapper, boolean debug) throws CopyBookException {
+    public CopyBookSerializer(Class type, Class<CopyBookMapper> mapper, boolean debug) throws CopyBookException {
         CopyBookParser parser = new CopyBookParser(type, debug);
         try {
             if(mapper != null) {
-                serializer = (CopyBookMapper)mapper.getDeclaredConstructor().newInstance();
-                parser.getConfig().setDebug(debug); // TODO:
+                serializer = mapper.getDeclaredConstructor().newInstance();
 
             } else {
                 serializer = parser.getSerializerClass().getDeclaredConstructor().newInstance();

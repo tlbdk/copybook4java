@@ -14,12 +14,12 @@ public class ByteUtilsTest {
 
     @Test
     public void testAllEquals() throws Exception {
-        // TODO: Create test
+        // TODO: Create test for AllEquals
     }
 
     @Test
     public void testIndexOf() throws Exception {
-        // TODO: Create test
+        // TODO: Create test for IndexOf
     }
 
     @Test

@@ -3,7 +3,6 @@ package dk.nversion.copybook.serializers;
 import dk.nversion.copybook.converters.TypeConverterConfig;
 import dk.nversion.copybook.exceptions.CopyBookException;
 
-// TODO: Implement
 public interface CopyBookMapper {
     void initialize(CopyBookSerializerConfig config) throws CopyBookException;
     <T> byte[] serialize(T obj) throws CopyBookException;

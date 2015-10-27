@@ -57,6 +57,7 @@ public class CopyBookParser {
         config.setFields(walkClass(type, null, defaultTypeConverterMap, config.getCharset(), new HashMap<>()));
     }
 
+    @SuppressWarnings("unchecked")
     private List<CopyBookField> walkClass(Class type, String copyBookName, Map<String,TypeConverter> inheritedTypeConverterMap, Charset charset, Map<String,CopyBookField> copyBookFieldNames) throws CopyBookException {
         List<CopyBookField> results = new ArrayList<>();
 
@@ -103,7 +104,7 @@ public class CopyBookParser {
 
                             } else if(redefinesMatcher.find()) {
                                 //redefines = redefinesMatcher.group(1);
-                                // TODO: Implement
+                                // TODO: Implement redefines
 
                             } else {
                                 throw new CopyBookException("Could not parse occurs section in copybook line for field '" + fieldName + "'");
@@ -274,17 +275,18 @@ public class CopyBookParser {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends Annotation> List<T> getAnnotationsRecursively(Class type, Class<T> annotationType) {
-        List<Annotation> results = new ArrayList<>();
+        List<T> results = new ArrayList<>();
         for (Annotation annotation : type.getAnnotations()) {
             if(annotationType.isInstance(annotation)) {
-                results.add(annotation);
+                results.add((T)annotation);
 
             } else if (!annotation.annotationType().getName().startsWith("java")) {
                 results.addAll(getAnnotationsRecursively(annotation.annotationType(), annotationType));
             }
         }
-        return (List<T>)results;
+        return results;
     }
 
     private Map<String, TypeConverter> getTypeConvertersRecursively(Class type, Charset charset) throws CopyBookException {
