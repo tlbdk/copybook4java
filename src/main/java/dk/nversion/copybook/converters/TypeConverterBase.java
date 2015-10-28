@@ -13,6 +13,7 @@ public abstract class TypeConverterBase implements TypeConverter {
     protected byte paddingByte;
     protected byte nullFillerByte;
     protected String defaultValue;
+    protected Class type;
 
     public void initialize(TypeConverterConfig config) throws CopyBookException {
         this.charset = config.getCharset();
@@ -31,6 +32,7 @@ public abstract class TypeConverterBase implements TypeConverter {
         }
         this.nullFillerByte = nullFillerBytes[0];
         this.defaultValue = config.getDefaultValue();
+        this.type = config.getType();
     }
 
     public Object to(byte[] bytes, int decimals, boolean removePadding) throws TypeConverterException {
