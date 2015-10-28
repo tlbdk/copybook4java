@@ -1,5 +1,5 @@
 package dk.nversion.copybook.converters;
 
-public interface TypeConverterEnum {
+public interface TypeConverterIntEnum {
     int getValue();
 }

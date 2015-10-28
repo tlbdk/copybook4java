@@ -13,7 +13,7 @@ public class StringToString extends TypeConverterBase {
     }
 
     @Override
-    public String to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
+    public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
         if(ByteUtils.allEquals(bytes, this.nullFillerByte, offset, bytes.length)) { // All of value is null filler
             if(this.defaultValue != null) {
                 return this.defaultValue;
