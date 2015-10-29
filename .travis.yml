@@ -5,6 +5,7 @@ jdk:
 branches:
   only:
     - master
+    - coverity_scan
 
 notifications:
   email:
