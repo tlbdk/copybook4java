@@ -14,6 +14,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+// TODO: Add packed decimal - http://www.simotime.com/datapk01.htm
+// TODO: Add default VALUE after PIC
+
 public class CopyBookParser {
     private static Pattern re_CopyBookLine = Pattern.compile("^\\s*(\\d+)\\s+([^\\s]+)((?:\\s+OCCURS\\s+\\d+(?:\\s+TO\\s+\\d+)?\\s+TIMES)|(?:\\s+REDEFINES\\s+[^\\s]+))?(\\s+PIC\\s+[^\\s]+)?(\\s+DEPENDING\\s+ON\\s+[^\\s]+(?:\\s+IN\\s+[^\\s+]+)?)?\\s*\\.\\s*$");
     private static Pattern re_Occurs = Pattern.compile("^\\s*OCCURS\\s+(?:(\\d+)\\s+TO\\s+)?(\\d+)\\s+TIMES\\s*$");

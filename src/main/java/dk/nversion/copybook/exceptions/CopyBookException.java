@@ -2,6 +2,7 @@ package dk.nversion.copybook.exceptions;
 
 import dk.nversion.copybook.converters.TypeConverterException;
 
+// TODO: use RunTimeException
 public class CopyBookException extends Exception {
     public CopyBookException(String message) {
         super(message);
