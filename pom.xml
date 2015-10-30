@@ -6,7 +6,11 @@
 
     <groupId>dk.nversion</groupId>
     <artifactId>copybook4java</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <packaging>pom</packaging>
     <name>CopyBook4Java Project</name>
@@ -32,12 +36,9 @@
 
     <scm>
         <url>https://github.com/tlbdk/copybook4java.git</url>
+        <connection>scm:git:git@github.com:tlbdk/copybook4java.git</connection>
     </scm>
 
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
     <build>
         <plugins>
             <plugin>
@@ -49,6 +50,13 @@
                     <compilerArgument>-Xlint:all</compilerArgument>
                     <showWarnings>true</showWarnings>
                     <showDeprecation>true</showDeprecation>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>1.8.1</version>
+                <configuration>
+                    <tag>v${project.version}</tag>
                 </configuration>
             </plugin>
         </plugins>
