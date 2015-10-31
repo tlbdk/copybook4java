@@ -25,6 +25,9 @@ env:
 
 before_install:
   - 'echo ${TRAVIS_TAG+x} - ${TRAVIS_PULL_REQUEST} - ${TRAVIS_BUILD_NUMBER}'
+  - 'if [ -z "${TRAVIS_TAG+x}" ]; then echo ${TRAVIS_BUILD_NUMBER}; fi'
+  - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then echo ${TRAVIS_BUILD_NUMBER}; fi'
+  - 'if [ -z "${TRAVIS_TAG+x}" -a "${TRAVIS_PULL_REQUEST}" = "false" ]; then echo ${TRAVIS_BUILD_NUMBER}; fi'
   - 'if [ -z "${TRAVIS_TAG+x}" -a "${TRAVIS_PULL_REQUEST}" = "false" ]; then ./snapshot_version.sh ${TRAVIS_BUILD_NUMBER}; fi'
 
 after_success:
