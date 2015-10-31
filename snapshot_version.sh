@@ -6,9 +6,9 @@ if [ "$#" -ne 1 ]; then
 fi
 
 export CURRENT_VERSION_SNAPSHOT=$(mvn help:evaluate  -Dexpression=project.version |egrep -v "(^\[INFO\])")
-echo $CURRENT_VERSION_SNAPSHOT
+echo "org: $CURRENT_VERSION_SNAPSHOT"
 export CURRENT_VERSION=$(expr "$CURRENT_VERSION_SNAPSHOT" : "\([0-9\.]*\)")
-echo $CURRENT_VERSION
+echo "cur: $CURRENT_VERSION"
 export RELEASE_VERSION=$CURRENT_VERSION.$1-SNAPSHOT
-echo $RELEASE_VERSION
+echo "new: $RELEASE_VERSION"
 mvn versions:set -DnewVersion=$RELEASE_VERSION -DgenerateBackupPoms=false -DallowSnapshots=true
