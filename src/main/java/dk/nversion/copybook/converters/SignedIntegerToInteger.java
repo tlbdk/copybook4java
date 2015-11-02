@@ -114,9 +114,7 @@ public class SignedIntegerToInteger extends TypeConverterBase {
             throw new TypeConverterException("Unknown signing type");
         }
 
-        String test = debugBitmap(strBytes, strBytes.length -1, 1);
-
-
+        //String test = debugBitmap(strBytes, strBytes.length -1, 1);
         return strBytes;
     }
 
