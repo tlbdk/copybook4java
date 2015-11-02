@@ -5,7 +5,7 @@ import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
 
 public class SignedIntegerToLong extends SignedIntegerToInteger {
     @Override
-    public void validate(Class type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
         if(size > 22 && (this.signingType == CopyBookFieldSigningType.PREFIX || this.signingType == CopyBookFieldSigningType.POSTFIX)) {
             throw new TypeConverterException("long is not large enough to hold possible value");
         }

@@ -11,20 +11,25 @@ public class IntegerToEnum extends IntegerToInteger {
     Map<Object,byte[]> fromEnumMap = new HashMap<>();
 
     @Override
-    public void initialize(TypeConverterConfig config) throws CopyBookException {
+    public void initialize(TypeConverterConfig config) throws TypeConverterException {
         super.initialize(config);
-        enumConstants = type.getEnumConstants();
-        if(TypeConverterIntEnum.class.isAssignableFrom(type)) {
-            for (Object enumConstant : enumConstants) {
-                int value = ((TypeConverterIntEnum) enumConstant).getValue();
-                toEnumMap.put(value, enumConstant);
-                fromEnumMap.put(enumConstant, Integer.toString(value).getBytes(this.charset));
-            }
+        if(!(Enum.class.isAssignableFrom(type))) {
+            throw new TypeConverterException("Only supports converting to and from Enum");
+        }
+        enumConstants = config.getType().getEnumConstants();
+        if(enumConstants == null || enumConstants.length == 0) {
+            throw new TypeConverterException("Could not find any enum constants on type");
+        }
+
+        for (Object enumConstant : enumConstants) {
+            int value = ((TypeConverterIntEnum) enumConstant).getValue();
+            toEnumMap.put(value, enumConstant);
+            fromEnumMap.put(enumConstant, Integer.toString(value).getBytes(this.charset));
         }
     }
 
     @Override
-    public void validate(Class type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
         if(!(Enum.class.isAssignableFrom(type))) {
             throw new TypeConverterException("Only supports converting to and from Enum");
         }

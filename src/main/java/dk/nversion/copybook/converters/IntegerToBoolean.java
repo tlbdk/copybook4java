@@ -5,7 +5,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 public class IntegerToBoolean extends TypeConverterBase {
 
     @Override
-    public void validate(Class type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
         throw new NotImplementedException();
     }
 

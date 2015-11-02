@@ -6,6 +6,6 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Repeatable(CopyBookRedefines.class)
 public @interface CopyBookRedefine {
-    Class value();
+    Class<?> value();
     String match() default "";
 }

@@ -11,7 +11,7 @@ public class StringToEnum extends StringToString {
     Map<Object,byte[]> fromEnumMap = new HashMap<>();
 
     @Override
-    public void initialize(TypeConverterConfig config) throws CopyBookException {
+    public void initialize(TypeConverterConfig config) throws TypeConverterException {
         super.initialize(config);
         enumConstants = type.getEnumConstants();
         if(TypeConverterStringEnum.class.isAssignableFrom(type)) {
@@ -24,7 +24,7 @@ public class StringToEnum extends StringToString {
     }
 
     @Override
-    public void validate(Class type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
         if(!(TypeConverterStringEnum.class.isAssignableFrom(type))) {
             throw new TypeConverterException("Only supports converting to and from an Enum that implements TypeConverterStringEnum");
         }

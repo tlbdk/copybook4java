@@ -4,7 +4,7 @@ import dk.nversion.ByteUtils;
 
 public class IntegerToLong extends IntegerToInteger {
     @Override
-    public void validate(Class type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
         if(size > 21) {
             throw new TypeConverterException("Long is not large enough to hold possible value");
 

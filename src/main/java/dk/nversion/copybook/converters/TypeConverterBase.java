@@ -13,23 +13,23 @@ public abstract class TypeConverterBase implements TypeConverter {
     protected byte paddingByte;
     protected byte nullFillerByte;
     protected String defaultValue;
-    protected Class type;
+    protected Class<?> type;
     protected String format;
 
-    public void initialize(TypeConverterConfig config) throws CopyBookException {
+    public void initialize(TypeConverterConfig config) throws TypeConverterException {
         this.charset = config.getCharset();
         this.signingType = config.getSigningType();
         this.rightPadding = config.isRightPadding();
 
         byte[] paddingBytes = ( config.getPaddingChar() + "").getBytes(this.charset);
         if(paddingBytes.length > 1) {
-            throw new CopyBookException("Selected charset and padding char is more than 1 byte long");
+            throw new TypeConverterException("Selected charset and padding char is more than 1 byte long");
         }
         this.paddingByte = paddingBytes[0];
 
         byte[] nullFillerBytes = (config.getNullFillerChar() + "").getBytes(charset);
         if(nullFillerBytes.length > 1) {
-            throw new CopyBookException("Selected charset and null filler char is more than 1 byte long");
+            throw new TypeConverterException("Selected charset and null filler char is more than 1 byte long");
         }
         this.nullFillerByte = nullFillerBytes[0];
         this.defaultValue = config.getDefaultValue();

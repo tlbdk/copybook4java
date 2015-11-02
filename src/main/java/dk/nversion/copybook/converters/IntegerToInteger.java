@@ -4,7 +4,7 @@ import dk.nversion.ByteUtils;
 
 public class IntegerToInteger extends TypeConverterBase {
     @Override
-    public void validate(Class type, int size, int decimal) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimal) throws TypeConverterException {
         if(size > 9) {
             throw new TypeConverterException("int is not large enough to hold possible value");
         }
