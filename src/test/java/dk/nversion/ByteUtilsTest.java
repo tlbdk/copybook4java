@@ -7,7 +7,7 @@ import org.junit.rules.ExpectedException;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
-public class TestByteUtilsTest {
+public class ByteUtilsTest {
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
