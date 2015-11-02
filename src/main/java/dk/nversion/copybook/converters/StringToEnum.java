@@ -1,7 +1,5 @@
 package dk.nversion.copybook.converters;
 
-import dk.nversion.copybook.exceptions.CopyBookException;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,13 +11,18 @@ public class StringToEnum extends StringToString {
     @Override
     public void initialize(TypeConverterConfig config) throws TypeConverterException {
         super.initialize(config);
-        enumConstants = type.getEnumConstants();
-        if(TypeConverterStringEnum.class.isAssignableFrom(type)) {
-            for (Object enumConstant : enumConstants) {
-                String value = ((TypeConverterStringEnum) enumConstant).getValue();
-                toEnumMap.put(value, enumConstant);
-                fromEnumMap.put(enumConstant, value.getBytes(this.charset));
-            }
+        if(!(Enum.class.isAssignableFrom(type))) {
+            throw new TypeConverterException("Only supports converting to and from Enum");
+        }
+        enumConstants = config.getType().getEnumConstants();
+        if(enumConstants == null || enumConstants.length == 0) {
+            throw new TypeConverterException("Could not find any enum constants on type");
+        }
+
+        for (Object enumConstant : enumConstants) {
+            String value = ((TypeConverterStringEnum) enumConstant).getValue();
+            toEnumMap.put(value, enumConstant);
+            fromEnumMap.put(enumConstant, value.getBytes(this.charset));
         }
     }
 
