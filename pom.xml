@@ -12,7 +12,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <name>CopyBook4Java Project</name>
     <description>CopyBook serializer and deserializer for Java where CopyBook lines are used to annotate a normal Java class</description>
 
