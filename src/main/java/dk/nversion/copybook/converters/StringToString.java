@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 public class StringToString extends TypeConverterBase {
     @Override
-    public void validate(Class type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
         if(!(String.class.equals(type))) {
             throw new TypeConverterException("Only supports converting to and from String");
         }

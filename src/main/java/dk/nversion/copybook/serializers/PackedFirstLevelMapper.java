@@ -2,8 +2,10 @@ package dk.nversion.copybook.serializers;
 
 import dk.nversion.ByteUtils;
 import dk.nversion.copybook.exceptions.CopyBookException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class PackedFirstLevelMapper extends CopyBookMapperBase {
@@ -281,7 +283,7 @@ public class PackedFirstLevelMapper extends CopyBookMapperBase {
                     throw new CopyBookException("Bytes contains the separator char");
                 }
                 buffer.put(bytes);
-                if(debug) { System.out.print("'" + new String(bytes) +"'"); }
+                if(debug) { System.out.print("'" + new String(bytes, StandardCharsets.UTF_8) +"'"); }
 
                 if(separator) {
                     if(debug) { System.out.println("[]"); }

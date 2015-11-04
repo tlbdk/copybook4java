@@ -12,7 +12,7 @@ import java.util.List;
 public class CopyBookField {
     private List<CopyBookField> subCopyBookFields;
     // TODO: Change to types and Class[]
-    private Class type;
+    private Class<?> type;
     private Field field;
     private String[] lines;
     // TODO: Change to converters and TypeConverterBase[]
@@ -34,7 +34,7 @@ public class CopyBookField {
         return field.getType().isArray();
     }
 
-    public CopyBookField(Class type, Field field, String name, int size, int decimals, int minOccurs, int maxOccurs, String[] lines, String counterKey, TypeConverter converter) {
+    public CopyBookField(Class<?> type, Field field, String name, int size, int decimals, int minOccurs, int maxOccurs, String[] lines, String counterKey, TypeConverter converter) {
         // Handle private fields
         if(!field.isAccessible()) {
             field.setAccessible(true);
@@ -42,7 +42,7 @@ public class CopyBookField {
 
         this.type = type;
         this.field = field;
-        this.lines = lines;
+        this.lines = lines.clone();
         this.counterKey = counterKey;
         this.converter = converter;
         this.name = name;
@@ -219,11 +219,11 @@ public class CopyBookField {
     }
 
     public String[] getLines() {
-        return lines;
+        return lines.clone();
     }
 
     public void setLines(String[] lines) {
-        this.lines = lines;
+        this.lines = lines.clone();
     }
 
     public TypeConverter getConverter() {

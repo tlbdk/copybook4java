@@ -7,7 +7,7 @@ import java.math.BigInteger;
 
 public class DecimalToBigDecimal extends TypeConverterBase {
     @Override
-    public void validate(Class type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
         if(size < 2) {
             throw new TypeConverterException("Field to small to hold a decimal number: " + size + " < 2");
         }

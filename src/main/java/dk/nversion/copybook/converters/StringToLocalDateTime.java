@@ -10,13 +10,13 @@ public class StringToLocalDateTime extends StringToString {
     DateTimeFormatter formatter;
 
     @Override
-    public void initialize(TypeConverterConfig config) throws CopyBookException {
+    public void initialize(TypeConverterConfig config) throws TypeConverterException {
         super.initialize(config);
         this.formatter = DateTimeFormatter.ofPattern(this.format);
     }
 
     @Override
-    public void validate(Class type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
         if(!(LocalDateTime.class.isAssignableFrom(type))) {
             throw new TypeConverterException("Only supports converting to and from an Enum that is or extends from LocalDateTime");
         }

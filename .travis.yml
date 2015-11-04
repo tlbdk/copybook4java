@@ -5,7 +5,7 @@ jdk:
 branches:
   only:
     - master
-    - release
+    - coverity_scan
 
 notifications:
   email:
@@ -13,6 +13,8 @@ notifications:
       - tlb@nversion.dk
     on_success: never
     on_failure: always
+  slack:
+    secure: PgdwGHKuTXeADdTu0e9A3OCm7luiGUpaCXwBCsxCree6Zu6ZZi0c1VoTIGahgIztxSqdjDuJbLsLv7cih8h1GQPvuCCoY4mUFw2h/wfDih0+tF4H4CR+1+sefMLkSSVgJgMrn/nJDDrBr68/bCCA8I85PTACVpLFwhva/5DDerhai9WmcicMbyhla02mVp12zxXRPB9Xbpety5tF2hng3C5en1ToNv1Xg4p3N7xDm8KfVJUSFSCy1bcefkgyiaHHU4WYFaRZJMZK30zdNUIA19AA6MomIIKzaOX7riyHfaGVaaBSYV3ti/SY9whHuUg2RcFEII6xuia3/hzqdTdzS8PippTwbW9MzHEz+toWIu+0JP6bYyxNPhDFWeZ9wcU2pOUiYFlxZfmu0ocKAdYlF0PwSGu/82WGNDkel6jEMlpaWqj2MfKAhv/quoXs8b4YhsNY3HSkGf2AtbOJKlZqiLaNOGgFUSat3yME6QZb5U3SWrvDH15dVSyyr//U4OMG3xIEJpq3glKM6HHJFzZjBZkp+uNmVS7ZGgSk/6favpzEsiJZDRut/zHF1Yv6yA+2ke6eUPj/07Rw/VproT4dfE6/GWPMufw9YigffRC61BDpsP21cGNDEYgKXWvv+MW48aWrKnSG5yJO2ZoRJbBC20B2OBxfoyXBM9J5fPm43dA=
 
 env:
   global:

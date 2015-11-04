@@ -21,7 +21,7 @@ public class SignedIntegerToIntegerLastByteEBCDICBit5Test {
     public ExpectedException expectedEx = ExpectedException.none();
 
     @Before
-    public void runBeforeEveryTest() throws CopyBookException {
+    public void runBeforeEveryTest() throws TypeConverterException {
         this.charset = Charset.forName("cp037");
         this.config = new TypeConverterConfig();
         this.config.setCharset(this.charset);

@@ -6,7 +6,7 @@ import java.math.BigInteger;
 
 public class SignedIntegerToBigInteger extends SignedIntegerToInteger {
     @Override
-    public void validate(Class type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
         if(!BigInteger.class.equals(type)) {
             throw new TypeConverterException("Only supports converting to and from BigInteger");
         }

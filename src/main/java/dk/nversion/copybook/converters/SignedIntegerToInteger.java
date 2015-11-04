@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 public class SignedIntegerToInteger extends TypeConverterBase {
     @Override
-    public void validate(Class type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
         if(size > 10 && (this.signingType == CopyBookFieldSigningType.PREFIX || this.signingType == CopyBookFieldSigningType.POSTFIX)) {
             throw new TypeConverterException("int is not large enough to hold possible value");
         }
@@ -114,9 +114,7 @@ public class SignedIntegerToInteger extends TypeConverterBase {
             throw new TypeConverterException("Unknown signing type");
         }
 
-        String test = debugBitmap(strBytes, strBytes.length -1, 1);
-
-
+        //String test = debugBitmap(strBytes, strBytes.length -1, 1);
         return strBytes;
     }
 

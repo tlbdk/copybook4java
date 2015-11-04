@@ -27,11 +27,11 @@ public class CopyBookParser {
     private Class<? extends CopyBookMapper> serializerClass = null;
     private CopyBookSerializerConfig config = new CopyBookSerializerConfig();
 
-    public CopyBookParser(Class type) throws CopyBookException {
+    public CopyBookParser(Class<?> type) throws CopyBookException {
         this(type, false);
     }
 
-    public CopyBookParser(Class type, boolean debug) throws CopyBookException {
+    public CopyBookParser(Class<?> type, boolean debug) throws CopyBookException {
         // Read copybook annotations and defaults
         List<CopyBook> copybookAnnotations = getAnnotationsRecursively(CopyBookDefaults.class, CopyBook.class);
         copybookAnnotations.addAll(getAnnotationsRecursively(type, CopyBook.class));
@@ -61,10 +61,10 @@ public class CopyBookParser {
     }
 
     @SuppressWarnings("unchecked")
-    private List<CopyBookField> walkClass(Class type, String copyBookName, Map<String,TypeConverter> inheritedTypeConverterMap, Charset charset, Map<String,CopyBookField> copyBookFieldNames) throws CopyBookException {
+    private List<CopyBookField> walkClass(Class<?> type, String copyBookName, Map<String,TypeConverter> inheritedTypeConverterMap, Charset charset, Map<String,CopyBookField> copyBookFieldNames) throws CopyBookException {
         List<CopyBookField> results = new ArrayList<>();
 
-        CopyBook copyBookAnnotation = (CopyBook)type.getAnnotation(CopyBook.class);
+        CopyBook copyBookAnnotation = type.getAnnotation(CopyBook.class);
         if(copyBookAnnotation == null) {
             throw new CopyBookException("No copybook defined on this class");
         }
@@ -75,10 +75,10 @@ public class CopyBookParser {
 
         // Iterate over the class fields with CopyBookLine annotation
         for (Field field : type.getDeclaredFields()) {
-            String[] copyBookLines = Arrays.stream((CopyBookLine[])field.getAnnotationsByType(CopyBookLine.class)).map(cbl -> cbl.value()).toArray(String[]::new);
+            String[] copyBookLines = Arrays.stream(field.getAnnotationsByType(CopyBookLine.class)).map(cbl -> cbl.value()).toArray(String[]::new);
             if(copyBookLines.length > 0) {
                 String fieldName = type.getName() + "." + field.getName();
-                Class fieldBaseType = field.getType().isArray() ? field.getType().getComponentType() : field.getType();
+                Class<?> fieldBaseType = field.getType().isArray() ? field.getType().getComponentType() : field.getType();
                 String fieldTypeName = getTypeClassSimpleName(fieldBaseType);
                 List<String> names = new ArrayList<>();
                 if(copyBookName != null) {
@@ -265,7 +265,7 @@ public class CopyBookParser {
         return results;
     }
 
-    private String getTypeClassSimpleName(Class type) {
+    private String getTypeClassSimpleName(Class<?> type) {
         switch (type.getName()) {
             case "int": return "Integer";
             case "long": return "Long";
@@ -279,7 +279,7 @@ public class CopyBookParser {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Annotation> List<T> getAnnotationsRecursively(Class type, Class<T> annotationType) {
+    private <T extends Annotation> List<T> getAnnotationsRecursively(Class<?> type, Class<T> annotationType) {
         List<T> results = new ArrayList<>();
         for (Annotation annotation : type.getAnnotations()) {
             if(annotationType.isInstance(annotation)) {
@@ -292,7 +292,7 @@ public class CopyBookParser {
         return results;
     }
 
-    private Map<String, TypeConverter> getTypeConvertersRecursively(Class type, Charset charset) throws CopyBookException {
+    private Map<String, TypeConverter> getTypeConvertersRecursively(Class<?> type, Charset charset) throws CopyBookException {
         Map<String,TypeConverter> results = new HashMap<>();
         for (Annotation annotation : type.getAnnotations()) {
             if(CopyBookFieldFormats.class.isInstance(annotation)) {
@@ -327,6 +327,9 @@ public class CopyBookParser {
 
         } catch (InstantiationException | IllegalAccessException ex) {
             throw new CopyBookException("Failed to load TypeConverterBase");
+
+        } catch (TypeConverterException e) {
+            throw new CopyBookException("Failed to initialize type convert", e);
         }
     }
 

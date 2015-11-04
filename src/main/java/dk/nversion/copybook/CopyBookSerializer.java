@@ -13,15 +13,15 @@ import java.util.List;
 public class CopyBookSerializer {
     private CopyBookMapper serializer;
 
-    public CopyBookSerializer(Class type) throws CopyBookException {
+    public CopyBookSerializer(Class<?> type) throws CopyBookException {
         this(type, false);
     }
 
-    public CopyBookSerializer(Class type, boolean debug) throws CopyBookException {
+    public CopyBookSerializer(Class<?> type, boolean debug) throws CopyBookException {
         this(type, null, debug);
     }
 
-    public CopyBookSerializer(Class type, Class<CopyBookMapper> mapper, boolean debug) throws CopyBookException {
+    public CopyBookSerializer(Class<?> type, Class<CopyBookMapper> mapper, boolean debug) throws CopyBookException {
         CopyBookParser parser = new CopyBookParser(type, debug);
         try {
             if(mapper != null) {

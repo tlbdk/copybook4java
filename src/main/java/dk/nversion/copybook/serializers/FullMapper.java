@@ -110,10 +110,10 @@ public class FullMapper extends CopyBookMapperBase {
                 // Save field name and counter value for later use
                 if(value != null) {
                     if (field.getField().getType().equals(Integer.TYPE) && fieldName.endsWith("_count")) {
-                        counters.put(fieldName, (int)value);
+                        counters.put(fieldName, (Integer) value);
                     }
                     if (field.isCounter()) {
-                        counters.put(field.getName(), (int)value);
+                        counters.put(field.getName(), (Integer)value);
                     }
                 }
             }

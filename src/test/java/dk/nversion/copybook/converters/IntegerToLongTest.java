@@ -19,7 +19,7 @@ public class IntegerToLongTest {
     public ExpectedException expectedEx = ExpectedException.none();
 
     @Before
-    public void runBeforeEveryTest() throws CopyBookException {
+    public void runBeforeEveryTest() throws TypeConverterException {
         this.config = new TypeConverterConfig();
         this.config.setCharset(StandardCharsets.UTF_8);
         this.config.setPaddingChar('0');
