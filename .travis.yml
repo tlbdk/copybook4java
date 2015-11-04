@@ -25,11 +25,11 @@ env:
 
 before_install:
   - 'echo ${TRAVIS_TAG} - ${TRAVIS_PULL_REQUEST} - ${TRAVIS_BUILD_NUMBER}'
-  - 'if [ -z "${TRAVIS_TAG}" -a "${TRAVIS_PULL_REQUEST}" = "false" ]; then ./snapshot_version.sh ${TRAVIS_BUILD_NUMBER}; fi'
+  - 'if [ -z "${TRAVIS_TAG}" -a "${TRAVIS_PULL_REQUEST}" = "false" ]; then ./set_snapshot_version.sh; fi'
 
 after_success:
   - 'echo Done building'
-  - 'if [ -n "${TRAVIS_TAG}" -a "${TRAVIS_PULL_REQUEST}" = "false" ]; then mvn deploy -DskipTests --settings deploy.xml; fi'
+  - 'if [ -z "${TRAVIS_TAG}" -a "${TRAVIS_PULL_REQUEST}" = "false" ]; then mvn deploy -DskipTests --settings deploy.xml; fi'
 
 addons:
   coverity_scan:
