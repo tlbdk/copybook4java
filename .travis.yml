@@ -31,7 +31,7 @@ before_install:
 
 after_success:
   - 'echo Done building'
-  - 'if [ -z "${TRAVIS_TAG}" -a "${TRAVIS_PULL_REQUEST}" = "false" ]; then mvn deploy -DskipTests --settings deploy.xml; fi'
+  - 'if [ -z "${TRAVIS_TAG}" -a "${TRAVIS_PULL_REQUEST}" = "false" ]; then mvn deploy -DskipTests --settings travis-deploy.xml; fi'
 
 addons:
   coverity_scan:
