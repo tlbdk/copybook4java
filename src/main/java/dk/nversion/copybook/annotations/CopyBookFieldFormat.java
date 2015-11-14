@@ -16,5 +16,5 @@ public @interface CopyBookFieldFormat {
     char nullFillerChar() default (byte)0;
     String defaultValue() default "";
     String errorValue() default ""; // TODO: Implement with @CopyBookFieldFormat(type = IntegerToInteger.class, errorValue = "0")
-    // String format() default ""; // TODO: Implement for use with DateTime fields etc.
+    String format() default "";
 }

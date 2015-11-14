@@ -281,6 +281,7 @@ public class CopyBookParser {
 
     private String getTypeClassSimpleName(Class<?> type) {
         switch (type.getName()) {
+            case "boolean": return "Boolean";
             case "int": return "Integer";
             case "long": return "Long";
             case "double": return "Double";
@@ -333,6 +334,7 @@ public class CopyBookParser {
         config.setPaddingChar(copyBookFieldFormat.paddingChar());
         config.setSigningType(copyBookFieldFormat.signingType());
         config.setDefaultValue(copyBookFieldFormat.defaultValue().isEmpty() ? null : copyBookFieldFormat.defaultValue());
+        config.setFormat(copyBookFieldFormat.format());
 
         try {
             TypeConverter typeConverter = copyBookFieldFormat.type().newInstance();

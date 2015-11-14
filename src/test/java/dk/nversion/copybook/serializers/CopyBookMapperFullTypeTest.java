@@ -18,19 +18,19 @@ import static org.junit.Assert.assertEquals;
 
 public class CopyBookMapperFullTypeTest {
     @CopyBook(type = FullMapper.class)
-    static public class fieldTypeUnsignedIntegerToInt {
+    static public class fieldTypeIntegerToInt {
         @CopyBookLine("01 FIELD PIC 9(2).")
         public int field;
     }
 
     @org.junit.Test
     public void testFieldTypeUnsignedIntegerToInt() throws Exception {
-        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeUnsignedIntegerToInt.class);
-        fieldTypeUnsignedIntegerToInt test = new fieldTypeUnsignedIntegerToInt();
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeIntegerToInt.class);
+        fieldTypeIntegerToInt test = new fieldTypeIntegerToInt();
         test.field = 10;
         byte[] testBytes = serializer.serialize(test);
         assertArrayEquals(testBytes, new byte[]{(byte) '1', (byte) '0'});
-        fieldTypeUnsignedIntegerToInt test2 = serializer.deserialize(testBytes, fieldTypeUnsignedIntegerToInt.class);
+        fieldTypeIntegerToInt test2 = serializer.deserialize(testBytes, fieldTypeIntegerToInt.class);
         assertEquals(10, test2.field);
     }
 
@@ -302,7 +302,7 @@ public class CopyBookMapperFullTypeTest {
     }
 
     @org.junit.Test
-    public void testfieldTypeIntegerToIntegerToTypeConverterStringEnum() throws Exception {
+    public void testFieldTypeIntegerToIntegerToTypeConverterStringEnum() throws Exception {
         CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeIntegerToIntegerToTypeConverterStringEnum.class);
         fieldTypeIntegerToIntegerToTypeConverterStringEnum test = new fieldTypeIntegerToIntegerToTypeConverterStringEnum();
         test.field = TestStringEnum.HIGH;
@@ -312,8 +312,55 @@ public class CopyBookMapperFullTypeTest {
         assertEquals(TestStringEnum.HIGH, test2.field);
     }
 
+    @CopyBook(type = FullMapper.class)
+    static public class fieldTypeIntegerToBoolean {
+        @CopyBookLine("01 FIELD PIC 9(2).")
+        public boolean field;
+    }
 
+    @org.junit.Test
+    public void testFieldTypeIntegerToBoolean() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeIntegerToBoolean.class);
+        fieldTypeIntegerToBoolean test = new fieldTypeIntegerToBoolean();
+        test.field = true;
+        byte[] testBytes = serializer.serialize(test);
+        assertArrayEquals(testBytes, new byte[]{(byte) '0', (byte) '1'});
+        fieldTypeIntegerToBoolean test2 = serializer.deserialize(testBytes, fieldTypeIntegerToBoolean.class);
+        assertEquals(true, test2.field);
+    }
 
+    @CopyBook(type = FullMapper.class)
+    static public class fieldTypeSignedIntegerToBoolean {
+        @CopyBookLine("01 FIELD PIC 9(2).")
+        public boolean field;
+    }
 
+    @org.junit.Test
+    public void testfieldTypeSignedIntegerToBoolean() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeSignedIntegerToBoolean.class);
+        fieldTypeSignedIntegerToBoolean test = new fieldTypeSignedIntegerToBoolean();
+        test.field = true;
+        byte[] testBytes = serializer.serialize(test);
+        assertArrayEquals(testBytes, new byte[]{(byte) '0', (byte) '1'});
+        fieldTypeSignedIntegerToBoolean test2 = serializer.deserialize(testBytes, fieldTypeSignedIntegerToBoolean.class);
+        assertEquals(true, test2.field);
+    }
+
+    @CopyBook(type = FullMapper.class)
+    static public class fieldTypeStringToBoolean {
+        @CopyBookLine("01 FIELD PIC X(2).")
+        public boolean field;
+    }
+
+    @org.junit.Test
+    public void testFieldTypeStringToBoolean() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeStringToBoolean.class);
+        fieldTypeStringToBoolean test = new fieldTypeStringToBoolean();
+        test.field = true;
+        byte[] testBytes = serializer.serialize(test);
+        assertArrayEquals(testBytes, "Y ".getBytes(StandardCharsets.UTF_8));
+        fieldTypeStringToBoolean test2 = serializer.deserialize(testBytes, fieldTypeStringToBoolean.class);
+        assertEquals(true, test2.field);
+    }
 
 }
