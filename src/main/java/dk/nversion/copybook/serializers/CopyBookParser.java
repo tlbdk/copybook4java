@@ -209,6 +209,20 @@ public class CopyBookParser {
                     if (typeConverter == null) {
                         typeConverter = fieldTypeConverterMap.get(copyBookType + "To" + fieldTypeName);
                     }
+                    // Try to see if we have a convert for any of the interfaces this type implements
+                    if (typeConverter == null) {
+                        for (Class<?> aInterface : fieldBaseType.getInterfaces()) {
+                            typeConverter = fieldTypeConverterMap.get(copyBookType + "To" + aInterface.getSimpleName());
+                            if(typeConverter != null) {
+                                try {
+                                    typeConverter = typeConverter.copy(type);
+
+                                } catch (IllegalAccessException | InstantiationException e) {
+                                    throw new CopyBookException("Failed to copy type convert for this field '" + fieldName + "'", e);
+                                }
+                            }
+                        }
+                    }
 
                 } else {
                     if (field.getType().isArray()) {

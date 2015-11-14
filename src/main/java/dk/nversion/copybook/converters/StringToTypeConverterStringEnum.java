@@ -5,18 +5,23 @@ import dk.nversion.copybook.exceptions.TypeConverterException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StringToEnum extends StringToString {
+public class StringToTypeConverterStringEnum extends StringToString {
+    Class<?> type;
     Object[] enumConstants;
     Map<String,Object> toEnumMap = new HashMap<>();
     Map<Object,byte[]> fromEnumMap = new HashMap<>();
 
     @Override
-    public void initialize(TypeConverterConfig config) {
-        super.initialize(config);
-        if(!(Enum.class.isAssignableFrom(type))) {
-            throw new TypeConverterException("Only supports converting to and from Enum");
+    public void validate(Class<?> type, int size, int decimals) {
+        if(!(TypeConverterStringEnum.class.isAssignableFrom(type))) {
+            throw new TypeConverterException("Only supports converting to and from an Enum that implements TypeConverterStringEnum");
         }
-        enumConstants = config.getType().getEnumConstants();
+        if(this.type != null && this.type != type) {
+            throw new TypeConverterException("Type converter can only be used on " + type.getSimpleName() + " fields");
+        }
+        this.type = type;
+        
+        enumConstants = type.getEnumConstants();
         if(enumConstants == null || enumConstants.length == 0) {
             throw new TypeConverterException("Could not find any enum constants on type");
         }
@@ -25,13 +30,6 @@ public class StringToEnum extends StringToString {
             String value = ((TypeConverterStringEnum) enumConstant).getValue();
             toEnumMap.put(value, enumConstant);
             fromEnumMap.put(enumConstant, value.getBytes(this.charset));
-        }
-    }
-
-    @Override
-    public void validate(Class<?> type, int size, int decimals) {
-        if(!(TypeConverterStringEnum.class.isAssignableFrom(type))) {
-            throw new TypeConverterException("Only supports converting to and from an Enum that implements TypeConverterStringEnum");
         }
     }
 

@@ -13,10 +13,12 @@ public abstract class TypeConverterBase implements TypeConverter {
     protected byte paddingByte;
     protected byte nullFillerByte;
     protected String defaultValue;
-    protected Class<?> type;
     protected String format;
+    protected TypeConverterConfig config;
 
+    @Override
     public void initialize(TypeConverterConfig config) {
+        this.config = config;
         this.charset = config.getCharset();
         this.signingType = config.getSigningType();
         this.rightPadding = config.isRightPadding();
@@ -33,12 +35,14 @@ public abstract class TypeConverterBase implements TypeConverter {
         }
         this.nullFillerByte = nullFillerBytes[0];
         this.defaultValue = config.getDefaultValue();
-        this.type = config.getType();
         this.format = config.getFormat();
     }
 
-    public Object to(byte[] bytes, int decimals, boolean removePadding) {
-        return this.to(bytes, 0, bytes.length, decimals, removePadding);
+    @Override
+    public TypeConverter copy(Class<?> type) throws IllegalAccessException, InstantiationException {
+        TypeConverter newConverter = this.getClass().newInstance();
+        newConverter.initialize(config);
+        return newConverter;
     }
 
     protected byte[] padBytes(byte[] bytes, int length) {

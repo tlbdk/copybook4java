@@ -11,19 +11,19 @@ import java.nio.charset.StandardCharsets;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-public class StringToEnumTest {
+public class IntegerToTypeConverterIntEnumTest {
     private TypeConverter typeConverter;
     private TypeConverterConfig config;
 
-    public enum TestStringEnum implements TypeConverterStringEnum {
-        HIGH("HH"), MEDIUM("MM"), LOW("LL");
-        private final String value;
+    public enum TestIntEnum implements TypeConverterIntEnum {
+        HIGH(30), MEDIUM(20), LOW(10);
+        private final int value;
 
-        TestStringEnum(String value) {
+        TestIntEnum(int value) {
             this.value = value;
         }
 
-        public String getValue() {
+        public int getValue() {
             return value;
         }
     }
@@ -37,14 +37,14 @@ public class StringToEnumTest {
         this.config = new TypeConverterConfig();
         this.config.setCharset(StandardCharsets.UTF_8);
         this.config.setPaddingChar('0');
-        this.config.setType(TestStringEnum.class);
-        typeConverter = new StringToEnum();
+        typeConverter = new IntegerToTypeConverterIntEnum();
         typeConverter.initialize(config);
+        typeConverter.validate(TestIntEnum.class, 2, 1);
     }
 
     @Test
     public void testValidateSuccess() throws Exception {
-        typeConverter.validate(TestStringEnum.class, 2, -1);
+        typeConverter.validate(TestIntEnum.class, 2, -1);
     }
 
     @Test(expected = TypeConverterException.class)
@@ -54,23 +54,23 @@ public class StringToEnumTest {
 
     @Test
     public void testTo() throws Exception {
-        assertEquals(TestStringEnum.HIGH, typeConverter.to("HH".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
-        assertEquals(TestStringEnum.MEDIUM, typeConverter.to("MM".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
-        assertEquals(TestStringEnum.LOW, typeConverter.to("LL".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
+        assertEquals(TestIntEnum.HIGH, typeConverter.to("30".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
+        assertEquals(TestIntEnum.MEDIUM, typeConverter.to("20".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
+        assertEquals(TestIntEnum.LOW, typeConverter.to("10".getBytes(StandardCharsets.UTF_8), 0, 2, -1, true));
     }
 
     @Test
     public void testToNullDefaultValue() throws Exception {
         config.setNullFillerChar((char)0);
-        config.setDefaultValue("MM");
+        config.setDefaultValue("10");
         typeConverter.initialize(config);
-        assertEquals(TestStringEnum.MEDIUM, typeConverter.to(new byte[4], 0, 2, 2, true));
+        assertEquals(TestIntEnum.LOW, typeConverter.to(new byte[4], 0, 2, 2, true));
     }
 
     @Test
     public void testToNullValue() throws Exception {
-        expectedEx.expect(TypeConverterException.class);
-        expectedEx.expectMessage("Unknown value for enum: null");
+        expectedEx.expect(NumberFormatException.class);
+        expectedEx.expectMessage("For input string");
         config.setNullFillerChar((char)0);
         typeConverter.initialize(config);
         assertEquals(null, typeConverter.to(new byte[4], 0, 2, 2, true));
@@ -78,15 +78,15 @@ public class StringToEnumTest {
 
     @Test
     public void testFrom() throws Exception {
-        assertArrayEquals("HH".getBytes(StandardCharsets.UTF_8),  typeConverter.from(TestStringEnum.HIGH, 2, -1, true));
-        assertArrayEquals("MM".getBytes(StandardCharsets.UTF_8),  typeConverter.from(TestStringEnum.MEDIUM, 2, -1, true));
-        assertArrayEquals("LL".getBytes(StandardCharsets.UTF_8),  typeConverter.from(TestStringEnum.LOW, 2, -1, true));
+        assertArrayEquals("30".getBytes(StandardCharsets.UTF_8),  typeConverter.from(TestIntEnum.HIGH, 2, -1, true));
+        assertArrayEquals("20".getBytes(StandardCharsets.UTF_8),  typeConverter.from(TestIntEnum.MEDIUM, 2, -1, true));
+        assertArrayEquals("10".getBytes(StandardCharsets.UTF_8),  typeConverter.from(TestIntEnum.LOW, 2, -1, true));
     }
 
     @Test
     public void testFromOverflow() throws Exception {
         expectedEx.expect(TypeConverterException.class);
         expectedEx.expectMessage("Field to small for value");
-        byte[] bytes = typeConverter.from(TestStringEnum.MEDIUM, 1, -1, true);
+        byte[] bytes = typeConverter.from(TestIntEnum.MEDIUM, 1, -1, true);
     }
 }

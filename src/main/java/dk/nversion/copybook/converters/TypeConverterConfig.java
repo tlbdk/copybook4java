@@ -12,7 +12,6 @@ public class TypeConverterConfig {
     private char nullFillerChar;
     private String defaultValue;
     private String format;
-    private Class<?> type;
 
     public TypeConverterConfig() {
     }
@@ -71,13 +70,5 @@ public class TypeConverterConfig {
 
     public void setFormat(String format) {
         this.format = format;
-    }
-
-    public Class<?> getType() {
-        return type;
-    }
-
-    public void setType(Class<?> type) {
-        this.type = type;
     }
 }
