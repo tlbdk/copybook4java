@@ -1,6 +1,7 @@
 package dk.nversion.copybook.converters;
 
 import dk.nversion.copybook.exceptions.CopyBookException;
+import dk.nversion.copybook.exceptions.TypeConverterException;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -22,7 +23,7 @@ public class IntegerToBooleanTest {
     public ExpectedException expectedEx = ExpectedException.none();
 
     @Before
-    public void runBeforeEveryTest() throws CopyBookException {
+    public void runBeforeEveryTest() {
         this.config = new TypeConverterConfig();
         this.config.setCharset(StandardCharsets.UTF_8);
         this.config.setPaddingChar('0');

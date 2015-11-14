@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class FullMapper extends CopyBookMapperBase {
 
-    public <T> byte[] serialize(T obj) throws CopyBookException {
+    public <T> byte[] serialize(T obj) {
         ByteBuffer buffer = ByteBuffer.wrap(new byte[this.maxRecordSize]);
         writeFieldsToBuffer(this.fields, buffer, obj);
         byte[] result = new byte[buffer.position()];
@@ -18,7 +18,7 @@ public class FullMapper extends CopyBookMapperBase {
         return result;
     }
 
-    private <T> void writeFieldsToBuffer(List<CopyBookField> fields, ByteBuffer buffer, T rootObj) throws CopyBookException {
+    private <T> void writeFieldsToBuffer(List<CopyBookField> fields, ByteBuffer buffer, T rootObj) {
         for(CopyBookField field : fields) {
             if(field.isArray()) {
                 Object array = field.getObject(rootObj);
@@ -47,7 +47,7 @@ public class FullMapper extends CopyBookMapperBase {
         }
     }
 
-    public <T> T deserialize(byte[] bytes, Class<T> type) throws CopyBookException {
+    public <T> T deserialize(byte[] bytes, Class<T> type) {
         try {
             T obj = type.newInstance();
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
@@ -59,7 +59,7 @@ public class FullMapper extends CopyBookMapperBase {
         }
     }
 
-    private void readFieldsFromBuffer(List<CopyBookField> fields, ByteBuffer buffer, Object obj, String name, Map<String, Integer> counters) throws CopyBookException {
+    private void readFieldsFromBuffer(List<CopyBookField> fields, ByteBuffer buffer, Object obj, String name, Map<String, Integer> counters) {
         for(CopyBookField field : fields) {
             String fieldName = name + "." + field.getFieldName();
             if(field.isArray()) {

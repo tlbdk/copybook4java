@@ -1,6 +1,7 @@
 package dk.nversion.copybook.converters;
 
 import dk.nversion.ByteUtils;
+import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -8,14 +9,14 @@ import java.util.Arrays;
 
 public class SignedDecimalToBigDecimal extends SignedIntegerToInteger {
     @Override
-    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) {
         if(!BigDecimal.class.equals(type)) {
             throw new TypeConverterException("Only supports converting to and from BigDecimal");
         }
     }
 
     @Override
-    public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
+    public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) {
         if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, offset, bytes.length)) { // All of value is null filler
             return new BigDecimal(defaultValue);
         } else {
@@ -24,7 +25,7 @@ public class SignedDecimalToBigDecimal extends SignedIntegerToInteger {
     }
 
     @Override
-    public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
+    public byte[] from(Object value, int length, int decimals, boolean addPadding) {
         if(value == null && this.defaultValue == null) {
             return null;
         }

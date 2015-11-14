@@ -1,10 +1,11 @@
 package dk.nversion.copybook.converters;
 
 import dk.nversion.ByteUtils;
+import dk.nversion.copybook.exceptions.TypeConverterException;
 
 public class IntegerToInteger extends TypeConverterBase {
     @Override
-    public void validate(Class<?> type, int size, int decimal) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimal) {
         if(size > 9) {
             throw new TypeConverterException("int is not large enough to hold possible value");
         }
@@ -14,7 +15,7 @@ public class IntegerToInteger extends TypeConverterBase {
     }
 
     @Override
-    public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
+    public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) {
         if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, offset, bytes.length)) { // All of value is null filler
             return Integer.parseInt(this.defaultValue);
 
@@ -24,7 +25,7 @@ public class IntegerToInteger extends TypeConverterBase {
     }
 
     @Override
-    public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
+    public byte[] from(Object value, int length, int decimals, boolean addPadding) {
         if(value == null && this.defaultValue == null) {
             return null;
         }
@@ -46,7 +47,7 @@ public class IntegerToInteger extends TypeConverterBase {
 
     }
 
-    protected String getIntegerString(byte[] bytes, int offset, int length, boolean removePadding) throws TypeConverterException {
+    protected String getIntegerString(byte[] bytes, int offset, int length, boolean removePadding) {
         String strValue = getString(bytes, offset, length, removePadding, 1);
         if(strValue.startsWith("-") || strValue.endsWith("-")) {
             throw new TypeConverterException("Integer value can not start or end with -");

@@ -2,7 +2,7 @@ package dk.nversion.copybook.serializers;
 
 import dk.nversion.copybook.converters.TypeConverter;
 import dk.nversion.copybook.exceptions.CopyBookException;
-import dk.nversion.copybook.converters.TypeConverterException;
+import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -52,17 +52,17 @@ public class CopyBookField {
         this.maxOccurs = maxOccurs;
     }
 
-    public Object setBytes(Object obj, ByteBuffer buffer, boolean removePadding) throws CopyBookException {
+    public Object setBytes(Object obj, ByteBuffer buffer, boolean removePadding) {
         byte[] bytes = new byte[this.size];
         buffer.get(bytes);
         return setBytes(obj, bytes, 0,  bytes.length, removePadding);
     }
 
-    public Object setBytes(Object obj, byte[] bytes, boolean removePadding) throws CopyBookException {
+    public Object setBytes(Object obj, byte[] bytes, boolean removePadding) {
         return setBytes(obj, bytes, 0, bytes != null ? bytes.length : 0, removePadding);
     }
 
-    public Object setBytes(Object obj, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
+    public Object setBytes(Object obj, byte[] bytes, int offset, int length, boolean removePadding) {
         try {
             Object value = bytes != null ? converter.to(bytes, offset, length, this.decimals, removePadding) : null;
             field.set(obj, value);
@@ -77,17 +77,17 @@ public class CopyBookField {
         }
     }
 
-    public Object setBytes(Object obj, int index, ByteBuffer buffer, boolean removePadding) throws CopyBookException {
+    public Object setBytes(Object obj, int index, ByteBuffer buffer, boolean removePadding) {
         byte[] bytes = new byte[this.size];
         buffer.get(bytes);
         return setBytes(obj, index, bytes, 0, bytes.length, removePadding);
     }
 
-    public Object setBytes(Object arrayObj, int index, byte[] bytes, boolean removePadding) throws CopyBookException {
+    public Object setBytes(Object arrayObj, int index, byte[] bytes, boolean removePadding) {
         return setBytes(arrayObj, index, bytes, 0, bytes != null ? bytes.length : 0, removePadding);
     }
 
-    public Object setBytes(Object arrayObj, int index, byte[] bytes, int offset, int length, boolean removePadding) throws CopyBookException {
+    public Object setBytes(Object arrayObj, int index, byte[] bytes, int offset, int length, boolean removePadding) {
         try {
             Object value = bytes != null ? converter.to(bytes, offset, length, this.decimals, removePadding) : null;
             Array.set(arrayObj, index, value);
@@ -98,11 +98,11 @@ public class CopyBookField {
         }
     }
 
-    public byte[] getBytes(Object rootObj, boolean addPadding) throws CopyBookException {
+    public byte[] getBytes(Object rootObj, boolean addPadding) {
         return getBytes(rootObj, null, addPadding);
     }
 
-    public byte[] getBytes(Object rootObj, Object valueObj, boolean addPadding) throws CopyBookException {
+    public byte[] getBytes(Object rootObj, Object valueObj, boolean addPadding) {
         try {
             if(valueObj == null) {
                 valueObj = getObject(rootObj);
@@ -117,11 +117,11 @@ public class CopyBookField {
         }
     }
 
-    public byte[] getBytes(Object rootObj, int index, boolean addPadding) throws CopyBookException {
+    public byte[] getBytes(Object rootObj, int index, boolean addPadding) {
        return getBytes(rootObj, null, index, addPadding);
     }
 
-    public byte[] getBytes(Object rootObj, Object arrayObj, int index, boolean addPadding) throws CopyBookException {
+    public byte[] getBytes(Object rootObj, Object arrayObj, int index, boolean addPadding) {
         try {
             return converter.from(getObject(rootObj, arrayObj, index), this.size, this.decimals, addPadding);
 
@@ -130,7 +130,7 @@ public class CopyBookField {
         }
     }
 
-    public Object getObject(Object rootObj) throws CopyBookException {
+    public Object getObject(Object rootObj) {
         try {
             return rootObj != null ? field.get(rootObj) : null;
 
@@ -140,19 +140,19 @@ public class CopyBookField {
         }
     }
 
-    public Object getObject(Object rootObj, int index) throws CopyBookException {
+    public Object getObject(Object rootObj, int index) {
         Object array = getObject(rootObj);
         return array != null && index < Array.getLength(array) ? Array.get(array, index) : null;
     }
 
-    public Object getObject(Object rootObj, Object arrayObj, int index) throws CopyBookException {
+    public Object getObject(Object rootObj, Object arrayObj, int index) {
         if(arrayObj == null) {
             arrayObj = getObject(rootObj);
         }
         return arrayObj != null && index < Array.getLength(arrayObj) ? Array.get(arrayObj, index) : null;
     }
 
-    public Object createArrayObject(Object rootObj, int size) throws CopyBookException {
+    public Object createArrayObject(Object rootObj, int size) {
         try {
             Object array = Array.newInstance(this.field.getType().getComponentType(), size);
             this.field.set(rootObj, array);
@@ -164,7 +164,7 @@ public class CopyBookField {
         }
     }
 
-    public Object createObject(Object rootObj) throws CopyBookException {
+    public Object createObject(Object rootObj) {
         try {
             Object value = field.getType().newInstance();
             this.field.set(rootObj, value);
@@ -179,7 +179,7 @@ public class CopyBookField {
         }
     }
 
-    public Object createObject(Object obj, int index) throws CopyBookException {
+    public Object createObject(Object obj, int index) {
         try {
             Object value = field.getType().getComponentType().newInstance();
             Array.set(obj, index, value);

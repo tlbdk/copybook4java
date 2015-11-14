@@ -4,9 +4,9 @@ import dk.nversion.copybook.converters.TypeConverterConfig;
 import dk.nversion.copybook.exceptions.CopyBookException;
 
 public interface CopyBookMapper {
-    void initialize(CopyBookSerializerConfig config) throws CopyBookException;
-    <T> byte[] serialize(T obj) throws CopyBookException;
-    <T> T deserialize(byte[] bytes, Class<T> type) throws CopyBookException, InstantiationException;
+    void initialize(CopyBookSerializerConfig config);
+    <T> byte[] serialize(T obj);
+    <T> T deserialize(byte[] bytes, Class<T> type);
     int getMaxRecordSize();
     void setMaxRecordSize(int size);
     int getMinRecordSize();

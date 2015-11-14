@@ -1,13 +1,14 @@
 package dk.nversion.copybook.converters;
 
 import dk.nversion.ByteUtils;
+import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 public class DecimalToBigDecimal extends TypeConverterBase {
     @Override
-    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) {
         if(size < 2) {
             throw new TypeConverterException("Field to small to hold a decimal number: " + size + " < 2");
         }
@@ -17,7 +18,7 @@ public class DecimalToBigDecimal extends TypeConverterBase {
     }
 
     @Override
-    public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
+    public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) {
         if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, offset, bytes.length)) { // All of value is null filler
             return new BigDecimal(defaultValue);
         } else {
@@ -26,7 +27,7 @@ public class DecimalToBigDecimal extends TypeConverterBase {
     }
 
     @Override
-    public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
+    public byte[] from(Object value, int length, int decimals, boolean addPadding) {
         if(value == null && this.defaultValue == null) {
             return null;
         }

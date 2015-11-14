@@ -4,7 +4,7 @@ import dk.nversion.copybook.converters.TypeConverter;
 import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.annotations.*;
 import dk.nversion.copybook.converters.TypeConverterConfig;
-import dk.nversion.copybook.converters.TypeConverterException;
+import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -27,11 +27,11 @@ public class CopyBookParser {
     private Class<? extends CopyBookMapper> serializerClass = null;
     private CopyBookSerializerConfig config = new CopyBookSerializerConfig();
 
-    public CopyBookParser(Class<?> type) throws CopyBookException {
+    public CopyBookParser(Class<?> type) {
         this(type, false);
     }
 
-    public CopyBookParser(Class<?> type, boolean debug) throws CopyBookException {
+    public CopyBookParser(Class<?> type, boolean debug) {
         // Read copybook annotations and defaults
         List<CopyBook> copybookAnnotations = getAnnotationsRecursively(CopyBookDefaults.class, CopyBook.class);
         copybookAnnotations.addAll(getAnnotationsRecursively(type, CopyBook.class));
@@ -61,7 +61,7 @@ public class CopyBookParser {
     }
 
     @SuppressWarnings("unchecked")
-    private List<CopyBookField> walkClass(Class<?> type, String copyBookName, Map<String,TypeConverter> inheritedTypeConverterMap, Charset charset, Map<String,CopyBookField> copyBookFieldNames) throws CopyBookException {
+    private List<CopyBookField> walkClass(Class<?> type, String copyBookName, Map<String,TypeConverter> inheritedTypeConverterMap, Charset charset, Map<String,CopyBookField> copyBookFieldNames) {
         List<CopyBookField> results = new ArrayList<>();
 
         CopyBook copyBookAnnotation = type.getAnnotation(CopyBook.class);
@@ -292,7 +292,7 @@ public class CopyBookParser {
         return results;
     }
 
-    private Map<String, TypeConverter> getTypeConvertersRecursively(Class<?> type, Charset charset) throws CopyBookException {
+    private Map<String, TypeConverter> getTypeConvertersRecursively(Class<?> type, Charset charset) {
         Map<String,TypeConverter> results = new HashMap<>();
         for (Annotation annotation : type.getAnnotations()) {
             if(CopyBookFieldFormats.class.isInstance(annotation)) {
@@ -311,7 +311,7 @@ public class CopyBookParser {
         return results;
     }
 
-    private TypeConverter createTypeConverter(CopyBookFieldFormat copyBookFieldFormat, Charset charset) throws CopyBookException {
+    private TypeConverter createTypeConverter(CopyBookFieldFormat copyBookFieldFormat, Charset charset) {
         TypeConverterConfig config = new TypeConverterConfig();
         config.setCharset(charset);
         config.setRightPadding(copyBookFieldFormat.rightPadding());

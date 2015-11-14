@@ -1,13 +1,14 @@
 package dk.nversion.copybook.converters;
 
 import dk.nversion.ByteUtils;
+import dk.nversion.copybook.exceptions.TypeConverterException;
 import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
 
 import java.util.Arrays;
 
 public class SignedIntegerToInteger extends TypeConverterBase {
     @Override
-    public void validate(Class<?> type, int size, int decimals) throws TypeConverterException {
+    public void validate(Class<?> type, int size, int decimals) {
         if(size > 10 && (this.signingType == CopyBookFieldSigningType.PREFIX || this.signingType == CopyBookFieldSigningType.POSTFIX)) {
             throw new TypeConverterException("int is not large enough to hold possible value");
         }
@@ -21,7 +22,7 @@ public class SignedIntegerToInteger extends TypeConverterBase {
     }
 
     @Override
-    public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) throws TypeConverterException {
+    public Object to(byte[] bytes, int offset, int length, int decimals, boolean removePadding) {
         if(this.defaultValue != null && ByteUtils.allEquals(bytes, this.nullFillerByte, offset, bytes.length)) { // All of value is null filler
             return Integer.parseInt(defaultValue);
 
@@ -31,7 +32,7 @@ public class SignedIntegerToInteger extends TypeConverterBase {
     }
 
     @Override
-    public byte[] from(Object value, int length, int decimals, boolean addPadding) throws TypeConverterException {
+    public byte[] from(Object value, int length, int decimals, boolean addPadding) {
         if(value == null && this.defaultValue == null) {
             return null;
         }
@@ -47,7 +48,7 @@ public class SignedIntegerToInteger extends TypeConverterBase {
         return strBytes;
     }
 
-    protected String getSignedIntegerString(byte[] bytes, int offset, int length, boolean removePadding) throws TypeConverterException {
+    protected String getSignedIntegerString(byte[] bytes, int offset, int length, boolean removePadding) {
         String strValue;
 
         if(this.signingType == CopyBookFieldSigningType.POSTFIX) {
@@ -82,7 +83,7 @@ public class SignedIntegerToInteger extends TypeConverterBase {
         return strValue;
     }
 
-    protected byte[] getSignedBytes(String strValue, boolean negative) throws TypeConverterException {
+    protected byte[] getSignedBytes(String strValue, boolean negative) {
         byte[] strBytes;
 
         if (this.signingType == CopyBookFieldSigningType.POSTFIX) {
@@ -118,7 +119,7 @@ public class SignedIntegerToInteger extends TypeConverterBase {
         return strBytes;
     }
 
-    private String normalizeNumericSigning(String str, boolean signingPostfix) throws TypeConverterException {
+    private String normalizeNumericSigning(String str, boolean signingPostfix) {
         if (signingPostfix) {
             if (str.endsWith("-")) {
                 str = '-' + str.substring(0, str.length() - 1);

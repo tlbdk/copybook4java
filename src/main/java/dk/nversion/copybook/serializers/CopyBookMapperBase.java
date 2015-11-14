@@ -12,7 +12,7 @@ public abstract class CopyBookMapperBase implements CopyBookMapper {
     protected int minRecordSize;
 
     @Override
-    public void initialize(CopyBookSerializerConfig config) throws CopyBookException {
+    public void initialize(CopyBookSerializerConfig config) {
         this.fields = config.getFields();
         this.debug = config.isDebug();
         int[] totalSizes = calculateSizes(config.getFields(), 0, this.debug);

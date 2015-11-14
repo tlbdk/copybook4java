@@ -13,15 +13,15 @@ import java.util.List;
 public class CopyBookSerializer {
     private CopyBookMapper serializer;
 
-    public CopyBookSerializer(Class<?> type) throws CopyBookException {
+    public CopyBookSerializer(Class<?> type) {
         this(type, false);
     }
 
-    public CopyBookSerializer(Class<?> type, boolean debug) throws CopyBookException {
+    public CopyBookSerializer(Class<?> type, boolean debug) {
         this(type, null, debug);
     }
 
-    public CopyBookSerializer(Class<?> type, Class<CopyBookMapper> mapper, boolean debug) throws CopyBookException {
+    public CopyBookSerializer(Class<?> type, Class<CopyBookMapper> mapper, boolean debug) {
         CopyBookParser parser = new CopyBookParser(type, debug);
         try {
             if(mapper != null) {
@@ -37,15 +37,15 @@ public class CopyBookSerializer {
         }
     }
 
-    public <T> byte[] serialize(T obj) throws CopyBookException {
+    public <T> byte[] serialize(T obj) {
         return serializer.serialize(obj);
     }
 
-    public <T> T deserialize(byte[] bytes, Class<T> type) throws CopyBookException, InstantiationException {
+    public <T> T deserialize(byte[] bytes, Class<T> type) {
         return serializer.deserialize(bytes, type);
     }
 
-    public <T> T deserialize(InputStream inputStream, Class<T> type) throws CopyBookException, InstantiationException, IOException {
+    public <T> T deserialize(InputStream inputStream, Class<T> type) throws IOException {
         return deserialize(ByteUtils.toByteArray(inputStream), type);
     }
 

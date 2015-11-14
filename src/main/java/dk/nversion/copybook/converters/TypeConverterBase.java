@@ -1,7 +1,7 @@
 package dk.nversion.copybook.converters;
 
+import dk.nversion.copybook.exceptions.TypeConverterException;
 import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
-import dk.nversion.copybook.exceptions.CopyBookException;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -16,7 +16,7 @@ public abstract class TypeConverterBase implements TypeConverter {
     protected Class<?> type;
     protected String format;
 
-    public void initialize(TypeConverterConfig config) throws TypeConverterException {
+    public void initialize(TypeConverterConfig config) {
         this.charset = config.getCharset();
         this.signingType = config.getSigningType();
         this.rightPadding = config.isRightPadding();
@@ -37,7 +37,7 @@ public abstract class TypeConverterBase implements TypeConverter {
         this.format = config.getFormat();
     }
 
-    public Object to(byte[] bytes, int decimals, boolean removePadding) throws TypeConverterException {
+    public Object to(byte[] bytes, int decimals, boolean removePadding) {
         return this.to(bytes, 0, bytes.length, decimals, removePadding);
     }
 
@@ -52,7 +52,7 @@ public abstract class TypeConverterBase implements TypeConverter {
         return paddedStrBytes;
     }
 
-    protected String getString(byte[] bytes, int offset, int length, boolean removePadding, int minLength) throws TypeConverterException {
+    protected String getString(byte[] bytes, int offset, int length, boolean removePadding, int minLength) {
         if(removePadding) {
             if(this.rightPadding) {
                 for (;length > minLength; length--) {

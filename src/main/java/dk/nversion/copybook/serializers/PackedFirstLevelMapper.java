@@ -14,7 +14,7 @@ public class PackedFirstLevelMapper extends CopyBookMapperBase {
     private int bitmapBlockSize;
     private int packingItemsCount;
 
-    public void initialize(CopyBookSerializerConfig config) throws CopyBookException {
+    public void initialize(CopyBookSerializerConfig config) {
         super.initialize(config);
         this.bitmapBlockSize =  8;//config.getBitmapBlockSize(); //TODO: Implement
         this.packingItemsCount = countPackingItems(config.getFields());
@@ -37,13 +37,13 @@ public class PackedFirstLevelMapper extends CopyBookMapperBase {
     }
 
     @Override
-    public <T> byte[] serialize(T obj) throws CopyBookException {
+    public <T> byte[] serialize(T obj) {
         PackedBuffer buffer = new PackedBuffer(this.maxRecordSize + packingItemsCount, this.maxBitmapSize, this.bitmapBlockSize, this.separatorByte);
         writeFields(buffer, this.fields, obj, true);
         return buffer.array();
     }
 
-    private void writeFields(PackedBuffer buffer, List<CopyBookField> fields, Object rootObj, boolean rootLast) throws CopyBookException {
+    private void writeFields(PackedBuffer buffer, List<CopyBookField> fields, Object rootObj, boolean rootLast) {
         for(CopyBookField field : fields) {
             boolean last = rootLast && field.isLast();
             if(field.isArray()) {
@@ -97,7 +97,7 @@ public class PackedFirstLevelMapper extends CopyBookMapperBase {
         }
     }
 
-    private void writeField(PackedBuffer buffer, CopyBookField field, Object valueObj, boolean last) throws CopyBookException {
+    private void writeField(PackedBuffer buffer, CopyBookField field, Object valueObj, boolean last) {
         if(field.getLevel() == 0) {
             buffer.put(field.getBytes(null, valueObj, false), true); // No padding with separator
 
@@ -114,7 +114,7 @@ public class PackedFirstLevelMapper extends CopyBookMapperBase {
     }
 
     @Override
-    public <T> T deserialize(byte[] bytes, Class<T> type) throws CopyBookException, InstantiationException {
+    public <T> T deserialize(byte[] bytes, Class<T> type) {
         try {
             T obj = type.newInstance();
             PackedBuffer buffer = new PackedBuffer(bytes, this.maxBitmapSize, this.bitmapBlockSize, this.separatorByte);
@@ -126,7 +126,7 @@ public class PackedFirstLevelMapper extends CopyBookMapperBase {
         }
     }
 
-    private void readFields(List<CopyBookField> fields, PackedBuffer buffer, Object obj, boolean rootLast) throws CopyBookException {
+    private void readFields(List<CopyBookField> fields, PackedBuffer buffer, Object obj, boolean rootLast) {
         for(CopyBookField field : fields) {
             boolean last = rootLast && field.isLast();
 
@@ -194,14 +194,14 @@ public class PackedFirstLevelMapper extends CopyBookMapperBase {
         private int bitmapSize;
         private int bitmapMaxSize;
 
-        public PackedBuffer(int size, int bitmapMaxSize, int bitmapBlockSize, byte separatorByte) throws CopyBookException {
+        public PackedBuffer(int size, int bitmapMaxSize, int bitmapBlockSize, byte separatorByte) {
             this.buffer = ByteBuffer.wrap(new byte[size]);
             this.bitmapBytes = new byte[bitmapMaxSize];
             this.bitmapBlockSize = bitmapBlockSize;
             this.separatorByte = separatorByte;
         }
 
-        public PackedBuffer(byte[] bytes, int bitmapMaxSize, int bitmapBlockSize, byte separatorByte) throws CopyBookException {
+        public PackedBuffer(byte[] bytes, int bitmapMaxSize, int bitmapBlockSize, byte separatorByte) {
             this.buffer = ByteBuffer.wrap(bytes);
             this.bitmapBlockSize = bitmapBlockSize;
             this.separatorByte = separatorByte;
@@ -249,7 +249,7 @@ public class PackedFirstLevelMapper extends CopyBookMapperBase {
             return size;
         }
 
-        public byte[] get(int maxLength, boolean separator) throws CopyBookException {
+        public byte[] get(int maxLength, boolean separator) {
             byte[] byteValue = null;
             if (getBitInBitmap(this.bitmapBytes, this.bitmapIndex, this.bitmapSize)) {
                 if (separator) {
@@ -277,7 +277,7 @@ public class PackedFirstLevelMapper extends CopyBookMapperBase {
             return byteValue;
         }
 
-        public void put(byte [] bytes, boolean separator) throws CopyBookException {
+        public void put(byte [] bytes, boolean separator) {
             if(bytes != null) {
                 if (ByteUtils.indexOf(bytes, this.separatorByte, 0, bytes.length) > -1) {
                     throw new CopyBookException("Bytes contains the separator char");
@@ -338,7 +338,7 @@ public class PackedFirstLevelMapper extends CopyBookMapperBase {
             }
         }
 
-        private int getBitMapSize(byte[] data) throws CopyBookException {
+        private int getBitMapSize(byte[] data) {
             // Read bit map size by comparing the last bit in each block
             int e;
             for(e = 1; (data[e * 8 - 1] & 1) != 0; ++e) { }

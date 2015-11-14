@@ -1,9 +1,6 @@
 package dk.nversion.copybook.exceptions;
 
-import dk.nversion.copybook.converters.TypeConverterException;
-
-// TODO: use RunTimeException
-public class CopyBookException extends Exception {
+public class CopyBookException extends RuntimeException {
     private static final long serialVersionUID = 28118369047109260L;
     public CopyBookException(String message) {
         super(message);

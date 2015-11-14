@@ -1,7 +1,7 @@
 package dk.nversion.copybook.converters;
 
+import dk.nversion.copybook.exceptions.TypeConverterException;
 import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
-import dk.nversion.copybook.exceptions.CopyBookException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,7 +21,7 @@ public class SignedIntegerToIntegerLastByteEBCDICBit5Test {
     public ExpectedException expectedEx = ExpectedException.none();
 
     @Before
-    public void runBeforeEveryTest() throws TypeConverterException {
+    public void runBeforeEveryTest() {
         this.charset = Charset.forName("cp037");
         this.config = new TypeConverterConfig();
         this.config.setCharset(this.charset);
