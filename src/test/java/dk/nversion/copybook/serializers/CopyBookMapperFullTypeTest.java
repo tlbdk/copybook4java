@@ -12,6 +12,7 @@ import dk.nversion.copybook.converters.TypeConverterStringEnum;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -266,19 +267,36 @@ public class CopyBookMapperFullTypeTest {
     }
 
     @CopyBook(type = FullMapper.class)
-    static public class fieldTypeIntegerToIntegerToTypeConverterIntEnum {
+    static public class fieldTypeIntegerToTypeConverterIntEnum {
         @CopyBookLine("01 FIELD PIC 9(2).")
         public TestIntEnum field;
     }
 
     @org.junit.Test
     public void testfieldTypeIntegerToIntegerToTypeConverterIntEnum() throws Exception {
-        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeIntegerToIntegerToTypeConverterIntEnum.class);
-        fieldTypeIntegerToIntegerToTypeConverterIntEnum test = new fieldTypeIntegerToIntegerToTypeConverterIntEnum();
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeIntegerToTypeConverterIntEnum.class);
+        fieldTypeIntegerToTypeConverterIntEnum test = new fieldTypeIntegerToTypeConverterIntEnum();
         test.field = TestIntEnum.HIGH;
         byte[] testBytes = serializer.serialize(test);
         assertArrayEquals(testBytes, new byte[]{(byte) '3', (byte) '0'});
-        fieldTypeIntegerToIntegerToTypeConverterIntEnum test2 = serializer.deserialize(testBytes, fieldTypeIntegerToIntegerToTypeConverterIntEnum.class);
+        fieldTypeIntegerToTypeConverterIntEnum test2 = serializer.deserialize(testBytes, fieldTypeIntegerToTypeConverterIntEnum.class);
+        assertEquals(TestIntEnum.HIGH, test2.field);
+    }
+
+    @CopyBook(type = FullMapper.class)
+    static public class fieldTypeSignedIntegerToTypeConverterIntEnum {
+        @CopyBookLine("01 FIELD PIC S9(2).")
+        public TestIntEnum field;
+    }
+
+    @org.junit.Test
+    public void testFieldTypeSignedIntegerToTypeConverterIntEnum() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeSignedIntegerToTypeConverterIntEnum.class);
+        fieldTypeSignedIntegerToTypeConverterIntEnum test = new fieldTypeSignedIntegerToTypeConverterIntEnum();
+        test.field = TestIntEnum.HIGH;
+        byte[] testBytes = serializer.serialize(test);
+        assertArrayEquals(testBytes, new byte[]{(byte) '3', (byte) '0'});
+        fieldTypeSignedIntegerToTypeConverterIntEnum test2 = serializer.deserialize(testBytes, fieldTypeSignedIntegerToTypeConverterIntEnum.class);
         assertEquals(TestIntEnum.HIGH, test2.field);
     }
 
@@ -361,6 +379,23 @@ public class CopyBookMapperFullTypeTest {
         assertArrayEquals(testBytes, "Y ".getBytes(StandardCharsets.UTF_8));
         fieldTypeStringToBoolean test2 = serializer.deserialize(testBytes, fieldTypeStringToBoolean.class);
         assertEquals(true, test2.field);
+    }
+
+    @CopyBook(type = FullMapper.class)
+    static public class fieldTypeStringToLocalDateTime {
+        @CopyBookLine("01 FIELD PIC X(14).")
+        public LocalDateTime field;
+    }
+
+    @org.junit.Test
+    public void testFieldTypeStringToLocalDateTime() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeStringToLocalDateTime.class);
+        fieldTypeStringToLocalDateTime test = new fieldTypeStringToLocalDateTime();
+        test.field = LocalDateTime.parse("2015-08-04T10:11:30");
+        byte[] testBytes = serializer.serialize(test);
+        assertArrayEquals(testBytes, "20150804101130".getBytes(StandardCharsets.UTF_8));
+        fieldTypeStringToLocalDateTime test2 = serializer.deserialize(testBytes, fieldTypeStringToLocalDateTime.class);
+        assertEquals(LocalDateTime.parse("2015-08-04T10:11:30"), test2.field);
     }
 
 }

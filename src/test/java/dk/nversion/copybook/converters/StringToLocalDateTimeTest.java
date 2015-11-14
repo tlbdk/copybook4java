@@ -29,7 +29,6 @@ public class StringToLocalDateTimeTest {
         typeConverter.initialize(config);
     }
 
-
     @Test
     public void testValidateSuccess() throws Exception {
         typeConverter.validate(LocalDateTime.class, 2, -1);
