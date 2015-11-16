@@ -25,6 +25,7 @@
             01 SUBFIELD2. 
                 02 COUNT1 PIC 9(2).
                 02 COUNT2 PIC 9(2).
+            01 FIELD PIX X(10).
         </textarea>
     </div>
 
@@ -38,6 +39,104 @@
 <script type="application/javascript">
 
     function convertCopybook (str) {
+        var levels = [
+            {
+                "name": "SUBFIELD",
+                "lines": ["01 SUBFIELD."],
+                "fields": [
+                    {
+                        "name": "COUNT",
+                        "lines": ["02 COUNT PIC 9(2)."],
+                        "type": "int"
+                    }
+                ]
+            },
+            {
+                "name": "RESULT",
+                "lines": ["01 RESULT."],
+                "fields": [
+                    {
+                        "name": "FIELDS",
+                        "lines": ["02 FIELDS OCCURS 0 TO 10 TIMES PIC X(8) DEPENDING ON COUNT IN SUBFIELD."],
+                        "type": "String[]"
+                    }
+                ]
+            },
+            {
+                "name": "SUBFIELD2",
+                "lines": ["01 SUBFIELD."],
+                "fields": [
+                    {
+                        "name": "COUNT1",
+                        "lines": ["02 COUNT1 PIC 9(2)."],
+                        "type": "int"
+                    },
+                    {
+                        "name": "COUNT2",
+                        "lines": ["02 COUNT2 PIC 9(2)."],
+                        "type": "int"
+                    }
+                ]
+            },
+            {
+                "name": "FIELD",
+                "lines": ["01 FIELD PIX X(10)."],
+                "type": "String",
+            }
+        ];
+
+        // Simplify structure
+        (function traverse(fields, parent) {
+            var types = 0;
+            fields.forEach(function(field, i){
+                if(field["type"] !== undefined) {
+                    types++;
+
+                } else if (field["fields"] !== undefined) {
+                    types += traverse(field["fields"], field);
+                }
+            });
+
+            if(types < 2) {
+                fields.forEach(function(field, i) {
+                    parent["name"] = parent["name"] + "." + field["name"];
+                    parent["lines"] = parent["lines"].concat(field["lines"]);
+                    parent["type"] = field["type"] ? field["type"] : parent["type"];
+                });
+                delete parent["fields"];
+            }
+
+            return types;
+        })(levels, levels);
+
+
+        // Generate java class
+        var classes = {};
+        (function traverse(classname, fields) {
+            var current = "";
+            current += "@CopyBook()\n";
+            current += "class "+ classname + " {\n";
+            fields.forEach(function(field, i){
+                var java_name = toCamelCase(field["name"].replace(".", "_"));
+                field["lines"].forEach(function(line, j) {
+                    current += "    @CopyBookLine(\"" + line + "\")\n";
+                });
+                if (field["fields"] !== undefined) {
+                    current += "    private " + toCapitalCase(java_name) + " " + java_name + ";\n";
+                    traverse(toCapitalCase(java_name), field["fields"]);
+                } else {
+                    current += "    private " + field["type"] + " " + java_name + ";\n";
+                }
+                if(fields.length -1 > i) { current += "\n"; }
+            });
+            current += "}\n";
+            classes[classname] = current;
+        })("CopyBook", levels);
+
+
+
+        return result;
+
         str.match(/([\s\S]+?\.\s*(?:\*[^\n]+)\n)/g).forEach(function(field, i) {
             // Remove comments, newlines, extra space and trim
             field = field.replace(/\s*\*[^\n]+\n/g, '').replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').replace(/^\s+/, '').replace(/\s+$/, '');
@@ -45,26 +144,31 @@
             if(match = field.match(/^\s*(\d+)\s+([^\s]+)((?:\s+OCCURS\s+\d+(?:\s+TO\s+\d+)?\s+TIMES)|(?:\s+REDEFINES\s+[^\s]+))?(\s+PIC\s+[^\s]+)?(\s+DEPENDING\s+ON\s+[^\s]+(?:\s+IN\s+[^\s+]+)?)?\s*\.\s*$/)) {
                 var level = match[1];
                 var name = match[2];
-                
+                var current = levels[level] ? levels[level] : levels[level] = {};
+
                 if(match[3] != undefined) {
-                    if (match[3].match(/^\s*OCCURS\s+(?:(\d+)\s+TO\s+)?(\d+)\s+TIMES\s*$/) {
-                    
-                    } else if(match[3].match(/\s*REDEFINES\s+([^\s]+)\s*/))
-                
+                    if (match = match[3].match(/^\s*OCCURS\s+(?:(\d+)\s+TO\s+)?(\d+)\s+TIMES\s*$/)) {
+
+                    } else if (match = match[3].match(/\s*REDEFINES\s+([^\s]+)\s*/)) {
+
+                    }
                 }
-                
-                
-                if() {
-                } else if( {
+
+                if (match[4] != undefined) {
+                    if(match = match[4].match(/^\s*PIC\s+(S)?(X+|9+)(?:\((\d+)\))?(?:V(9+)(?:\((\d+)\))?)?\s*$/)) {
+
+                    }
                 }
-                
-                /^\s*PIC\s+(S)?(X+|9+)(?:\((\d+)\))?(?:V(9+)(?:\((\d+)\))?)?\s*$/
-                /^\s*DEPENDING\s+ON\s+([^\s]+)(?:\s+IN\s+([^\s]+))?\s*$/
+
+                if(match[5] != undefined) {
+                    if(match = match[4].match(/^\s*DEPENDING\s+ON\s+([^\s]+)(?:\s+IN\s+([^\s]+))?\s*$/)) {
+
+                    }
+                }
             }
         });
-        
-    
-        re_line = 
+
+
 
         re_pic = /(\d+)\s+([^\s]+)\s+PIC\s+(S)?(X+|9+)(?:\((\d+)\))?(?:V(9+)(?:\((\d+)\))?)?\s*\./;
         re_occurs = /(\d+)\s+([^\s]+)\s+OCCURS\s+(\d+)\s+TIMES\s*./;
@@ -130,7 +234,7 @@
     }
 
     function toCamelCase(str) {
-        return str.toLocaleLowerCase().replace(/([\-_]\w)/g, function(m){return m[1].toUpperCase();});
+        return str.toLocaleLowerCase().replace(/([\-_]\w)/g, function(m){ return m[1].toUpperCase(); });
     }
 
     function toCapitalCase(str) {
