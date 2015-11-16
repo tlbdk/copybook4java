@@ -1,5 +1,7 @@
-// Copyright (c) 2015 Troels Liebe Bentsen
-// Licensed under the MIT license (LICENSE.txt)
+/*
+ * Copyright (c) 2015. Troels Liebe Bentsen <tlb@nversion.dk>
+ * Licensed under the MIT license (LICENSE.txt)
+ */
 package dk.nversion;
 
 import java.io.ByteArrayOutputStream;
