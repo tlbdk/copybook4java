@@ -7,6 +7,7 @@ CopyBook serializer and deserializer for Java where CopyBook lines are used to a
 ## How to Use It
 
 Annotate request class:
+
 ```java
 @CopyBook(charset = "cp037")
 public class Request {
@@ -29,6 +30,7 @@ public class Request {
 ```
 
 Annotate request class:
+
 ```java
 @CopyBook(charset = "cp037")
 public class Response {
@@ -49,6 +51,7 @@ public class Response {
 ```
 
 Construct CopyBookSerializer for Request and Response classes, this will scan the class hierarchy and build a field map that will be used in the serialization and deserialization process:
+
 ```java
 CopyBookSerializer requestSerializer = new CopyBookSerializer(Request.class);
 CopyBookSerializer responseSerializer = new CopyBookSerializer(Response.class);
@@ -69,6 +72,7 @@ Response response = responseSerializer.deserialize(responseBytes, Response.class
 ```
 
 The CopyBookFieldFormat annotation can be set on both class level on a individual field to overwrite the defaults:
+
 ```java
 @CopyBookFieldFormat(type = IntegerToInteger.class, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 @CopyBookFieldFormat(type = SignedIntegerToInteger.class, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
@@ -78,6 +82,7 @@ The CopyBookFieldFormat annotation can be set on both class level on a individua
 ```
 
 It's also possible to create new CopyBook annotation to give common settings as custom name:
+
 ```java
 @CopyBook(type = FullMapper.class, charset = "cp037")
 @CopyBookFieldFormat(type = StringToString.class, rightPadding = true, paddingChar  = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.LAST_BYTE_EBCDIC_BIT5)
@@ -87,6 +92,7 @@ public @interface DanishIMS { }
 ```
 
 Using the new annotation:
+
 ```java
 @DanishIMS
 public class Request {
