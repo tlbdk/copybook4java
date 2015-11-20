@@ -23,6 +23,6 @@ public class IntegerToBoolean extends IntegerToInteger {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) {
-        return super.from((boolean)value ? 1 : 0, length, decimals, addPadding);
+        return super.from(value != null ? ((boolean)value ? 1 : 0) : null, length, decimals, addPadding);
     }
 }
