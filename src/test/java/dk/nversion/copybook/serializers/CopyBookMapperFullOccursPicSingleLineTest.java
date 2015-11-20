@@ -12,7 +12,6 @@ import dk.nversion.copybook.annotations.CopyBookLine;
 import java.math.BigDecimal;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 
 public class CopyBookMapperFullOccursPicSingleLineTest {
 

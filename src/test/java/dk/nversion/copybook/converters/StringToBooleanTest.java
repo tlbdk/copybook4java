@@ -7,7 +7,6 @@ package dk.nversion.copybook.converters;
 
 import dk.nversion.copybook.exceptions.TypeConverterException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

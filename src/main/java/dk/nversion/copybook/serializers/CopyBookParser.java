@@ -5,10 +5,10 @@
 
 package dk.nversion.copybook.serializers;
 
-import dk.nversion.copybook.converters.TypeConverter;
-import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.annotations.*;
+import dk.nversion.copybook.converters.TypeConverter;
 import dk.nversion.copybook.converters.TypeConverterConfig;
+import dk.nversion.copybook.exceptions.CopyBookException;
 import dk.nversion.copybook.exceptions.TypeConverterException;
 
 import java.lang.annotation.Annotation;

@@ -7,7 +7,6 @@ package dk.nversion.copybook.serializers;
 
 import dk.nversion.ByteUtils;
 import dk.nversion.copybook.exceptions.CopyBookException;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

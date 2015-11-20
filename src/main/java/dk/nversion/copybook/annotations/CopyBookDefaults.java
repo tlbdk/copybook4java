@@ -5,8 +5,8 @@
 
 package dk.nversion.copybook.annotations;
 
-import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
 import dk.nversion.copybook.converters.*;
+import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
 import dk.nversion.copybook.serializers.FullMapper;
 
 import java.lang.annotation.ElementType;

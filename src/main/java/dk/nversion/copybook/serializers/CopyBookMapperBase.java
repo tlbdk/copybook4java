@@ -6,8 +6,6 @@
 package dk.nversion.copybook.serializers;
 
 
-import dk.nversion.copybook.exceptions.CopyBookException;
-
 import java.util.List;
 
 public abstract class CopyBookMapperBase implements CopyBookMapper {

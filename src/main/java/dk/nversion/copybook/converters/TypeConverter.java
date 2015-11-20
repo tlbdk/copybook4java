@@ -5,9 +5,6 @@
 
 package dk.nversion.copybook.converters;
 
-import dk.nversion.copybook.exceptions.TypeConverterException;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 public interface TypeConverter {
     void initialize(TypeConverterConfig config);
     void validate(Class<?> type, int size, int decimals);

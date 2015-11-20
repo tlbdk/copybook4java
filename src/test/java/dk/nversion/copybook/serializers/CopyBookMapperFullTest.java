@@ -7,16 +7,13 @@ package dk.nversion.copybook.serializers;
 
 import dk.nversion.copybook.CopyBookSerializer;
 import dk.nversion.copybook.annotations.CopyBook;
-import dk.nversion.copybook.annotations.CopyBookFieldFormat;
 import dk.nversion.copybook.annotations.CopyBookLine;
-import dk.nversion.copybook.converters.IntegerToInteger;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class CopyBookMapperFullTest {
     @Rule

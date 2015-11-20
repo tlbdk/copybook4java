@@ -7,6 +7,7 @@ package dk.nversion.copybook.annotations;
 
 import dk.nversion.copybook.converters.TypeConverter;
 import dk.nversion.copybook.serializers.CopyBookFieldSigningType;
+
 import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.RUNTIME)

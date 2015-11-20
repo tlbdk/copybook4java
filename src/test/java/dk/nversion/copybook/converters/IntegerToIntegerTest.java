@@ -13,7 +13,8 @@ import org.junit.rules.ExpectedException;
 
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class IntegerToIntegerTest {
     private TypeConverter typeConverter;
