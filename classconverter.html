@@ -51,7 +51,7 @@
         var fields = [];
         (function parseCopybook(copybook) {
             var last = [{ level: 0, fields: fields }];
-            copybook.replace(/\*[^\n]+/g, '').match(/[\s\S]+?\.[ \t]*\n/g).forEach(function(line, i) {
+            copybook.replace(/\*[^\n]*/g, '').match(/[\s\S]+?\.[ \t]*\n/g).forEach(function(line, i) {
                 // Remove comments, newlines, extra space and trim
                 line = line.replace(/\s*\*[^\n]+\n/g, '').replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').replace(/^\s+/, '').replace(/\s+$/, '');
 
