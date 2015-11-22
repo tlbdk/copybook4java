@@ -3,18 +3,22 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Copybook to Java Class Converter</title>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/theme/twilight.css" />
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/mode/clike/clike.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.css" />
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/addon/edit/matchbrackets.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/addon/selection/active-line.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/mode/cobol/cobol.js"></script>
 </head>
 <body>
 
 <div style="width: 100%">
     <div style="float: left;">
         <p>Copybook:</p>
-        <textarea name="copybook" cols="80" rows="50">
+        <textarea id="copybook" name="copybook" cols="80" rows="50">
                         * Comment stuff
             01 SUBFIELD.  * Lineending comment
                 02 COUNT PIC 9(2).
@@ -195,14 +199,23 @@
         });
         javaEditor.setSize(null, 750);
 
-        $('textarea[name="copybook"]').on("input", function() {
-            var src = $('textarea[name="copybook"]').val();
+        var cobolEditor = CodeMirror.fromTextArea(document.getElementById("copybook"), {
+            lineNumbers: true,
+            matchBrackets: true,
+            mode: "text/x-cobol",
+            viewportMargin: Infinity,
+            styleActiveLine: true,
+            theme : "twilight",
+            showCursorWhenSelecting : true
+        });
+        cobolEditor.setSize(null, 750);
+        cobolEditor.on("change", function (cm) {
+            var src = cm.getValue();
             var dst = convertCopybook(src);
-           // $('textarea[name="javaclass"]').val(dst);
             javaEditor.setValue(dst);
-
             javaEditor.refresh();
         });
+
     });
   </script>
 </body>
