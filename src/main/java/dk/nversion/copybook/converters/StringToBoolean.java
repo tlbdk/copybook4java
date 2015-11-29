@@ -42,6 +42,6 @@ public class StringToBoolean extends StringToString {
 
     @Override
     public byte[] from(Object value, int length, int decimals, boolean addPadding) {
-        return super.from((boolean)value ? values[0] : values[1], length, decimals, addPadding);
+        return super.from(value != null ? ((boolean)value ? values[0] : values[1]) : null, length, decimals, addPadding);
     }
 }
