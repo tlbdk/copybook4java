@@ -71,6 +71,8 @@ Response response = responseSerializer.deserialize(responseBytes, Response.class
 @CopyBook(type = FullMapper.class, charset = "UTF-8")
 ```
 
+
+
 The CopyBookFieldFormat annotation can be set on both class level on a individual field to overwrite the defaults:
 
 ```java
@@ -80,6 +82,7 @@ The CopyBookFieldFormat annotation can be set on both class level on a individua
 @CopyBookFieldFormat(type = SignedDecimalToBigDecimal.class, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 @CopyBookFieldFormat(type = StringToString.class, rightPadding = true, paddingChar  = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 ```
+
 
 It's also possible to create new CopyBook annotation to give common settings as custom name:
 
@@ -98,4 +101,12 @@ Using the new annotation:
 public class Request {
   @CopyBookLine("02 ID PIC 9(2).")
   private int id;
+  ...
+}
 ```
+
+## Convert CopyBook to annotated java class
+
+CopyBook4Java provides a simple class converter that can be used for automatic conversion from a copybook to an annotated Java class, just open classconverter.html with any modern browser and copy/paste in the copybook and a translated version will be provided:
+
+![alt text](classconverter.png "classconvert.html")

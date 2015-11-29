@@ -1,4 +1,5 @@
 *.class
+*.iml
 settings.xml
 /.idea
 /target
