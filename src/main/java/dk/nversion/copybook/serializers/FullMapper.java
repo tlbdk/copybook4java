@@ -47,7 +47,16 @@ public class FullMapper extends CopyBookMapperBase {
 
             } else {
                 // Simple type fx. int
-                buffer.put(field.getBytes(rootObj, true));
+                byte[] bytes = field.getBytes(rootObj, true);
+                if(bytes != null) {
+                    buffer.put(bytes);
+
+                } else if(rootObj == null) {
+                    throw new CopyBookException("Root object for field '" + field.getFieldName() + "' is null and the TypeConverter '" + field.getConverter().getClass().getSimpleName() + "' does not support null filler");
+
+                } else {
+                    throw new CopyBookException("TypeConverter " + field.getConverter().getClass().getSimpleName() + " returned null for field " + field.getFieldName());
+                }
             }
         }
     }

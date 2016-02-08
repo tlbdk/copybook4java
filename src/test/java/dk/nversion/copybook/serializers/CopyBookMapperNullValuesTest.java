@@ -9,11 +9,19 @@ import dk.nversion.copybook.CopyBookSerializer;
 import dk.nversion.copybook.annotations.CopyBook;
 import dk.nversion.copybook.annotations.CopyBookFieldFormat;
 import dk.nversion.copybook.annotations.CopyBookLine;
+import dk.nversion.copybook.converters.IntegerToInteger;
 import dk.nversion.copybook.converters.StringToString;
+import dk.nversion.copybook.exceptions.CopyBookException;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.*;
 
 public class CopyBookMapperNullValuesTest {
+
+    @Rule
+    public ExpectedException expectedEx = ExpectedException.none();
+
     @CopyBook(type = FullMapper.class)
     @CopyBookFieldFormat(type = StringToString.class, paddingChar = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX, rightPadding = false)
     static public class fieldTypeStringSetToNullFull {
@@ -111,4 +119,27 @@ public class CopyBookMapperNullValuesTest {
         assertNull(test2.field.fields[0]);
         assertEquals("do", test2.field.fields[1]);
     }
+
+    @CopyBook()
+    @CopyBookFieldFormat(type = IntegerToInteger.class, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+    static public class objectFieldInt {
+        @CopyBookLine("01 FIELD PIC 9(2).")
+        public int value;
+    }
+
+    @CopyBook(type = FullMapper.class)
+    static public class fieldTypeNestedIntNull {
+        @CopyBookLine("01 FIELD.")
+        public objectFieldInt field;
+    }
+
+    @org.junit.Test
+    public void testFieldTypeNestedIntNull() throws Exception {
+        expectedEx.expect(CopyBookException.class);
+        expectedEx.expectMessage("Root object for field");
+        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeNestedIntNull.class);
+        fieldTypeNestedIntNull test = new fieldTypeNestedIntNull();
+        byte[] testBytes = serializer.serialize(test);
+    }
+
 }
