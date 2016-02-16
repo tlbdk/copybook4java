@@ -8,9 +8,8 @@ package dk.nversion.copybook.annotations;
 import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@Repeatable(CopyBookRedefines.class)
+@Target(ElementType.FIELD)
 public @interface CopyBookRedefine {
-    Class<?> value();
+    String on() default "";
     String match() default "";
 }

@@ -30,6 +30,10 @@ public class CopyBookField {
     private String counterKey;
     private boolean counter;
 
+    private String redefines;
+    private String redefinedOn;
+    private String redefineMatch;
+
     private int recursiveMaxSize;
     private int recursiveMinSize;
     private boolean last;
@@ -293,6 +297,30 @@ public class CopyBookField {
 
     public void setCounter(boolean counter) {
         this.counter = counter;
+    }
+
+    public String getRedefines() {
+        return redefines;
+    }
+
+    public void setRedefines(String redefines) {
+        this.redefines = redefines;
+    }
+
+    public String getRedefinedOn() {
+        return redefinedOn;
+    }
+
+    public void setRedefinedOn(String redefinedOn) {
+        this.redefinedOn = redefinedOn;
+    }
+
+    public String getRedefineMatch() {
+        return redefineMatch;
+    }
+
+    public void setRedefineMatch(String redefineMatch) {
+        this.redefineMatch = redefineMatch;
     }
 
     public int getRecursiveMinSize() {

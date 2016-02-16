@@ -563,57 +563,72 @@ public class CopyBookParserFormatTest {
     }
 
     @CopyBook()
-    @CopyBookRedefine(RedefinedFieldString.class)
-    @CopyBookRedefine(RedefinedFieldInt.class)
-    @CopyBookRedefine(RedefinedFieldBigDecimal.class)
     public abstract class RedefinedField {
         @CopyBookLine("04 FIELD_ON PIC 9.")
-        public int field_redefine;
+        public int field_on;
+
+        @CopyBookRedefine(on = "FIELD_ON", match = "1")
         @CopyBookLine("04 FIELD PIC XX.")
-        @CopyBookLine("04 FIELD1 REDEFINES FIELD PIC 99.")
-        @CopyBookLine("04 FIELD2 REDEFINES FIELD PIC 9V9.")
-        public Object field;
-    }
-    public class RedefinedFieldString extends RedefinedField {
         public String field;
-    }
-    public class RedefinedFieldInt extends RedefinedField {
-        public int field;
-    }
-    public class RedefinedFieldBigDecimal extends RedefinedField {
-        public BigDecimal field;
+
+        @CopyBookRedefine(on = "FIELD_ON", match = "2")
+        @CopyBookLine("04 FIELD1 REDEFINES FIELD PIC 99.")
+        public int field1;
+
+        @CopyBookRedefine(on = "FIELD_ON", match = "3")
+        @CopyBookLine("04 FIELD2 REDEFINES FIELD PIC 9V9.")
+        public BigDecimal field2;
     }
 
     @Test
     public void redefinedFieldTest() throws Exception {
-        //CopyBookParser copyBookParser = new CopyBookParser(RedefinedField.class);
+        CopyBookParser copyBookParser = new CopyBookParser(RedefinedField.class);
         // TODO: Implement parsing of redefines
+    }
+    @CopyBook()
+    public class NestedRedefinedSubFieldMain {
+        @CopyBookLine("04 REDEFINED_FIELD.")
+        RedefinedField redefinedField;
     }
 
     @CopyBook()
     public class RedefinedSubFieldMain {
         @CopyBookLine("04 FIELD_ON PIC 9.")
-        public int field_redefine;
+        public int field_on;
+
+        @CopyBookRedefine(on = "FIELD_ON", match = "1")
         @CopyBookLine("04 FIELD.")
+        public RedefinedSubFieldString field;
+
+        @CopyBookRedefine(on = "FIELD_ON", match = "2")
         @CopyBookLine("04 FIELD1 REDEFINES FIELD.")
+        public RedefinedSubFieldInt field1;
+
+        @CopyBookRedefine(on = "FIELD_ON", match = "3")
         @CopyBookLine("04 FIELD2 REDEFINES FIELD.")
-        public RedefinedSubField field;
+        public RedefinedSubFieldBigDecimal field2;
     }
 
     @CopyBook()
-    @CopyBookRedefine(RedefinedSubFieldString.class)
-    @CopyBookRedefine(RedefinedSubFieldInt.class)
-    @CopyBookRedefine(RedefinedSubFieldBigDecimal.class)
-    public abstract class RedefinedSubField {}
-    public class RedefinedSubFieldString extends RedefinedSubField {
+    public class RedefinedSubFieldString {
+        @CopyBookLine("04 VALUE PIC X.")
+        public String start;
         @CopyBookLine("04 VALUE PIC XX.")
         public String value;
     }
-    public class RedefinedSubFieldInt extends RedefinedSubField {
+
+    @CopyBook()
+    public class RedefinedSubFieldInt {
+        @CopyBookLine("04 VALUE PIC X.")
+        public String start;
         @CopyBookLine("04 VALUE PIC 99.")
         public int value;
     }
-    public class RedefinedSubFieldBigDecimal extends RedefinedSubField {
+
+    @CopyBook()
+    public class RedefinedSubFieldBigDecimal {
+        @CopyBookLine("04 VALUE PIC X.")
+        public String start;
         @CopyBookLine("04 VALUE PIC 9V9.")
         public BigDecimal value;
     }
@@ -622,47 +637,21 @@ public class CopyBookParserFormatTest {
     public void redefinedSubFieldTest() throws Exception {
         CopyBookParser copyBookParser = new CopyBookParser(RedefinedSubFieldMain.class);
 
-
-        RedefinedSubFieldMain test = new RedefinedSubFieldMain();
-        test.field_redefine = 0;
-        test.field = new RedefinedSubFieldInt();
-        ((RedefinedSubFieldInt)test.field).value = 1;
-
-        // TODO: Implement parsing of redefines
-
-        if(test.field instanceof RedefinedSubFieldInt) {
-            assertEquals(1, ((RedefinedSubFieldInt) test.field).value);
-        }
+        // TODO: Implement test
+        /* CopyBookField field = copyBookParser.getConfig().getFields().get(1);
+        assertTrue(field.isArray());
+        assertEquals(8, field.getSize());
+        assertEquals(0, field.getMinOccurs());
+        assertEquals(10, field.getMaxOccurs());
+        assertEquals(field.getCounterKey(), "SUBFIELD.COUNT");
+        */
     }
-
-    @CopyBook()
-    public abstract class RedefinedFieldAsObject {
-        @CopyBookLine("04 FIELD_ON PIC 9.")
-        public int field_redefine;
-
-        @CopyBookLine("04 FIELD PIC XX.")
-        @CopyBookLine("04 FIELD1 REDEFINES FIELD PIC 99.")
-        @CopyBookLine("04 FIELD2 REDEFINES FIELD PIC 9V9.")
-        public Object field;
-
-        public String getFieldString() {
-            return this.field_redefine == 0 ? (String) this.field : null;
-        }
-
-        public int getFieldInt() {
-            return this.field_redefine == 1 ? (int) this.field : 0;
-        }
-
-        public BigDecimal getFieldBigDecimal() {
-            return this.field_redefine == 2 ? (BigDecimal) this.field : null;
-        }
-    }
-
 
     @Test
-    public void redefinedFieldAsObjectTest() throws Exception {
-        //CopyBookParser copyBookParser = new CopyBookParser(RedefinedFieldAsObject.class);
-        // TODO: Implement parsing of redefines
+    public void nestedRedefinedSubFieldTest() throws Exception {
+        // TODO: Implement test
+        CopyBookParser copyBookParser = new CopyBookParser(NestedRedefinedSubFieldMain.class);
+        //System.out.print("");
     }
 
     // TODO - Implement date format: 05 EFFECTDATE  PIC X(8) DATE FORMAT YYYYXXXX.

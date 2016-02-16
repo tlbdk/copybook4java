@@ -17,6 +17,7 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 // TODO: Add packed decimal - http://www.simotime.com/datapk01.htm
@@ -81,6 +82,10 @@ public class CopyBookParser {
         // Iterate over the class fields with CopyBookLine annotation
         for (Field field : type.getDeclaredFields()) {
             String[] copyBookLines = Arrays.stream(field.getAnnotationsByType(CopyBookLine.class)).map(cbl -> cbl.value()).toArray(String[]::new);
+            CopyBookRedefine copyBookRedefine = field.getDeclaredAnnotation(CopyBookRedefine.class);
+            String redefineOn = copyBookRedefine != null ? copyBookRedefine.on() : null;
+            String redefineMatch = copyBookRedefine != null ? copyBookRedefine.match() : null;
+
             if(copyBookLines.length > 0) {
                 String fieldName = type.getName() + "." + field.getName();
                 Class<?> fieldBaseType = field.getType().isArray() ? field.getType().getComponentType() : field.getType();
@@ -111,8 +116,7 @@ public class CopyBookParser {
                                 minOccurs = occursMatcher.group(1) != null ? Integer.parseInt(occursMatcher.group(1)) : maxOccurs;
 
                             } else if(redefinesMatcher.find()) {
-                                //redefines = redefinesMatcher.group(1);
-                                // TODO: Implement redefines
+                                redefines = redefinesMatcher.group(1);
 
                             } else {
                                 throw new CopyBookException("Could not parse occurs section in copybook line for field '" + fieldName + "'");
@@ -251,6 +255,9 @@ public class CopyBookParser {
                 String name = names.stream().collect(Collectors.joining("."));
                 CopyBookField copyBookField = new CopyBookField(type, field, name, size, decimals, minOccurs, maxOccurs, copyBookLines, counterKey, typeConverter);
                 copyBookFieldNames.put(name, copyBookField);
+                copyBookField.setRedefines(getFullFieldName(names,redefines));
+                copyBookField.setRedefinedOn(getFullFieldName(names, redefineOn));
+                copyBookField.setRedefineMatch(redefineMatch);
 
                 // Did not find a type convert so lets see if it's another copybook class
                 if(typeConverter == null) {
@@ -352,6 +359,12 @@ public class CopyBookParser {
         } catch (TypeConverterException e) {
             throw new CopyBookException("Failed to initialize type convert", e);
         }
+    }
+
+    private String getFullFieldName(List<String> names, String name) {
+        List<String> baseNames = new ArrayList<>(names.subList(0, names.size() - 1));
+        baseNames.add(name);
+        return baseNames.stream().collect(Collectors.joining("."));
     }
 
     public CopyBookSerializerConfig getConfig() {
