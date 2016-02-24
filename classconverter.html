@@ -40,6 +40,18 @@
 
     <div style="float: left;">
         <p>Java Class:</p>
+
+        <div>
+            <div>
+                <span>Accessors</span>
+                <select id="accessorpattern">
+                    <option value="none">None</option>
+                    <option value="getset">Getter/setter</option>
+                    <option value="lombokdata">Lombok Data</option>
+                </select>
+            </div>
+        </div>
+
         <textarea id="javaclass" name="javaclass"></textarea>
     </div>
     <br style="clear: left;"/>
@@ -47,7 +59,7 @@
 
 <script type="application/javascript">
 
-    function convertCopybook (str) {
+    function convertCopybook (str, accessor) {
         var fields = [];
         (function parseCopybook(copybook) {
             var last = [{ level: 0, fields: fields }];
@@ -156,7 +168,8 @@
         (function traverse(classname, fields) {
             var current = "";
             current += "@CopyBook()\n";
-            current += "class "+ classname + " {\n";
+            current += (accessor === "lombokdata" ? "@Data " : "") + "class "+ classname + " {\n";
+
             fields.forEach(function(field, i){
                 var java_name = toCamelCase(field["name"].replace(".", "_"));
 
@@ -165,7 +178,7 @@
                 });
 
                 if (field["fields"].length > 0) {
-                    current += "    private " + toCapitalCase(java_name) + field["type"] + " " + java_name + ";\n";
+                    current += "    private " + toCapitalCase(java_name) + " " + java_name + ";\n";
                     traverse(toCapitalCase(java_name), field["fields"]);
 
                 } else {
@@ -174,6 +187,25 @@
 
                 if(fields.length -1 > i) { current += "\n"; }
             });
+
+            if(accessor === "getset") {
+                current += "\n";
+                fields.forEach(function (field, i) {
+                    var java_name = toCamelCase(field["name"].replace(".", "_"));
+                    var java_type = field["fields"].length > 0 ? toCapitalCase(java_name) : field["type"];
+
+                    current += "    public " + java_type + " get" + toCapitalCase(java_name) + "() {\n";
+                    current += "        return this." + java_name + ";\n";
+                    current += "    }\n";
+                    current += "\n";
+                    current += "    public void set" + toCapitalCase(java_name) + "(" + java_type + " " + java_name + ") {\n";
+                    current += "        this." + java_name + " = " + java_name + ";\n";
+                    current += "    }\n";
+
+                    if(fields.length -1 > i) { current += "\n"; }
+                });
+            }
+
             current += "}\n";
             classes.push(current);
         })("CopyBook", fields);
@@ -188,6 +220,15 @@
 
     function toCapitalCase(str) {
         return str.charAt(0).toUpperCase() + str.slice(1)
+    }
+
+    function updateEditor(srcEditor, dstEditor) {
+        var accessorSelector = document.getElementById("accessorpattern");
+        var accessor = accessorSelector.options[accessorSelector.selectedIndex].value;
+        var src = srcEditor.getValue();
+        var dst = convertCopybook(src, accessor);
+        dstEditor.setValue(dst);
+        dstEditor.refresh();
     }
 
     $(function() {
@@ -208,14 +249,17 @@
             theme : "twilight",
             showCursorWhenSelecting : true
         });
+
         cobolEditor.setSize(null, 750);
         cobolEditor.on("change", function (cm) {
-            var src = cm.getValue();
-            var dst = convertCopybook(src);
-            javaEditor.setValue(dst);
-            javaEditor.refresh();
+            updateEditor(cm, javaEditor);
         });
 
+        $("#accessorpattern").change(function() {
+            updateEditor(cobolEditor, javaEditor);
+        });
+
+        updateEditor(cobolEditor, javaEditor);
     });
   </script>
 </body>
