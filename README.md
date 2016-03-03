@@ -67,13 +67,21 @@ Response response = responseSerializer.deserialize(responseBytes, Response.class
 
 ## Supported format annotations and their defaults
 
+CopyBook4Java supports a number of CopyBook formats and can be easily extended to support local variations that does not comply with normal COBOL serialize/deserialize, to do this Implement the CopyBookMapper inteface and reference it from the CopyBook annotation like the build in supported types shown below:
+
 ```java
-@CopyBook(type = FullMapper.class, charset = "UTF-8")
+@CopyBook(type = FullMapper.class) // Default format and what you would expect a copybook to look like
+@CopyBook(type = FullLastArrayShortMapper.class) // Special version of FullMapper that handles optimizes for a broken format that does not have DEPENDING on for arrays.
+@CopyBook(type = PackedFirstLevelMapper.class) // Special non fixed length field format with separator char
 ```
 
+The different CopyBookMappers can be configured, by using the supported configuration options:
 
+```java
+@CopyBook(type = FullMapper.class, charset="UTF-8", strict = true) // Use the FullMapper, UTF-8 as charset and be strict about uninitialized data structures by throwing an exception when this is meet.
+```
 
-The CopyBookFieldFormat annotation can be set on both class level on a individual field to overwrite the defaults:
+The CopyBookFieldFormat annotation can be set on both class level on a individual field to overwrite the defaults, the defaults are defined in the interface [CopyBookDefaults](src/main/java/dk/nversion/copybook/annotations/CopyBookDefaults.java)
 
 ```java
 @CopyBookFieldFormat(type = IntegerToInteger.class, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
@@ -82,7 +90,6 @@ The CopyBookFieldFormat annotation can be set on both class level on a individua
 @CopyBookFieldFormat(type = SignedDecimalToBigDecimal.class, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 @CopyBookFieldFormat(type = StringToString.class, rightPadding = true, paddingChar  = ' ', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
 ```
-
 
 It's also possible to create new CopyBook annotation to give common settings as custom name:
 
@@ -108,5 +115,7 @@ public class Request {
 ## Convert CopyBook to annotated java class
 
 CopyBook4Java provides a simple class converter that can be used for automatic conversion from a copybook to an annotated Java class, just open classconverter.html with any modern browser and copy/paste in the copybook and a translated version will be provided:
+
+[Try it here](https://rawgit.com/tlbdk/copybook4java/master/classconverter.html)
 
 ![alt text](classconverter.png "classconvert.html")

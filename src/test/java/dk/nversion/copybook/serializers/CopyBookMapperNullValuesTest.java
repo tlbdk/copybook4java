@@ -12,9 +12,10 @@ import dk.nversion.copybook.annotations.CopyBookLine;
 import dk.nversion.copybook.converters.IntegerToInteger;
 import dk.nversion.copybook.converters.StringToString;
 import dk.nversion.copybook.exceptions.CopyBookException;
-import junit.framework.Assert;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
+
+import java.math.BigInteger;
 
 import static org.junit.Assert.*;
 
@@ -122,14 +123,26 @@ public class CopyBookMapperNullValuesTest {
     }
 
     @CopyBook()
-    @CopyBookFieldFormat(type = IntegerToInteger.class, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
+    static public class FieldBigInteger {
+        @CopyBookLine("07 SOME-ACCOUNT PIC 9(2).")
+        private BigInteger someAccount;
+    }
+
+    @org.junit.Test
+    public void testFieldBigIntegerNull() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(FieldBigInteger.class);
+        FieldBigInteger test = new FieldBigInteger();
+        byte[] testBytes = serializer.serialize(test);
+        assertArrayEquals(new byte[] { 48, 48 }, testBytes);
+    }
+
+    @CopyBook()
     static public class ObjectFieldInt {
         @CopyBookLine("01 FIELD PIC 9(2).")
         public int value;
     }
 
-
-    @CopyBook(type = FullMapper.class, strict = true)
+    @CopyBook(type = FullMapper.class)
     static public class FieldTypeNestedIntNull {
         @CopyBookLine("01 FIELD.")
         public ObjectFieldInt field;
@@ -140,7 +153,7 @@ public class CopyBookMapperNullValuesTest {
         CopyBookSerializer serializer = new CopyBookSerializer(FieldTypeNestedIntNull.class);
         FieldTypeNestedIntNull test = new FieldTypeNestedIntNull();
         byte[] testBytes = serializer.serialize(test);
-        assertEquals(10, testBytes.length);
+        assertArrayEquals(new byte[] { 48, 48 }, testBytes);
     }
 
     @CopyBook(type = FullMapper.class, strict = true)

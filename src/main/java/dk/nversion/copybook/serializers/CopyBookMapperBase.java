@@ -11,6 +11,7 @@ import java.util.List;
 public abstract class CopyBookMapperBase implements CopyBookMapper {
     protected List<CopyBookField> fields;
     protected boolean debug;
+    protected boolean strict;
     protected int maxRecordSize;
     protected int minRecordSize;
 
@@ -18,6 +19,7 @@ public abstract class CopyBookMapperBase implements CopyBookMapper {
     public void initialize(CopyBookSerializerConfig config) {
         this.fields = config.getFields();
         this.debug = config.isDebug();
+        this.strict = config.isStrict();
         int[] totalSizes = calculateSizes(config.getFields(), 0, this.debug);
         this.minRecordSize = totalSizes[0];
         this.maxRecordSize = totalSizes[1];

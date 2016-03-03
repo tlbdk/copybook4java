@@ -54,6 +54,9 @@ public class CopyBookParser {
             if(annotation.bitmapBlockSize() != 0) {
                 config.setBitmapBlockSize(annotation.bitmapBlockSize());
             }
+            if(annotation.strict()) {
+                config.setStrict(annotation.strict());
+            }
         }
 
         if(serializerClass == null) {
@@ -62,12 +65,12 @@ public class CopyBookParser {
 
         config.setDebug(debug);
 
-        Map<String,TypeConverter> defaultTypeConverterMap = getTypeConvertersRecursively(CopyBookDefaults.class, config.getCharset());
-        config.setFields(walkClass(type, null, defaultTypeConverterMap, config.getCharset(), new HashMap<>()));
+        Map<String,TypeConverter> defaultTypeConverterMap = getTypeConvertersRecursively(CopyBookDefaults.class, config.getCharset(), config.isStrict());
+        config.setFields(walkClass(type, null, defaultTypeConverterMap, config.getCharset(), config.isStrict(), new HashMap<>()));
     }
 
     @SuppressWarnings("unchecked")
-    private List<CopyBookField> walkClass(Class<?> type, String copyBookName, Map<String,TypeConverter> inheritedTypeConverterMap, Charset charset, Map<String,CopyBookField> copyBookFieldNames) {
+    private List<CopyBookField> walkClass(Class<?> type, String copyBookName, Map<String,TypeConverter> inheritedTypeConverterMap, Charset charset, boolean strict, Map<String,CopyBookField> copyBookFieldNames) {
         List<CopyBookField> results = new ArrayList<>();
 
         CopyBook copyBookAnnotation = type.getAnnotation(CopyBook.class);
@@ -77,7 +80,7 @@ public class CopyBookParser {
 
         // Overwrite type converts with what we find on the sub copybook
         Map<String,TypeConverter> typeConverterMap = new HashMap<>(inheritedTypeConverterMap);
-        typeConverterMap.putAll(getTypeConvertersRecursively(type, charset));
+        typeConverterMap.putAll(getTypeConvertersRecursively(type, charset, strict));
 
         // Iterate over the class fields with CopyBookLine annotation
         for (Field field : type.getDeclaredFields()) {
@@ -206,7 +209,7 @@ public class CopyBookParser {
 
                 // Find type converts that have been set on the field
                 Map<String,TypeConverter> fieldTypeConverterMap = new HashMap<>(typeConverterMap);
-                fieldTypeConverterMap.putAll(getTypeConvertersRecursively(fieldBaseType, charset));
+                fieldTypeConverterMap.putAll(getTypeConvertersRecursively(fieldBaseType, charset, strict));
 
                 // Resolve typeConverter
                 TypeConverter typeConverter = null;
@@ -262,7 +265,7 @@ public class CopyBookParser {
                 // Did not find a type convert so lets see if it's another copybook class
                 if(typeConverter == null) {
                     if (fieldBaseType.getAnnotation(CopyBook.class) != null) {
-                        copyBookField.setSubCopyBookFields(walkClass(fieldBaseType, name, typeConverterMap, charset, copyBookFieldNames));
+                        copyBookField.setSubCopyBookFields(walkClass(fieldBaseType, name, typeConverterMap, charset, strict, copyBookFieldNames));
 
                     } else {
                         if(fieldBaseType.isPrimitive() || fieldBaseType.getName().startsWith("java")) {
@@ -319,33 +322,33 @@ public class CopyBookParser {
         return results;
     }
 
-    private Map<String, TypeConverter> getTypeConvertersRecursively(Class<?> type, Charset charset) {
+    private Map<String, TypeConverter> getTypeConvertersRecursively(Class<?> type, Charset charset, Boolean strict) {
         Map<String,TypeConverter> results = new HashMap<>();
         for (Annotation annotation : type.getAnnotations()) {
             if(CopyBookFieldFormats.class.isInstance(annotation)) {
                 for(CopyBookFieldFormat fieldFormat : ((CopyBookFieldFormats)annotation).value()) {
-                    results.put(fieldFormat.type().getSimpleName(), createTypeConverter(fieldFormat, charset));
+                    results.put(fieldFormat.type().getSimpleName(), createTypeConverter(fieldFormat, charset, strict));
                 }
 
             } else if(CopyBookFieldFormat.class.isInstance(annotation)) {
                 CopyBookFieldFormat fieldFormat = (CopyBookFieldFormat)annotation;
-                results.put(fieldFormat.type().getSimpleName(), createTypeConverter(fieldFormat, charset));
+                results.put(fieldFormat.type().getSimpleName(), createTypeConverter(fieldFormat, charset, strict));
 
             } else if (!annotation.annotationType().getName().startsWith("java")) {
-                results.putAll(getTypeConvertersRecursively(annotation.annotationType(), charset));
+                results.putAll(getTypeConvertersRecursively(annotation.annotationType(), charset, strict));
             }
         }
         return results;
     }
 
-    private TypeConverter createTypeConverter(CopyBookFieldFormat copyBookFieldFormat, Charset charset) {
+    private TypeConverter createTypeConverter(CopyBookFieldFormat copyBookFieldFormat, Charset charset, Boolean strict) {
         TypeConverterConfig config = new TypeConverterConfig();
         config.setCharset(charset);
         config.setRightPadding(copyBookFieldFormat.rightPadding());
         config.setNullFillerChar(copyBookFieldFormat.nullFillerChar());
         config.setPaddingChar(copyBookFieldFormat.paddingChar());
         config.setSigningType(copyBookFieldFormat.signingType());
-        config.setDefaultValue(copyBookFieldFormat.defaultValue().isEmpty() ? null : copyBookFieldFormat.defaultValue());
+        config.setDefaultValue((copyBookFieldFormat.defaultValue().isEmpty() || strict) ? null : copyBookFieldFormat.defaultValue());
         config.setFormat(copyBookFieldFormat.format());
 
         try {

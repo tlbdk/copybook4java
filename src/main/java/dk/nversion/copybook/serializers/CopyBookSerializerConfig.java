@@ -15,6 +15,7 @@ public class CopyBookSerializerConfig {
     private byte separatorByte;
     private int bitmapBlockSize;
     private boolean debug;
+    private boolean strict;
 
     public Charset getCharset() {
         return charset;
@@ -54,5 +55,13 @@ public class CopyBookSerializerConfig {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+
+    public boolean isStrict() {
+        return strict;
+    }
+
+    public void setStrict(boolean strict) {
+        this.strict = strict;
     }
 }
