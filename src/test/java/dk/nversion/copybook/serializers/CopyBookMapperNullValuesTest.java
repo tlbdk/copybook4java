@@ -12,6 +12,7 @@ import dk.nversion.copybook.annotations.CopyBookLine;
 import dk.nversion.copybook.converters.IntegerToInteger;
 import dk.nversion.copybook.converters.StringToString;
 import dk.nversion.copybook.exceptions.CopyBookException;
+import junit.framework.Assert;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
@@ -122,23 +123,38 @@ public class CopyBookMapperNullValuesTest {
 
     @CopyBook()
     @CopyBookFieldFormat(type = IntegerToInteger.class, rightPadding = false, paddingChar = '0', nullFillerChar = (byte)0, signingType = CopyBookFieldSigningType.PREFIX)
-    static public class objectFieldInt {
+    static public class ObjectFieldInt {
         @CopyBookLine("01 FIELD PIC 9(2).")
         public int value;
     }
 
-    @CopyBook(type = FullMapper.class)
-    static public class fieldTypeNestedIntNull {
+
+    @CopyBook(type = FullMapper.class, strict = true)
+    static public class FieldTypeNestedIntNull {
         @CopyBookLine("01 FIELD.")
-        public objectFieldInt field;
+        public ObjectFieldInt field;
     }
 
     @org.junit.Test
     public void testFieldTypeNestedIntNull() throws Exception {
+        CopyBookSerializer serializer = new CopyBookSerializer(FieldTypeNestedIntNull.class);
+        FieldTypeNestedIntNull test = new FieldTypeNestedIntNull();
+        byte[] testBytes = serializer.serialize(test);
+        assertEquals(10, testBytes.length);
+    }
+
+    @CopyBook(type = FullMapper.class, strict = true)
+    static public class FieldTypeNestedIntNullStrict {
+        @CopyBookLine("01 FIELD.")
+        public ObjectFieldInt field;
+    }
+
+    @org.junit.Test
+    public void testFieldTypeNestedIntNullStrict() throws Exception {
         expectedEx.expect(CopyBookException.class);
         expectedEx.expectMessage("Root object for field");
-        CopyBookSerializer serializer = new CopyBookSerializer(fieldTypeNestedIntNull.class);
-        fieldTypeNestedIntNull test = new fieldTypeNestedIntNull();
+        CopyBookSerializer serializer = new CopyBookSerializer(FieldTypeNestedIntNullStrict.class);
+        FieldTypeNestedIntNullStrict test = new FieldTypeNestedIntNullStrict();
         byte[] testBytes = serializer.serialize(test);
     }
 

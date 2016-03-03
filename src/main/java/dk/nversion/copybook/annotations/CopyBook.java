@@ -21,4 +21,5 @@ public @interface CopyBook {
     char separatorChar() default 'G';
     int bitmapBlockSize() default 0;
     String counterFormat() default ""; // TODO: Implement "X{fieldName}"
+    boolean strict() default false;
 }
