@@ -49,6 +49,8 @@
                     <option value="getset">Getter/setter</option>
                     <option value="lombokdata">Lombok Data</option>
                 </select>
+                <span>Charset</span>
+                <input id="charset" type="text" value="UTF-8">
             </div>
         </div>
 
@@ -59,8 +61,9 @@
 
 <script type="application/javascript">
 
-    function convertCopybook (str, accessor) {
+    function convertCopybook (str, accessor, charset) {
         var fields = [];
+
         (function parseCopybook(copybook) {
             var last = [{ level: 0, fields: fields }];
             copybook.replace(/\*[^\n]*/g, '').match(/[\s\S]+?\.[ \t]*\n/g).forEach(function(line, i) {
@@ -167,7 +170,7 @@
         var classes = [];
         (function traverse(classname, fields) {
             var current = "";
-            current += "@CopyBook()\n";
+            current += "@CopyBook(charset = \""+ charset +"\")\n";
             current += (accessor === "lombokdata" ? "@Data " : "") + "class "+ classname + " {\n";
 
             fields.forEach(function(field, i){
@@ -225,8 +228,9 @@
     function updateEditor(srcEditor, dstEditor) {
         var accessorSelector = document.getElementById("accessorpattern");
         var accessor = accessorSelector.options[accessorSelector.selectedIndex].value;
+        var charset = document.getElementById("charset").value;
         var src = srcEditor.getValue();
-        var dst = convertCopybook(src, accessor);
+        var dst = convertCopybook(src, accessor, charset);
         dstEditor.setValue(dst);
         dstEditor.refresh();
     }
@@ -256,6 +260,10 @@
         });
 
         $("#accessorpattern").change(function() {
+            updateEditor(cobolEditor, javaEditor);
+        });
+
+        $("#charset").change(function() {
             updateEditor(cobolEditor, javaEditor);
         });
 
