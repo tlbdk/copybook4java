@@ -16,7 +16,7 @@
     </properties>
 
 
-    <packaging>maven-plugin</packaging>
+    <packaging>jar</packaging>
     <name>copybook4java codegen test project</name>
     <url>https://travis-ci.org/tlbdk/copybook4java</url>
     <description>CopyBook serializer and deserializer for Java where CopyBook lines are used to annotate a normal Java class</description>
