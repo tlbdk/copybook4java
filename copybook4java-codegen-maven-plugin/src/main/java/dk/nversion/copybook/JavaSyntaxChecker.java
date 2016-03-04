@@ -8,6 +8,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+// TODO: Fix storing of class files so it is done in memory instead in the root of the project folder
+
 public class JavaSyntaxChecker {
     static JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
     static Pattern re_packageName = Pattern.compile("^.*?package\\s*([^\\s;]+)", Pattern.DOTALL);
