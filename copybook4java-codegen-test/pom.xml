@@ -44,7 +44,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputCopyBook>hospital.txt</inputCopyBook>
+                            <inputCopyBook>src/test/resources/hospital.txt</inputCopyBook>
                             <language>java</language>
                         </configuration>
                     </execution>

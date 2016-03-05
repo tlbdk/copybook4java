@@ -36,7 +36,7 @@ public class JavaSyntaxChecker {
         task.call();
 
         List<String> errors = new ArrayList<>();
-        for (Diagnostic diagnostic : diagnostics.getDiagnostics()) {
+        for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
             errors.add(diagnostic.getLineNumber() + ":" + diagnostic.getPosition() + " : " + diagnostic.getMessage(null) + " : " + diagnostic.getSource() );
         }
 

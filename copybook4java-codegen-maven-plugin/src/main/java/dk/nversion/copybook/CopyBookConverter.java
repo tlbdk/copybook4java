@@ -40,12 +40,12 @@ public class CopyBookConverter {
         engine.eval(js);
     }
 
-    public String convert(String copybook) throws ScriptException, NoSuchMethodException {
-        return (String)invocable.invokeFunction("convertCopybook", "myPackage", "myCopyBook", copybook, "none", "UTF-8");
+    public String convert(String copybook, String packageName, String className, String accessor, String charset) throws ScriptException, NoSuchMethodException {
+        return (String)invocable.invokeFunction("convertCopybook", packageName, className, copybook, accessor, charset);
     }
 
-    public String convert(InputStream copybook) throws ScriptException, NoSuchMethodException, IOException {
-        return convert(new String(ByteUtils.toByteArray(copybook), StandardCharsets.UTF_8));
+    public String convert(InputStream copybook, String packageName, String className, String accessor, String charset) throws ScriptException, NoSuchMethodException, IOException {
+        return convert(new String(ByteUtils.toByteArray(copybook), StandardCharsets.UTF_8), packageName, className, accessor, charset);
     }
 
     private String extractJS(InputStream inputStream) throws IOException {

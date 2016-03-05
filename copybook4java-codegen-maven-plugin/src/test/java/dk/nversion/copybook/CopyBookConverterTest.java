@@ -17,7 +17,7 @@ public class CopyBookConverterTest {
     public void testCopyBookConverterTest() throws Exception {
         CopyBookConverter converter = new CopyBookConverter();
         InputStream sampleCopyBook = this.getClass().getResourceAsStream("../../../hospital.txt");
-        String convertedJavaSource = converter.convert(sampleCopyBook);
+        String convertedJavaSource = converter.convert(sampleCopyBook, "mypackage", "MyHospital", "none", "UTF-8");
 
         File annotationsFolder = new File(this.getClass().getResource(".").getFile() + "../../../../../../copybook4java/src/main/java/dk/nversion/copybook/annotations");
 
