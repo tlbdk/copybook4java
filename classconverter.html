@@ -61,7 +61,7 @@
                     <option value="lombokdata">Lombok Data</option>
                 </select>
                 <span>Charset</span>
-                <input id="charset" type="text" value="UTF-8">
+                <input id="charset" type="text" value="">
             </div>
         </div>
 
@@ -203,7 +203,7 @@
                         + "import dk.nversion.copybook.annotations.CopyBookLine;\n\n";
             }
 
-            currentClass += " ".repeat(level * indentation) + "@CopyBook(charset = \""+ charset +"\")\n";
+            currentClass += " ".repeat(level * indentation) + "@CopyBook(" + (charset ? "charset = \""+ charset +"\"" : "") + ")\n";
             currentClass += " ".repeat(level * indentation)
                     + (accessor === "lombokdata" ? "@Data " : "")
                     + (subclass === "nested" && level > 0 ? "public static " : "")
