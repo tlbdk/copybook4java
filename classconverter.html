@@ -309,7 +309,7 @@
         var accessor = accessorSelector.options[accessorSelector.selectedIndex].value;
         var charset = document.getElementById("charset").value;
         var src = srcEditor.getValue();
-        var classes = convertCopybook(undefined, src, accessor, charset, subclass, undefined);
+        var classes = convertCopybook(undefined, src, accessor, charset, subclass, "MyCopyBook");
 
         var classHeader = [
             "package " + "renamemepackage" + ";\n",
