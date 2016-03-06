@@ -43,6 +43,11 @@
 
         <div>
             <div>
+                <span>Subclass</span>
+                <select id="subclass">
+                    <option value="none">None</option>
+                    <option value="nested">nested</option>
+                </select>
                 <span>Accessors</span>
                 <select id="accessorpattern">
                     <option value="none">None</option>
@@ -62,7 +67,7 @@
 <script type="application/javascript">
 
     /*** convertCopybook start ***/
-    function convertCopybook (packageName, rootClassName, str, accessor, charset) {
+    function convertCopybook (rootClassName, str, accessor, charset, subclass) {
         var fields = [];
 
         (function parseCopybook(copybook) {
@@ -144,14 +149,14 @@
         }(str));
 
         // Simplify structure
-        (function traverse(fields, parent) {
+        (function simplifyStructure(fields, parent) {
             var types = 0;
             fields.forEach(function(field, i){
                 if(field["type"] && field["type"] !== '[]') {
                     types++;
 
                 } else if (field["fields"].length > 0) {
-                    types += traverse(field["fields"], field);
+                    types += simplifyStructure(field["fields"], field);
                 }
             });
 
@@ -169,58 +174,65 @@
 
         // Generate java class
         var classes = [];
-        (function traverse(classname, fields) {
-            var current = "";
-            current += "@CopyBook(charset = \""+ charset +"\")\n";
-            current += (accessor === "lombokdata" ? "@Data " : "") + "class "+ classname + " {\n";
+        (function generateJavaClasses(classname, fields, indentation, level) {
+            var currentClass = "";
+            var subclasses = "";
+            currentClass += " ".repeat(level * indentation) + "@CopyBook(charset = \""+ charset +"\")\n";
+            currentClass += " ".repeat(level * indentation)
+                    + (accessor === "lombokdata" ? "@Data " : "")
+                    + (subclass === "nested" && level > 0 ? "public static " : "")
+                    + "class "+ classname + " {\n";
 
             fields.forEach(function(field, i){
                 var java_name = toCamelCase(field["name"].replace(".", "_"));
 
                 field["lines"].forEach(function(line, j) {
-                    current += "    @CopyBookLine(\"" + line + "\")\n";
+                    currentClass += " ".repeat(level * indentation + indentation) + "@CopyBookLine(\"" + line + "\")\n";
                 });
 
                 if (field["fields"].length > 0) {
-                    current += "    private " + toCapitalCase(java_name) + " " + java_name + ";\n";
-                    traverse(toCapitalCase(java_name), field["fields"]);
+                    currentClass += " ".repeat(level * indentation + indentation) + "private " + toCapitalCase(java_name) + " " + java_name + ";\n";
+                    subclasses = generateJavaClasses(toCapitalCase(java_name), field["fields"], indentation, subclass === "nested" ? (level + 1) : level);
 
                 } else {
-                    current += "    private " + field["type"] + " " + java_name + ";\n";
+                    currentClass += " ".repeat(level * indentation + indentation) + "private " + field["type"] + " " + java_name + ";\n";
                 }
 
-                if(fields.length -1 > i) { current += "\n"; }
+                if(fields.length -1 > i) { currentClass += "\n"; }
             });
 
             if(accessor === "getset") {
-                current += "\n";
+                currentClass += "\n";
                 fields.forEach(function (field, i) {
                     var java_name = toCamelCase(field["name"].replace(".", "_"));
                     var java_type = field["fields"].length > 0 ? toCapitalCase(java_name) : field["type"];
 
-                    current += "    public " + java_type + " get" + toCapitalCase(java_name) + "() {\n";
-                    current += "        return this." + java_name + ";\n";
-                    current += "    }\n";
-                    current += "\n";
-                    current += "    public void set" + toCapitalCase(java_name) + "(" + java_type + " " + java_name + ") {\n";
-                    current += "        this." + java_name + " = " + java_name + ";\n";
-                    current += "    }\n";
+                    currentClass += " ".repeat(level * indentation + indentation) + "public " + java_type + " get" + toCapitalCase(java_name) + "() {\n";
+                    currentClass += " ".repeat(level * indentation + indentation * 2) + "return this." + java_name + ";\n";
+                    currentClass += " ".repeat(level * indentation + indentation) + "}\n";
+                    currentClass += "\n";
+                    currentClass += " ".repeat(level * indentation + indentation) + "public void set" + toCapitalCase(java_name) + "(" + java_type + " " + java_name + ") {\n";
+                    currentClass += " ".repeat(level * indentation + indentation * 2) + "this." + java_name + " = " + java_name + ";\n";
+                    currentClass += " ".repeat(level * indentation + indentation) + "}\n";
 
-                    if(fields.length -1 > i) { current += "\n"; }
+                    if(fields.length -1 > i) { currentClass += "\n"; }
                 });
             }
 
-            current += "}\n";
-            classes.push(current);
-        })(rootClassName, fields);
+            if(level > 0) {
+                currentClass += " ".repeat(level * indentation) + "}\n";
+                return "\n" + currentClass;
 
-        var classHeader = [
-            "package " + packageName + ";\n",
-            "import dk.nversion.copybook.annotations.CopyBook;",
-            "import dk.nversion.copybook.annotations.CopyBookLine;"
-        ].join("\n")
+            } else {
+                currentClass += subclasses;
+                currentClass += " ".repeat(level * indentation) + "}\n";
+                classes.push(currentClass);
+            }
 
-        return classHeader + "\n\n" + classes.join("\n");
+            return "";
+        })(rootClassName, fields, 4, 0);
+
+        return classes;
     }
 
     function toCamelCase(str) {
@@ -233,11 +245,22 @@
     /*** convertCopybook stop ***/
 
     function updateEditor(srcEditor, dstEditor) {
+        var subclassSelector = document.getElementById("subclass");
+        var subclass = subclassSelector.options[subclassSelector.selectedIndex].value;
         var accessorSelector = document.getElementById("accessorpattern");
         var accessor = accessorSelector.options[accessorSelector.selectedIndex].value;
         var charset = document.getElementById("charset").value;
         var src = srcEditor.getValue();
-        var dst = convertCopybook("renamemepackage", "RenameMeCopyBook", src, accessor, charset);
+        var classes = convertCopybook("RenameMeCopyBook", src, accessor, charset, subclass);
+
+        var classHeader = [
+            "package " + "renamemepackage" + ";\n",
+            "import dk.nversion.copybook.annotations.CopyBook;",
+            "import dk.nversion.copybook.annotations.CopyBookLine;"
+        ].join("\n")
+
+        var dst = classHeader + "\n\n" + classes.join("\n");
+
         dstEditor.setValue(dst);
         dstEditor.refresh();
     }
@@ -274,8 +297,59 @@
             updateEditor(cobolEditor, javaEditor);
         });
 
+        $("#subclass").change(function() {
+            updateEditor(cobolEditor, javaEditor);
+        });
+
         updateEditor(cobolEditor, javaEditor);
     });
   </script>
+
+<script type="application/javascript">
+    // Polyfill
+    if (!String.prototype.repeat) {
+        String.prototype.repeat = function(count) {
+            'use strict';
+            if (this == null) {
+                throw new TypeError('can\'t convert ' + this + ' to object');
+            }
+            var str = '' + this;
+            count = +count;
+            if (count != count) {
+                count = 0;
+            }
+            if (count < 0) {
+                throw new RangeError('repeat count must be non-negative');
+            }
+            if (count == Infinity) {
+                throw new RangeError('repeat count must be less than infinity');
+            }
+            count = Math.floor(count);
+            if (str.length == 0 || count == 0) {
+                return '';
+            }
+            // Ensuring count is a 31-bit integer allows us to heavily optimize the
+            // main part. But anyway, most current (August 2014) browsers can't handle
+            // strings 1 << 28 chars or longer, so:
+            if (str.length * count >= 1 << 28) {
+                throw new RangeError('repeat count must not overflow maximum string size');
+            }
+            var rpt = '';
+            for (;;) {
+                if ((count & 1) == 1) {
+                    rpt += str;
+                }
+                count >>>= 1;
+                if (count == 0) {
+                    break;
+                }
+                str += str;
+            }
+            // Could we try:
+            // return Array(count + 1).join(this);
+            return rpt;
+        }
+    }
+</script>
 </body>
 </html>
