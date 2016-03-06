@@ -50,7 +50,7 @@
         <resources>
             <resource>
                 <directory>../</directory>
-                <targetPath>dk/nversion/copybook</targetPath>
+                <targetPath>dk/nversion/copybook/codegen</targetPath>
                 <includes>
                     <include>classconverter.html</include>
                 </includes>
@@ -62,7 +62,7 @@
             </testResource>
             <testResource>
                 <directory>../</directory>
-                <targetPath>dk/nversion/copybook</targetPath>
+                <targetPath>dk/nversion/copybook/codegen</targetPath>
                 <includes>
                     <include>classconverter.html</include>
                 </includes>

@@ -1,0 +1,121 @@
+package dk.nversion.copybook.codegen;
+
+import dk.nversion.ByteUtils;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import jdk.nashorn.api.scripting.ScriptUtils;
+
+import javax.script.*;
+import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+public class CopyBookConverter {
+    private final ScriptEngineManager manager;
+    private ScriptEngine engine;
+    private final Invocable invocable;
+    static Pattern re_className = Pattern.compile("^.*?\\s(?:class|@interface|enum)\\s*([^\\s]+)", Pattern.DOTALL);
+
+
+    public CopyBookConverter() throws Exception {
+        InputStream inputStream = this.getClass().getResourceAsStream("classconverter.html");
+        String js = extractJS(inputStream);
+
+        manager = new ScriptEngineManager();
+        engine = manager.getEngineByName("nashorn");
+
+        if(engine == null) {
+            throw new Exception("Could not load the Nashorn script engine");
+        }
+
+        invocable = (Invocable) engine;
+        engine.eval(js);
+    }
+
+    public void convertFiles(String inputPath, Pattern pattern, String outputPath, String accessor, String charset, String subClassHandling) throws Exception {
+        File inputFile = new File(inputPath);
+        List<File> inputFiles = new ArrayList<>();
+
+        if(inputFile.isDirectory()) {
+             inputFiles = Files.walk(inputFile.toPath())
+                    .filter(p -> pattern.matcher(p.toString()).find() && Files.isRegularFile(p))
+                    .map(Path::toFile)
+                    .collect(Collectors.toList());
+
+        } else if (inputFile.isFile()) {
+            inputFiles.add(inputFile);
+        }
+
+        for(File inFile : inputFiles) {
+            System.out.println(inFile);
+            String rootClassName = getClassNameFromFile(inFile);
+            List<String> outClasses = convert(new FileInputStream(inFile), "mypackage", rootClassName, accessor, charset, subClassHandling, rootClassName);
+            for(String outClass : outClasses) {
+                Matcher classNameMatcher = re_className.matcher(outClass);
+                if (classNameMatcher.find()) {
+                    String className = classNameMatcher.group(1);
+                    Path outPath = Paths.get(outputPath, className + ".java");
+                    System.out.println("  " + outPath);
+                    Files.write(outPath, outClass.getBytes(StandardCharsets.UTF_8));
+
+                }
+
+            }
+        }
+    }
+
+    public List<String> convert(String copybookString, String packageName, String rootClassName, String accessor, String charset, String subClassHandling, String wrapperClassName) throws Exception {
+        ScriptObjectMirror results = (ScriptObjectMirror) invocable.invokeFunction("convertCopybook", packageName, rootClassName, copybookString, accessor, charset, subClassHandling, wrapperClassName);
+        return Arrays.asList(results.values().toArray(new String[results.size()]));
+    }
+
+    public List<String> convert(InputStream copybookStream, String packageName, String rootClassName, String accessor, String charset, String subClassHandling, String wrapperClassName) throws Exception {
+        return convert(new String(ByteUtils.toByteArray(copybookStream), StandardCharsets.UTF_8), packageName, rootClassName, accessor, charset, subClassHandling, wrapperClassName);
+    }
+
+    private String extractJS(InputStream inputStream) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+        StringBuilder builder = new StringBuilder();
+        String str;
+        boolean capture = false;
+        int whiteSpaceOffset = 0;
+        while ((str = bufferedReader.readLine()) != null) {
+            if(str.indexOf("/*** convertCopybook stop ***/") > 0) {
+                capture = false;
+            }
+
+            if(capture) {
+                builder.append(str.substring(str.length() > whiteSpaceOffset ? whiteSpaceOffset : 0) + "\n");
+            }
+
+            if(str.indexOf("/*** convertCopybook start ***/") > 0) {
+                while (whiteSpaceOffset < str.length() && Character.isWhitespace(str.charAt(whiteSpaceOffset))) {
+                    whiteSpaceOffset++;
+                }
+                capture = true;
+            }
+        }
+        return builder.toString();
+    }
+
+    private String getClassNameFromFile(File file)
+    {
+        String className = file.getName();
+        int i = className.lastIndexOf('.');
+        if (i > 0) {
+            className = className.substring(0, i);
+        }
+        try {
+            className = (String) invocable.invokeFunction("toClassName", className);
+
+        } catch (ScriptException | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        return className;
+    }
+}

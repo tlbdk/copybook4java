@@ -1,4 +1,4 @@
-package dk.nversion;
+package dk.nversion.copybook.codegen;
 
 import javax.tools.*;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package dk.nversion.copybook;
+package dk.nversion.copybook.codegen;
 
 import dk.nversion.ByteUtils;
 import org.apache.maven.plugin.AbstractMojo;
@@ -10,10 +10,8 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.ServiceLoader;
+import java.util.List;
 
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES )
 public class CodeGenMojo extends AbstractMojo {
@@ -79,7 +77,7 @@ public class CodeGenMojo extends AbstractMojo {
             String className = getClassName(inputCopyBook);
 
             CopyBookConverter converter = new CopyBookConverter();
-            String convertedJavaSource = converter.convert(copybookString, "mypackage", className, "none", "UTF-8");
+            List<String> convertedJavaSource = converter.convert(copybookString, "mypackage", className, "none", "UTF-8", "nested","WrapperName");
             System.out.println("Hello");
             //Files.write(output)
             // FIXME: Save to disk
