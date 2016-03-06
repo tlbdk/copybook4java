@@ -43,6 +43,8 @@
 
         <div>
             <div>
+                <span>Class Name</span>
+                <input id="wrapperclassname" type="text" value="MyCopyBook">
                 <span>Subclass</span>
                 <select id="subclass">
                     <option value="none">None</option>
@@ -71,7 +73,8 @@
 <script type="application/javascript">
 
     /*** convertCopybook start ***/
-    function convertCopybook (rootClassName, str, accessor, charset, subclass, wrapperClass) {
+    function convertCopybook (packageName, rootClassName, str, accessor, charset, subclass, wrapperClass) {
+        //print(rootClassName, accessor, charset, subclass, wrapperClass);
         var fields = [];
 
         (function parseCopybook(copybook) {
@@ -188,10 +191,18 @@
         }
 
         // Generate java class
+        var names = {};
         var classes = [];
         (function generateJavaClasses(rootClassName, fields, indentation, level) {
             var currentClass = "";
             var subclasses = "";
+
+            if(packageName && (subclass !== "nested" || level === 0)) {
+                currentClass = "package " + packageName + ";\n\n"
+                        + "import dk.nversion.copybook.annotations.CopyBook;\n"
+                        + "import dk.nversion.copybook.annotations.CopyBookLine;\n\n";
+            }
+
             currentClass += " ".repeat(level * indentation) + "@CopyBook(charset = \""+ charset +"\")\n";
             currentClass += " ".repeat(level * indentation)
                     + (accessor === "lombokdata" ? "@Data " : "")
@@ -209,8 +220,8 @@
                 });
 
                 if (field["fields"].length > 0) {
-                    currentClass += " ".repeat(level * indentation + indentation) + accessorString + toCapitalCase(java_name) + " " + java_name + ";\n";
-                    subclasses += generateJavaClasses(toCapitalCase(java_name), field["fields"], indentation, subclass === "nested" ? (level + 1) : level);
+                    currentClass += " ".repeat(level * indentation + indentation) + accessorString + (subclass !== "nested" ? rootClassName : "") + toCapitalCase(java_name) + " " + java_name + ";\n";
+                    subclasses += generateJavaClasses((subclass !== "nested" ? rootClassName : "") + toCapitalCase(java_name), field["fields"], indentation, subclass === "nested" ? (level + 1) : level);
 
                 } else {
                     currentClass += " ".repeat(level * indentation + indentation) + accessorString + field["type"] + " " + java_name + ";\n";
@@ -263,6 +274,10 @@
 
     function toCapitalCase(str) {
         return str.charAt(0).toUpperCase() + str.slice(1)
+    }
+
+    function toClassName(str) {
+        return toCapitalCase(toCamelCase(str.replace(".", "_")));
     }
 
     // Polyfill
@@ -319,16 +334,11 @@
         var accessorSelector = document.getElementById("accessorpattern");
         var accessor = accessorSelector.options[accessorSelector.selectedIndex].value;
         var charset = document.getElementById("charset").value;
+        var wrapperClassName = document.getElementById("wrapperclassname").value;
+
         var src = srcEditor.getValue();
-        var classes = convertCopybook(undefined, src, accessor, charset, subclass, "MyCopyBook");
-
-        var classHeader = [
-            "package " + "renamemepackage" + ";\n",
-            "import dk.nversion.copybook.annotations.CopyBook;",
-            "import dk.nversion.copybook.annotations.CopyBookLine;"
-        ].join("\n")
-
-        var dst = classHeader + "\n\n" + classes.join("\n");
+        var classes = convertCopybook(undefined, undefined, src, accessor, charset, subclass, wrapperClassName);
+        var dst = classes.join("\n");
 
         dstEditor.setValue(dst);
         dstEditor.refresh();
@@ -358,11 +368,15 @@
             updateEditor(cm, javaEditor);
         });
 
-        $("#accessorpattern").change(function() {
+        $("#wrapperclassname").change(function() {
             updateEditor(cobolEditor, javaEditor);
         });
 
         $("#charset").change(function() {
+            updateEditor(cobolEditor, javaEditor);
+        });
+
+        $("#accessorpattern").change(function() {
             updateEditor(cobolEditor, javaEditor);
         });
 
