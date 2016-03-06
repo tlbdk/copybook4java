@@ -67,7 +67,7 @@
 <script type="application/javascript">
 
     /*** convertCopybook start ***/
-    function convertCopybook (rootClassName, str, accessor, charset, subclass) {
+    function convertCopybook (rootClassName, str, accessor, charset, subclass, wrapperClass) {
         var fields = [];
 
         (function parseCopybook(copybook) {
@@ -149,14 +149,14 @@
         }(str));
 
         // Simplify structure
-        (function simplifyStructure(fields, parent) {
+        (function simplifyStructure(fields, parent, level) {
             var types = 0;
             fields.forEach(function(field, i){
                 if(field["type"] && field["type"] !== '[]') {
                     types++;
 
                 } else if (field["fields"].length > 0) {
-                    types += simplifyStructure(field["fields"], field);
+                    types += simplifyStructure(field["fields"], field, level + 1);
                 }
             });
 
@@ -170,18 +170,29 @@
             }
 
             return types;
-        })(fields, fields);
+        })(fields, fields, 0);
+
+        // Move everything up one level when we only have one field in the root
+        if(fields.length === 1 && !fields.type) {
+            if(!rootClassName) {
+                rootClassName = toCapitalCase(toCamelCase(fields[0]["name"].replace(".", "_")));
+            }
+            fields = fields[0]["fields"];
+
+        } else if (!rootClassName && wrapperClass) {
+            rootClassName = wrapperClass;
+        }
 
         // Generate java class
         var classes = [];
-        (function generateJavaClasses(classname, fields, indentation, level) {
+        (function generateJavaClasses(rootClassName, fields, indentation, level) {
             var currentClass = "";
             var subclasses = "";
             currentClass += " ".repeat(level * indentation) + "@CopyBook(charset = \""+ charset +"\")\n";
             currentClass += " ".repeat(level * indentation)
                     + (accessor === "lombokdata" ? "@Data " : "")
                     + (subclass === "nested" && level > 0 ? "public static " : "")
-                    + "class "+ classname + " {\n";
+                    + "class "+ rootClassName + " {\n";
 
             fields.forEach(function(field, i){
                 var java_name = toCamelCase(field["name"].replace(".", "_"));
@@ -192,7 +203,7 @@
 
                 if (field["fields"].length > 0) {
                     currentClass += " ".repeat(level * indentation + indentation) + "private " + toCapitalCase(java_name) + " " + java_name + ";\n";
-                    subclasses = generateJavaClasses(toCapitalCase(java_name), field["fields"], indentation, subclass === "nested" ? (level + 1) : level);
+                    subclasses += generateJavaClasses(toCapitalCase(java_name), field["fields"], indentation, subclass === "nested" ? (level + 1) : level);
 
                 } else {
                     currentClass += " ".repeat(level * indentation + indentation) + "private " + field["type"] + " " + java_name + ";\n";
@@ -219,13 +230,13 @@
                 });
             }
 
+            currentClass += subclasses;
+            currentClass += " ".repeat(level * indentation) + "}\n";
+
             if(level > 0) {
-                currentClass += " ".repeat(level * indentation) + "}\n";
                 return "\n" + currentClass;
 
             } else {
-                currentClass += subclasses;
-                currentClass += " ".repeat(level * indentation) + "}\n";
                 classes.push(currentClass);
             }
 
@@ -242,7 +253,7 @@
     function toCapitalCase(str) {
         return str.charAt(0).toUpperCase() + str.slice(1)
     }
-    
+
     // Polyfill
     if (!String.prototype.repeat) {
         String.prototype.repeat = function(count) {
@@ -298,7 +309,7 @@
         var accessor = accessorSelector.options[accessorSelector.selectedIndex].value;
         var charset = document.getElementById("charset").value;
         var src = srcEditor.getValue();
-        var classes = convertCopybook("RenameMeCopyBook", src, accessor, charset, subclass);
+        var classes = convertCopybook(undefined, src, accessor, charset, subclass, undefined);
 
         var classHeader = [
             "package " + "renamemepackage" + ";\n",
