@@ -1,4 +1,4 @@
-package dk.nversion.copybook;
+package dk.nversion.copybook.codegen;
 
 import dk.nversion.ByteUtils;
 import dk.nversion.copybook.codegen.CopyBookConverter;
@@ -19,7 +19,7 @@ public class CopyBookConverterTest {
     @org.junit.Test
     public void testBasicConversionAndVerifyWithCompilation() throws Exception {
         CopyBookConverter converter = new CopyBookConverter();
-        InputStream sampleCopyBook = this.getClass().getResourceAsStream("../../../hospital_test.txt");
+        InputStream sampleCopyBook = this.getClass().getResourceAsStream("../../../../hospital_test.txt");
         List<String> convertedJavaSources = converter.convert(sampleCopyBook, "mypackage", "MyHospital", "none", "UTF-8", "nested", null);
 
         // Add header to new source files
@@ -37,12 +37,12 @@ public class CopyBookConverterTest {
         File basePath = new File(this.getClass().getResource("../../../").toURI());
 
         CopyBookConverter converter = new CopyBookConverter();
-        converter.convertFiles(basePath.getAbsolutePath(), Pattern.compile("\\.txt$"), basePath.getAbsolutePath(), "none", "UTF-8", "nested");
+        converter.convertFiles(basePath.getAbsolutePath(), Pattern.compile("\\.txt$"), basePath.getAbsolutePath(), "mypackage", "none", "UTF-8", "nested");
         //String convertedJavaSource = converter.convert(new File("../../../*.txt"), "mypackage", "MyHospital", "none", "UTF-8");
     }
 
     private List<String> CompileGeneratedSource(List<String> convertedJavaSources) throws Exception {
-        File annotationsFolder = new File(this.getClass().getResource(".").getFile() + "../../../../../../copybook4java/src/main/java/dk/nversion/copybook/annotations");
+        File annotationsFolder = new File(this.getClass().getResource(".").getFile() + "../../../../../../../copybook4java/src/main/java/dk/nversion/copybook/annotations");
 
         List<String> sources = new ArrayList<>();
         for(File file : annotationsFolder.listFiles()) {

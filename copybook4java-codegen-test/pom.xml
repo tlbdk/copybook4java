@@ -15,7 +15,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-
     <packaging>jar</packaging>
     <name>copybook4java codegen test project</name>
     <url>https://travis-ci.org/tlbdk/copybook4java</url>
@@ -38,15 +37,16 @@
                 <groupId>dk.nversion</groupId>
                 <artifactId>copybook4java-codegen-maven-plugin</artifactId>
                 <version>1.0</version>
+                <configuration>
+                    <inputFilter>^.*\.txt$</inputFilter>
+                    <inputPath>src/test/resources/</inputPath>
+                    <language>java</language>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>generate</goal>
                         </goals>
-                        <configuration>
-                            <inputCopyBook>src/test/resources/hospital.txt</inputCopyBook>
-                            <language>java</language>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

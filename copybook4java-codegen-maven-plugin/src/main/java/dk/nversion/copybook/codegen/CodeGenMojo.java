@@ -11,7 +11,10 @@ import org.apache.maven.project.MavenProject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES )
 public class CodeGenMojo extends AbstractMojo {
@@ -21,14 +24,23 @@ public class CodeGenMojo extends AbstractMojo {
      *
      */
     @Parameter(defaultValue = "${project.build.directory}", required = true)
-    private File output;
+    private File outputPath;
 
     /**
-     * Location of the copybook definition, as URL or file.
+     * Location of the copybook definition, as URL or file. For directories this will recurse through directory tree
+     * and use sub directory as part of the package name.
      *
      */
     @Parameter(required = true)
-    private File inputCopyBook;
+    private File inputPath;
+
+
+    /**
+     * Regex will be applied to all files found in the inputPath
+     *
+     */
+    @Parameter(defaultValue = "^.*$")
+    private String inputFilter;
 
     /**
      * Language to generate for
@@ -52,13 +64,20 @@ public class CodeGenMojo extends AbstractMojo {
     private String accessor;
 
     /**
-     * The output package name.
+     * Subclass type: none, nested
+     *
+     */
+    @Parameter(defaultValue = "nested")
+    private String subclass;
+
+    /**
+     * The outputPath package root name.
      */
     @Parameter(defaultValue = "mypackage")
     private String packageName;
 
     /**
-     * Add the output directory to the project as a source root, so that the
+     * Add the outputPath directory to the project as a source root, so that the
      * generated java types are compiled and included in the project artifact.
      */
     @Parameter(defaultValue = "true")
@@ -72,15 +91,14 @@ public class CodeGenMojo extends AbstractMojo {
 
     public void execute() throws MojoExecutionException {
         try {
-            String copybookString = new String(ByteUtils.toByteArray(new FileInputStream(inputCopyBook)), StandardCharsets.UTF_8);
-
-            String className = getClassName(inputCopyBook);
-
             CopyBookConverter converter = new CopyBookConverter();
-            List<String> convertedJavaSource = converter.convert(copybookString, "mypackage", className, "none", "UTF-8", "nested","WrapperName");
-            System.out.println("Hello");
-            //Files.write(output)
-            // FIXME: Save to disk
+            Path outPath = Paths.get(outputPath.getCanonicalPath(), "generated-sources");
+            converter.convertFiles(inputPath.getCanonicalPath(), Pattern.compile(inputFilter), outPath.toString(), packageName, accessor, charset, subclass);
+
+            // Make sure we add the generated code to Maven so it gets compiled
+            if (addCompileSourceRoot) {
+                project.addCompileSourceRoot(outputPath.toString());
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

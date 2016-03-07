@@ -37,7 +37,7 @@ public class CopyBookConverter {
         engine.eval(js);
     }
 
-    public void convertFiles(String inputPath, Pattern pattern, String outputPath, String accessor, String charset, String subClassHandling) throws Exception {
+    public void convertFiles(String inputPath, Pattern pattern, String outputPath, String packageRootName, String accessor, String charset, String subClassHandling) throws Exception {
         File inputFile = new File(inputPath);
         List<File> inputFiles = new ArrayList<>();
 
@@ -54,17 +54,16 @@ public class CopyBookConverter {
         for(File inFile : inputFiles) {
             System.out.println(inFile);
             String rootClassName = getClassNameFromFile(inFile);
-            List<String> outClasses = convert(new FileInputStream(inFile), "mypackage", rootClassName, accessor, charset, subClassHandling, rootClassName);
+            List<String> outClasses = convert(new FileInputStream(inFile), packageRootName, rootClassName, accessor, charset, subClassHandling, rootClassName);
             for(String outClass : outClasses) {
                 Matcher classNameMatcher = re_className.matcher(outClass);
                 if (classNameMatcher.find()) {
                     String className = classNameMatcher.group(1);
                     Path outPath = Paths.get(outputPath, className + ".java");
+                    outPath.getParent().toFile().mkdirs();
                     System.out.println("  " + outPath);
                     Files.write(outPath, outClass.getBytes(StandardCharsets.UTF_8));
-
                 }
-
             }
         }
     }
