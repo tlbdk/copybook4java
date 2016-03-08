@@ -5,12 +5,11 @@ import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingRequest;
 import org.eclipse.aether.DefaultRepositorySystemSession;
-import org.junit.Ignore;
 import org.junit.Test;
+
 import java.io.File;
 
 public class CodeGenMojoTest extends AbstractMojoTestCase {

@@ -1,18 +1,16 @@
 package dk.nversion.copybook.codegen;
 
 import dk.nversion.ByteUtils;
-import dk.nversion.copybook.codegen.CopyBookConverter;
-import dk.nversion.copybook.codegen.JavaSyntaxChecker;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class CopyBookConverterTest {
 
