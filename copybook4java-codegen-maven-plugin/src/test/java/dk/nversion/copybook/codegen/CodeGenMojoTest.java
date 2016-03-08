@@ -21,7 +21,7 @@ public class CodeGenMojoTest extends AbstractMojoTestCase {
 
     @Test
     public void testExecute() throws Exception {
-        File pom = getTestFile( "../copybook4java-codegen-test/pom.xml" );
+        File pom = getTestFile( "../copybook4java-codegen-maven-test/pom.xml" );
         assertNotNull(pom);
         assertTrue(pom.exists());
         CodeGenMojo codeGenMojo = (CodeGenMojo)lookupConfiguredMojo("generate", pom);
