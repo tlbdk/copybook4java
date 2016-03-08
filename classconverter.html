@@ -206,7 +206,8 @@
             currentClass += " ".repeat(level * indentation) + "@CopyBook(" + (charset ? "charset = \""+ charset +"\"" : "") + ")\n";
             currentClass += " ".repeat(level * indentation)
                     + (accessor === "lombokdata" ? "@Data " : "")
-                    + (subclass === "nested" && level > 0 ? "public static " : "")
+                    + "public "
+                    + (subclass === "nested" && level > 0 ? "static " : "")
                     + "class "+ rootClassName + " {\n";
 
             fields.forEach(function(field, i){

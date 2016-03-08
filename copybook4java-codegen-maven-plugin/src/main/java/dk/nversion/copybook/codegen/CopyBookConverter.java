@@ -39,6 +39,7 @@ public class CopyBookConverter {
 
     public void convertFiles(String inputPath, Pattern pattern, String outputPath, String packageRootName, String accessor, String charset, String subClassHandling) throws Exception {
         File inputFile = new File(inputPath);
+        inputPath = inputFile.getCanonicalPath();
         List<File> inputFiles = new ArrayList<>();
 
         if(inputFile.isDirectory()) {
@@ -52,14 +53,15 @@ public class CopyBookConverter {
         }
 
         for(File inFile : inputFiles) {
-            System.out.println(inFile);
+            String packageName = inFile.getCanonicalFile().getParent().substring(inputPath.length()).replace('\\', '.').replace('/', '.').replace('_', '.');
+            packageName = packageName.isEmpty() ? packageRootName : packageRootName + "." + packageName.substring(1);
             String rootClassName = getClassNameFromFile(inFile);
-            List<String> outClasses = convert(new FileInputStream(inFile), packageRootName, rootClassName, accessor, charset, subClassHandling, rootClassName);
+            List<String> outClasses = convert(new FileInputStream(inFile), packageName, rootClassName, accessor, charset, subClassHandling, rootClassName);
             for(String outClass : outClasses) {
                 Matcher classNameMatcher = re_className.matcher(outClass);
                 if (classNameMatcher.find()) {
                     String className = classNameMatcher.group(1);
-                    Path outPath = Paths.get(outputPath, className + ".java");
+                    Path outPath = Paths.get(outputPath, packageName.replace('.', '/'),className + ".java");
                     outPath.getParent().toFile().mkdirs();
                     System.out.println("  " + outPath);
                     Files.write(outPath, outClass.getBytes(StandardCharsets.UTF_8));
