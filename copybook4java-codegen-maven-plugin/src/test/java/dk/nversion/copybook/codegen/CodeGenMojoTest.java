@@ -8,6 +8,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingRequest;
+import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.junit.Ignore;
 import org.junit.Test;
 import java.io.File;
@@ -34,6 +35,8 @@ public class CodeGenMojoTest extends AbstractMojoTestCase {
         MavenExecutionRequest request = new DefaultMavenExecutionRequest();
         request.setBaseDirectory(pom.getParentFile());
         ProjectBuildingRequest configuration = request.getProjectBuildingRequest();
+        // Fix for bug: https://git-wip-us.apache.org/repos/asf?p=maven-plugin-testing.git;a=commit;h=3cd5f47c586499e438a3f9393304ac9d1f9a7f53
+        configuration.setRepositorySession(new DefaultRepositorySystemSession());
         MavenProject project = lookup(ProjectBuilder.class).build(pom, configuration).getProject();
         return super.lookupConfiguredMojo(project, goal);
     }
