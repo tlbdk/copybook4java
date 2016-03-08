@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>dk.nversion</groupId>
-    <artifactId>copybook4java-codegen-test</artifactId>
+    <artifactId>copybook4java-codegen-maven-test</artifactId>
     <version>1.0</version>
 
     <properties>

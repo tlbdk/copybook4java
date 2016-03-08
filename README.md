@@ -111,7 +111,49 @@ public class Request {
   ...
 }
 ```
+## Using maven plugin to generate code
 
+Include dependencies and plugin in pom.xml, and place copybook definition files in resources folder, fully working sample can be found [here](copybook4java-codegen-maven-test/)
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>dk.nversion</groupId>
+        <artifactId>copybook4java</artifactId>
+        <version>1.0.2</version>
+    </dependency>
+    <dependency>
+        <groupId>dk.nversion</groupId>
+        <artifactId>copybook4java-codegen-maven-plugin</artifactId>
+        <version>1.0</version>
+    </dependency>
+</dependencies>
+```
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>dk.nversion</groupId>
+            <artifactId>copybook4java-codegen-maven-plugin</artifactId>
+            <version>1.0</version>
+            <configuration>
+                <inputFilter>^.*\.txt$</inputFilter>
+                <inputPath>src/test/resources/</inputPath>
+                <language>java</language>
+                <packageName>mypackagename</packageName>
+            </configuration>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>generate</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
 ## Convert CopyBook to annotated java class
 
 CopyBook4Java provides a simple class converter that can be used for automatic conversion from a copybook to an annotated Java class, just open classconverter.html with any modern browser and copy/paste in the copybook and a translated version will be provided:

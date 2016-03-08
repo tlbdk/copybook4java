@@ -11,7 +11,7 @@
     <modules>
         <module>copybook4java</module>
         <module>copybook4java-codegen-maven-plugin</module>
-        <module>copybook4java-codegen-test</module>
+        <module>copybook4java-codegen-maven-test</module>
     </modules>
 
     <build>
