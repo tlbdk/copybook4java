@@ -1,4 +1,3 @@
 # TODO
-* Make sure we follow Packed-Decimal Format: http://www.simotime.com/datapk01.htm
-* Add Maven plugin for submitting Java code coverage reports to Coveralls web service : https://github.com/trautonen/coveralls-maven-plugin
-* Make maven class generator
+* TODO: Make sure we follow Packed-Decimal Format: http://www.simotime.com/datapk01.htm
+* TODO: Add Maven plugin for submitting Java code coverage reports to Coveralls web service : https://github.com/trautonen/coveralls-maven-plugin
