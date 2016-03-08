@@ -359,17 +359,6 @@ public class CopyBookParserFormatTest {
         @CopyBookLine("01 FIELD PIC 9(16)V9(2).")
         private BigDecimal field;
     }
-    @CopyBook()
-    public class DecimalArrayToDecimalArray {
-        @CopyBookLine("01 FIELDS OCCURS 10 TIMES PIC 9(8)V9(2).")
-        private BigDecimal[] fields;
-    }
-    @CopyBook()
-    public class DecimalArrayToDecimalArrayMultiLine {
-        @CopyBookLine("01 FIELDS OCCURS 10 TIMES.")
-        @CopyBookLine("02 FIELD PIC 9(8)V9(2).")
-        private BigDecimal[] fields;
-    }
 
     @org.junit.Test
     public void testDecimalToBigDecimal() throws Exception {
@@ -378,6 +367,13 @@ public class CopyBookParserFormatTest {
         assertEquals(18, field.getSize());
         assertEquals(2, field.getDecimals());
     }
+
+    @CopyBook()
+    public class DecimalArrayToDecimalArray {
+        @CopyBookLine("01 FIELDS OCCURS 10 TIMES PIC 9(8)V9(2).")
+        private BigDecimal[] fields;
+    }
+
     @org.junit.Test
     public void testDecimalArrayToBigDecimalArray() throws Exception {
         CopyBookParser copyBookParser = new CopyBookParser(DecimalArrayToDecimalArray.class);
@@ -388,6 +384,14 @@ public class CopyBookParserFormatTest {
         assertEquals(10, field.getMaxOccurs());
         assertEquals(10, field.getMinOccurs());
     }
+
+    @CopyBook()
+    public class DecimalArrayToDecimalArrayMultiLine {
+        @CopyBookLine("01 FIELDS OCCURS 10 TIMES.")
+        @CopyBookLine("02 FIELD PIC 9(8)V9(2).")
+        private BigDecimal[] fields;
+    }
+
     @org.junit.Test
     public void testDecimalArrayToDecimalArrayMultiLine() throws Exception {
         CopyBookParser copyBookParser = new CopyBookParser(DecimalArrayToDecimalArrayMultiLine.class);
@@ -399,6 +403,23 @@ public class CopyBookParserFormatTest {
         assertEquals(10, field.getMinOccurs());
     }
 
+    @CopyBook()
+    public class DecimalArrayToDecimalArrayMultiLineWithOutTimes {
+        @CopyBookLine("01 FIELDS OCCURS 10.")
+        @CopyBookLine("02 FIELD PIC 9(8)V9(2).")
+        private BigDecimal[] fields;
+    }
+
+    @org.junit.Test
+    public void testDecimalArrayToDecimalArrayMultiLineWithOutTimes() throws Exception {
+        CopyBookParser copyBookParser = new CopyBookParser(DecimalArrayToDecimalArrayMultiLineWithOutTimes.class);
+        CopyBookField field = copyBookParser.getConfig().getFields().get(0);
+        assertTrue(field.isArray());
+        assertEquals(10, field.getSize());
+        assertEquals(2, field.getDecimals());
+        assertEquals(10, field.getMaxOccurs());
+        assertEquals(10, field.getMinOccurs());
+    }
 
     // Signed Decimal / Signed Decimal Array
     @CopyBook()

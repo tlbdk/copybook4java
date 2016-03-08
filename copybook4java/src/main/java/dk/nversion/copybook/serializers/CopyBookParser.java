@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 // TODO: Add default VALUE after PIC
 
 public class CopyBookParser {
-    private static Pattern re_CopyBookLine = Pattern.compile("^\\s*(\\d+)\\s+([^\\s]+)((?:\\s+OCCURS\\s+\\d+(?:\\s+TO\\s+\\d+)?\\s+TIMES)|(?:\\s+REDEFINES\\s+[^\\s]+))?(\\s+PIC\\s+[^\\s]+)?(\\s+DEPENDING\\s+ON\\s+[^\\s]+(?:\\s+IN\\s+[^\\s+]+)?)?\\s*\\.\\s*$");
-    private static Pattern re_Occurs = Pattern.compile("^\\s*OCCURS\\s+(?:(\\d+)\\s+TO\\s+)?(\\d+)\\s+TIMES\\s*$");
+    private static Pattern re_CopyBookLine = Pattern.compile("^\\s*(\\d+)\\s+([^\\s]+)((?:\\s+OCCURS\\s+\\d+(?:\\s+TO\\s+\\d+)?(?:\\s+TIMES)?)|(?:\\s+REDEFINES\\s+[^\\s]+))?(\\s+PIC\\s+[^\\s]+)?(\\s+DEPENDING\\s+ON\\s+[^\\s]+(?:\\s+IN\\s+[^\\s+]+)?)?\\s*\\.\\s*$");
+    private static Pattern re_Occurs = Pattern.compile("^\\s*OCCURS\\s+(?:(\\d+)\\s+TO\\s+)?(\\d+)(:?\\s+TIMES)?\\s*$");
     private static Pattern re_Redefines = Pattern.compile("\\s*REDEFINES\\s+([^\\s]+)\\s*");
     private static Pattern re_Pic = Pattern.compile("^\\s*PIC\\s+(S)?(X+|9+)(?:\\((\\d+)\\))?(?:V(9+)(?:\\((\\d+)\\))?)?\\s*$");
     private static Pattern re_DependingOn = Pattern.compile("^\\s*DEPENDING\\s+ON\\s+([^\\s]+)(?:\\s+IN\\s+([^\\s]+))?\\s*$");
