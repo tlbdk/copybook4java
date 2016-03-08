@@ -31,7 +31,6 @@
         </developer>
     </developers>
 
-
     <ciManagement>
         <system>travis-ci</system>
         <url>https://travis-ci.org/tlbdk/copybook4java</url>
@@ -114,7 +113,6 @@
                     <generateBackupPoms>false</generateBackupPoms>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 
