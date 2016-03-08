@@ -81,7 +81,7 @@ public class CopyBookField {
             // We already set it to accessible so this should not happen
             return null;
 
-        } catch (TypeConverterException ex) {
+        } catch (Exception ex) {
             throw new CopyBookException(getFieldName() + ": ", ex);
         }
     }
@@ -102,7 +102,7 @@ public class CopyBookField {
             Array.set(arrayObj, index, value);
             return value;
 
-        } catch (TypeConverterException ex) {
+        } catch (Exception ex) {
             throw new CopyBookException(getFieldName() + ": ", ex);
         }
     }
@@ -118,11 +118,8 @@ public class CopyBookField {
             }
             return converter.from(valueObj, this.size, this.decimals, addPadding);
             
-        } catch (TypeConverterException ex) {
-            throw new CopyBookException(getFieldName() + ": ", ex);
-
         } catch (Exception ex) {
-            throw ex;
+            throw new CopyBookException(getFieldName() + ": ", ex);
         }
     }
 
@@ -134,7 +131,7 @@ public class CopyBookField {
         try {
             return converter.from(getObject(rootObj, arrayObj, index), this.size, this.decimals, addPadding);
 
-        } catch (TypeConverterException ex) {
+        } catch (Exception ex) {
             throw new CopyBookException(getFieldName() + ": ", ex);
         }
     }
