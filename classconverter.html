@@ -18,6 +18,10 @@
 <div style="width: 100%">
     <div style="float: left;">
         <p>Copybook:</p>
+        <div>
+            <span>Status</span>
+            <span id="errormsg"></span>
+        </div>
         <textarea id="copybook" name="copybook" cols="80" rows="50">
                         * Comment stuff
             01 SUBFIELD.  * Lineending comment
@@ -40,30 +44,27 @@
 
     <div style="float: left;">
         <p>Java Class:</p>
-
         <div>
-            <div>
-                <span>Class Name</span>
-                <input id="wrapperclassname" type="text" value="MyCopyBook">
-                <span>Subclass</span>
-                <select id="subclass">
-                    <option value="none">None</option>
-                    <option value="nested">nested</option>
-                </select>
-                <span>Accessors</span>
-                <select id="accessorpattern">
-                    <option value="none">None</option>
-                    <option value="getset">Getter/setter</option>
-                    <option value="public">Public</option>
-                    <option value="package">Package</option>
-                    <option value="getsetbuilder">Getter/setter & Builder</option>
-                    <option value="publicbuilder">Public & Builder</option>
-                    <option value="packagebuilder">Package & Builder</option>
-                    <option value="lombokdata">Lombok Data</option>
-                </select>
-                <span>Charset</span>
-                <input id="charset" type="text" value="">
-            </div>
+            <span>Class Name</span>
+            <input id="wrapperclassname" type="text" value="MyCopyBook">
+            <span>Subclass</span>
+            <select id="subclass">
+                <option value="none">None</option>
+                <option value="nested">nested</option>
+            </select>
+            <span>Accessors</span>
+            <select id="accessorpattern">
+                <option value="none">None</option>
+                <option value="getset">Getter/setter</option>
+                <option value="public">Public</option>
+                <option value="package">Package</option>
+                <option value="getsetbuilder">Getter/setter & Builder</option>
+                <option value="publicbuilder">Public & Builder</option>
+                <option value="packagebuilder">Package & Builder</option>
+                <option value="lombokdata">Lombok Data</option>
+            </select>
+            <span>Charset</span>
+            <input id="charset" type="text" value="">
         </div>
 
         <textarea id="javaclass" name="javaclass"></textarea>
@@ -80,7 +81,7 @@
 
         (function parseCopybook(copybook) {
             var last = [{ level: 0, fields: fields }];
-            copybook.replace(/\*[^\n]*/g, '').match(/[\s\S]+?\.[\s\t]*\n/g).forEach(function(line, i) {
+            copybook.replace(/\*[^\n]*/g, '').match(/[\s\S]+?\.[\s\t]*\n?/g).forEach(function(line, i) {
                 // Remove comments, newlines, extra space and trim
                 line = line.replace(/\s*\*[^\n]+\n/g, '').replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').replace(/^\s+/, '').replace(/\s+$/, '').toUpperCase();
 
@@ -152,6 +153,8 @@
                             last.pop();
                         }
                     }
+                } else {
+                    throw "Could not parse line :" + line;
                 }
             });
         }(str));
@@ -343,12 +346,20 @@
         var charset = document.getElementById("charset").value;
         var wrapperClassName = document.getElementById("wrapperclassname").value;
 
-        var src = srcEditor.getValue();
-        var classes = convertCopybook(undefined, undefined, src, accessor, charset, subclass, wrapperClassName);
-        var dst = classes.join("\n");
+        var errormsg = document.getElementById("errormsg");
+        errormsg.textContent = "";
+        errormsg.style.backgroundColor = "transparent";
 
-        dstEditor.setValue(dst);
-        dstEditor.refresh();
+        var src = srcEditor.getValue();
+        try {
+            var classes = convertCopybook(undefined, undefined, src, accessor, charset, subclass, wrapperClassName);
+            var dst = classes.join("\n");
+            dstEditor.setValue(dst);
+            dstEditor.refresh();
+        } catch (ex) {
+            errormsg.textContent = ex;
+            errormsg.style.backgroundColor = "red";
+        }
     }
 
     $(function() {

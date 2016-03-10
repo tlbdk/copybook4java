@@ -1,7 +1,10 @@
 package dk.nversion.copybook.codegen;
 
 import dk.nversion.ByteUtils;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
+import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -13,6 +16,9 @@ import java.util.regex.Pattern;
 import static org.junit.Assert.assertEquals;
 
 public class CopyBookConverterTest {
+    @Rule
+    public ExpectedException expectedEx = ExpectedException.none();
+
 
     @org.junit.Test
     public void testBasicConversionAndVerifyWithCompilation() throws Exception {
@@ -30,9 +36,18 @@ public class CopyBookConverterTest {
     }
 
     @org.junit.Test
+    public void testBasicConversionWithError() throws Exception {
+        expectedEx.expect(ScriptException.class);
+        expectedEx.expectMessage("Could not parse line");
+        String sample = "05 ERROR PIC 9(5) OCCURSZ 6.";
+        CopyBookConverter converter = new CopyBookConverter();
+        List<String> result = converter.convert(sample, "mypackage", "MyHospital", "none", "UTF-8", "nested", null);
+    }
+
+
+    @org.junit.Test
     public void testMultiFileConversion() throws Exception {
         File basePath = new File(this.getClass().getResource("../../../../").toURI());
-
         CopyBookConverter converter = new CopyBookConverter();
         converter.convertFiles(basePath.getAbsolutePath(), Pattern.compile("\\.txt$"), basePath.getAbsolutePath(), "mypackage", "none", "UTF-8", "nested");
     }
