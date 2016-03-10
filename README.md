@@ -29,7 +29,7 @@ public class Request {
 }
 ```
 
-Annotate request class:
+Annotate response class:
 
 ```java
 @CopyBook(charset = "cp037")

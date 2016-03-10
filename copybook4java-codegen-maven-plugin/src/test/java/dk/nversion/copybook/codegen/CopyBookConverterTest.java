@@ -17,14 +17,13 @@ public class CopyBookConverterTest {
     @org.junit.Test
     public void testBasicConversionAndVerifyWithCompilation() throws Exception {
         CopyBookConverter converter = new CopyBookConverter();
-        InputStream sampleCopyBook = this.getClass().getResourceAsStream("../../../../hospital_test.txt");
-        List<String> convertedJavaSources = converter.convert(sampleCopyBook, "mypackage", "MyHospital", "none", "UTF-8", "nested", null);
+        List<String> convertedJavaSources = new ArrayList<>();
 
-        // Add header to new source files
-        /* String header = "package " + "renamemepackage" + ";\n\n"
-                 + "import dk.nversion.copybook.annotations.CopyBook;\n"
-                 + "import dk.nversion.copybook.annotations.CopyBookLine;\n\n";
-        convertedJavaSources = convertedJavaSources.stream().map(s ->  header + s).collect(Collectors.toList()); */
+        InputStream hospitalSample = this.getClass().getResourceAsStream("../../../../hospital_test.txt");
+        convertedJavaSources.addAll(converter.convert(hospitalSample, "mypackage", "MyHospital", "none", "UTF-8", "nested", null));
+
+        InputStream rootObjSample = this.getClass().getResourceAsStream("../../../../rootobj.txt");
+        convertedJavaSources.addAll(converter.convert(rootObjSample, "mypackage", "RootObj", "none", "UTF-8", "nested", null));
 
         List<String> errors = CompileGeneratedSource(convertedJavaSources);
         assertEquals(0, errors.size());
@@ -32,11 +31,10 @@ public class CopyBookConverterTest {
 
     @org.junit.Test
     public void testMultiFileConversion() throws Exception {
-        File basePath = new File(this.getClass().getResource("../../../").toURI());
+        File basePath = new File(this.getClass().getResource("../../../../").toURI());
 
         CopyBookConverter converter = new CopyBookConverter();
         converter.convertFiles(basePath.getAbsolutePath(), Pattern.compile("\\.txt$"), basePath.getAbsolutePath(), "mypackage", "none", "UTF-8", "nested");
-        //String convertedJavaSource = converter.convert(new File("../../../*.txt"), "mypackage", "MyHospital", "none", "UTF-8");
     }
 
     private List<String> CompileGeneratedSource(List<String> convertedJavaSources) throws Exception {

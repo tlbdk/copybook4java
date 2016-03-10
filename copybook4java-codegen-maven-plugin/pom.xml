@@ -142,18 +142,6 @@
                 </includes>
             </resource>
         </resources>
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-            </testResource>
-            <testResource>
-                <directory>../</directory>
-                <targetPath>dk/nversion/copybook/codegen</targetPath>
-                <includes>
-                    <include>classconverter.html</include>
-                </includes>
-            </testResource>
-        </testResources>
     </build>
 
     <profiles>
