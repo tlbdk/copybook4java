@@ -168,7 +168,7 @@
                 }
             });
 
-            if(types < 2) {
+            if(level > 0 && types < 2) {
                 fields.forEach(function(field, i) {
                     parent["name"] = parent["name"] + "." + field["name"];
                     parent["lines"] = parent["lines"].concat(field["lines"]);
@@ -181,7 +181,7 @@
         })(fields, fields, 0);
 
         // Move everything up one level when we only have one field in the root
-        if(fields.length === 1 && !fields.type) {
+        if(fields.length === 1 && !fields[0].type) {
             if(!rootClassName) {
                 rootClassName = toCapitalCase(toCamelCase(fields[0]["name"].replace(".", "_")));
             }
