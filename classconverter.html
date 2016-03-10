@@ -197,12 +197,6 @@
             var currentClass = "";
             var subclasses = "";
 
-            if(packageName && (subclass !== "nested" || level === 0)) {
-                currentClass = "package " + packageName + ";\n\n"
-                        + "import dk.nversion.copybook.annotations.CopyBook;\n"
-                        + "import dk.nversion.copybook.annotations.CopyBookLine;\n\n";
-            }
-
             currentClass += " ".repeat(level * indentation) + "@CopyBook(" + (charset ? "charset = \""+ charset +"\"" : "") + ")\n";
             currentClass += " ".repeat(level * indentation)
                     + (accessor === "lombokdata" ? "@Data " : "")
@@ -265,6 +259,17 @@
 
             return "";
         })(rootClassName, fields, 4, 0);
+        
+        if(packageName) {
+            classes = classes.map(function(currentClass, index) {
+                var header = "package " + packageName + ";\n\n"
+                        + "import dk.nversion.copybook.annotations.CopyBook;\n"
+                        + "import dk.nversion.copybook.annotations.CopyBookLine;\n";
+                header += (currentClass.indexOf("BigInteger") > 0 ? "import java.math.BigInteger;\n" : "");
+                header += (currentClass.indexOf("BigDecimal") > 0 ? "import java.math.BigDecimal;\n" : "");
+                return header + "\n" + currentClass;
+            });
+        }
 
         return classes;
     }
