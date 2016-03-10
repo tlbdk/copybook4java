@@ -56,6 +56,7 @@
                     <option value="getset">Getter/setter</option>
                     <option value="public">Public</option>
                     <option value="package">Package</option>
+                    <option value="getsetbuilder">Getter/setter & Builder</option>
                     <option value="publicbuilder">Public & Builder</option>
                     <option value="packagebuilder">Package & Builder</option>
                     <option value="lombokdata">Lombok Data</option>
@@ -240,7 +241,7 @@
 
                     currentClass += " ".repeat(level * indentation + indentation) + "public " + (accessor.match(/builder$/) ? rootClassName : "void") +" set" + toCapitalCase(java_name) + "(" + java_type + " " + java_name + ") {\n";
                     currentClass += " ".repeat(level * indentation + indentation * 2) + "this." + java_name + " = " + java_name + ";\n";
-                    currentClass += (accessor.match(/builder$/) ? java_type : "void") ? " ".repeat(level * indentation + indentation * 2) + "return this;\n" : "";
+                    currentClass += accessor.match(/builder$/) ? (" ".repeat(level * indentation + indentation * 2) + "return this;\n") : "";
                     currentClass += " ".repeat(level * indentation + indentation) + "}\n";
 
                     if(fields.length -1 > i) { currentClass += "\n"; }
