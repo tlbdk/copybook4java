@@ -81,9 +81,9 @@
             var last = [{ level: 0, fields: fields }];
             copybook.replace(/\*[^\n]*/g, '').match(/[\s\S]+?\.[\s\t]*\n/g).forEach(function(line, i) {
                 // Remove comments, newlines, extra space and trim
-                line = line.replace(/\s*\*[^\n]+\n/g, '').replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').replace(/^\s+/, '').replace(/\s+$/, '');
+                line = line.replace(/\s*\*[^\n]+\n/g, '').replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').replace(/^\s+/, '').replace(/\s+$/, '').toUpperCase();
 
-                if(match = line.match(/^\s*(\d+)\s+([^\s]+)((?:\s+OCCURS\s+\d+(?:\s+TO\s+\d+)?(?:\s+TIMES)?)|(?:\s+REDEFINES\s+[^\s]+))?(\s+PIC\s+[^\s]+)?(\s+DEPENDING\s+ON\s+[^\s]+(?:\s+IN\s+[^\s+]+)?)?\s*\.\s*$/)) {
+                if(match = line.match(/^\s*(\d+)\s+([^\s]+)((?:\s+OCCURS\s+\d+(?:\s+TO\s+\d+)?(?:\s+TIMES)?)|(?:\s+REDEFINES\s+[^\s]+))?(\s+PIC\s+[^\s]+)?(\s+DEPENDING\s+ON\s+[^\s]+(?:\s+IN\s+[^\s+]+)?)?\s*\.\s*$/i)) {
                     var level = parseInt(match[1]);
                     var name = match[2];
 
@@ -97,7 +97,7 @@
 
                     if (match[4] != undefined) {
                         if(pic_match = match[4].match(/^\s*PIC\s+(S)?(X+|9+)(?:\((\d+)\))?(?:V(9+)(?:\((\d+)\))?)?\s*$/)) {
-                            var signed = pic_match[1] !== undefined ? true : false;
+                            var signed = pic_match[1] !== undefined;
                             var main_type = pic_match[2];
                             var main_size = pic_match[3] !== undefined ? parseInt(pic_match[3]) : main_type.length;
                             var decimal_type = pic_match[4] !== undefined ?  match[4] : "";
