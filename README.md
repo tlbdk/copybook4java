@@ -125,7 +125,7 @@ Include dependencies and plugin in pom.xml, and place copybook definition files 
     <dependency>
         <groupId>dk.nversion</groupId>
         <artifactId>copybook4java-codegen-maven-plugin</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
     </dependency>
 </dependencies>
 ```
@@ -136,7 +136,7 @@ Include dependencies and plugin in pom.xml, and place copybook definition files 
         <plugin>
             <groupId>dk.nversion</groupId>
             <artifactId>copybook4java-codegen-maven-plugin</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
             <configuration>
                 <inputFilter>^.*\.txt$</inputFilter>
                 <inputPath>src/test/resources/</inputPath>
