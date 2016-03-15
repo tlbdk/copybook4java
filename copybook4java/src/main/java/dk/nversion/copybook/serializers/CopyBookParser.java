@@ -315,7 +315,7 @@ public class CopyBookParser {
             if(annotationType.isInstance(annotation)) {
                 results.add((T)annotation);
 
-            } else if (!annotation.annotationType().getName().startsWith("java")) {
+            } else if (annotation.annotationType().getAnnotation(annotationType) != null) {
                 results.addAll(getAnnotationsRecursively(annotation.annotationType(), annotationType));
             }
         }
