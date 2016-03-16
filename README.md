@@ -2,6 +2,8 @@
 [![Build Status](https://travis-ci.org/tlbdk/copybook4java.svg?branch=master)](https://travis-ci.org/tlbdk/copybook4java)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/5946/badge.svg)](https://scan.coverity.com/projects/tlbdk-copybook4java)
 
+**Project have been migrated to [https://github.com/NordeaOSS/copybook4java](https://github.com/NordeaOSS/copybook4java) and this version will not be maintained moving forward**
+
 CopyBook serializer and deserializer for Java where CopyBook lines are used to annotate a normal Java class.
 
 ## How to Use It
